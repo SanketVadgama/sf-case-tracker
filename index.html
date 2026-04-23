@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SF Case Tracker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f4f0;
+  --surface: #ffffff;
+  --surface2: #f0efe9;
+  --border: rgba(0,0,0,0.1);
+  --border2: rgba(0,0,0,0.18);
+  --text: #1a1a18;
+  --text2: #6b6b65;
+  --text3: #9b9b93;
+  --blue: #185FA5; --blue-bg: #E6F1FB; --blue-mid: #378ADD;
+  --green: #27500A; --green-bg: #EAF3DE;
+  --amber: #633806; --amber-bg: #FAEEDA; --amber-mid: #EF9F27;
+  --red: #791F1F; --red-bg: #FCEBEB; --red-mid: #E24B4A;
+  --purple: #3C3489; --purple-bg: #EEEDFE;
+  --coral: #712B13; --coral-bg: #FAECE7;
+  --teal: #085041; --teal-bg: #E1F5EE;
+  --gray: #444441; --gray-bg: #F1EFE8;
+  --radius: 8px; --radius-lg: 12px;
+  --font: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+[data-theme="dark"] {
+  --bg: #1a1a18; --surface: #242422; --surface2: #2e2e2b;
+  --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.18);
+  --text: #f0efe9; --text2: #a0a09a; --text3: #6b6b65;
+  --blue-bg: #0c2d4a; --green-bg: #162807; --amber-bg: #2e1c04;
+  --red-bg: #2e0f0f; --purple-bg: #1e1c42; --coral-bg: #2e1208;
+  --teal-bg: #042018; --gray-bg: #242422;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;transition:background 0.2s,color 0.2s}
+a{color:var(--blue-mid);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* Layout */
+.app{max-width:1100px;margin:0 auto;padding:24px 20px}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:32px;height:32px;background:var(--blue-mid);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:18px;height:18px;fill:white}
+.logo h1{font-size:17px;font-weight:500;color:var(--text)}
+.logo span{font-size:12px;color:var(--text3);margin-left:2px}
+.topbar-right{display:flex;gap:8px;align-items:center}
+
+/* Tabs */
+.tab-bar{display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid var(--border);background:transparent}
+.tab{font-size:13px;font-family:var(--font);padding:9px 18px;cursor:pointer;color:var(--text2);border:none;border-bottom:2px solid transparent;background:transparent;transition:color 0.15s;margin-bottom:-1px}
+.tab.active{color:var(--text);border-bottom:2px solid var(--blue-mid);font-weight:500}
+.tab:hover{color:var(--text)}
+.section{display:none}.section.active{display:block}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:10px;margin-bottom:16px}
+.stat{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;box-shadow:var(--shadow)}
+.stat-label{font-size:11px;color:var(--text3);margin-bottom:5px;font-weight:500;text-transform:uppercase;letter-spacing:0.04em}
+.stat-num{font-size:24px;font-weight:500}
+
+/* Overdue alert */
+.overdue-bar{background:var(--red-bg);border:0.5px solid #F09595;border-radius:var(--radius);padding:10px 14px;margin-bottom:16px;display:flex;align-items:flex-start;gap:10px;font-size:12px;color:var(--red);line-height:1.5}
+.overdue-dot{width:8px;height:8px;border-radius:50%;background:var(--red-mid);flex-shrink:0;margin-top:3px}
+
+/* Charts */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.chart-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow)}
+.chart-card h3{font-size:11px;font-weight:500;color:var(--text2);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.05em}
+
+/* Controls */
+.controls{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.controls input,.controls select,input,select,textarea{
+  font-family:var(--font);font-size:13px;color:var(--text);
+  background:var(--surface);border:0.5px solid var(--border2);
+  border-radius:var(--radius);padding:6px 10px;outline:none;
+  transition:border 0.15s;
+}
+.controls input{flex:1;min-width:140px;height:32px}
+.controls select{height:32px}
+input:focus,select:focus,textarea:focus{border-color:var(--blue-mid);box-shadow:0 0 0 2px rgba(55,138,221,0.15)}
+input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--blue-mid)}
+input[type=date]{height:32px}
+
+/* Buttons */
+.btn{font-family:var(--font);font-size:12px;padding:6px 13px;height:32px;border-radius:var(--radius);cursor:pointer;border:0.5px solid var(--border2);background:var(--surface);color:var(--text);transition:background 0.15s,opacity 0.15s;white-space:nowrap}
+.btn:hover{background:var(--surface2)}
+.btn:active{opacity:0.8}
+.btn-primary{background:var(--blue-bg);color:var(--blue);border-color:#85B7EB}
+.btn-primary:hover{background:#B5D4F4}
+.btn-add{background:var(--blue-mid);color:white;border-color:var(--blue-mid);font-size:13px;padding:6px 15px}
+.btn-add:hover{background:var(--blue);color:white}
+.btn-danger{background:var(--red-bg);color:var(--red);border-color:#F09595}
+
+/* Bulk bar */
+.bulk-bar{display:none;align-items:center;gap:8px;padding:8px 12px;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius);margin-bottom:10px;font-size:12px;color:var(--text2)}
+.bulk-bar.show{display:flex}
+.bulk-bar select{height:28px;font-size:12px;padding:3px 8px}
+
+/* Table */
+.tbl-wrap{overflow-x:auto;border:0.5px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:12px}
+thead th{background:var(--surface2);padding:8px 10px;text-align:left;font-weight:500;font-size:11px;color:var(--text2);border-bottom:0.5px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none;text-transform:uppercase;letter-spacing:0.03em}
+thead th:hover{color:var(--text)}
+thead th.no-sort{cursor:default}
+tbody tr{border-bottom:0.5px solid var(--border);transition:background 0.1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+tbody tr.overdue-row td{background:var(--red-bg)}
+tbody tr.overdue-row:hover td{background:#F7C1C1}
+tbody td{padding:8px 10px;color:var(--text);vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sort-arrow{font-size:9px;margin-left:2px;opacity:0.6}
+
+/* Badges */
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap;font-family:var(--font)}
+.s-open{background:var(--blue-bg);color:var(--blue)}
+.s-inprogress{background:var(--amber-bg);color:var(--amber)}
+.s-closed{background:var(--green-bg);color:var(--green)}
+.s-pending{background:var(--purple-bg);color:var(--purple)}
+.p-critical{background:var(--red-bg);color:var(--red)}
+.p-high{background:var(--coral-bg);color:var(--coral)}
+.p-medium{background:var(--amber-bg);color:var(--amber)}
+.p-low{background:var(--green-bg);color:var(--green)}
+.t-bug{background:var(--coral-bg);color:var(--coral)}
+.t-feature{background:var(--teal-bg);color:var(--teal)}
+.t-query{background:var(--gray-bg);color:var(--gray)}
+.t-config{background:var(--purple-bg);color:var(--purple)}
+
+/* Act buttons */
+.act-btn{font-size:10px;padding:2px 7px;border-radius:6px;cursor:pointer;margin-right:2px;background:transparent;border:0.5px solid var(--border2);color:var(--text2);font-family:var(--font);transition:background 0.1s}
+.act-btn:hover{background:var(--surface2)}
+.act-btn.del:hover{background:var(--red-bg);color:var(--red);border-color:#F09595}
+
+/* Empty */
+.empty{text-align:center;padding:3rem;color:var(--text3);font-size:13px}
+
+/* Count */
+.count-label{font-size:11px;color:var(--text3);margin-top:8px}
+
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;width:100%;max-width:540px;box-shadow:0 8px 32px rgba(0,0,0,0.12)}
+.modal h3{font-size:16px;font-weight:500;margin-bottom:1.25rem;color:var(--text)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg.full{grid-column:1/-1}
+.fg label{font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.04em}
+.fg input,.fg select,.fg textarea{font-size:13px}
+.fg textarea{resize:vertical;min-height:70px;padding:8px 10px;line-height:1.5}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;padding-top:4px}
+
+/* Reports */
+.report-wrap{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;box-shadow:var(--shadow)}
+.report-wrap h3{font-size:14px;font-weight:500;color:var(--text);margin-bottom:1rem}
+.report-controls{display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap;align-items:center}
+.report-controls select{height:32px;font-size:13px}
+.r-section-title{font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin:16px 0 6px}
+.r-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border)}
+.r-row:last-child{border-bottom:none}
+.r-label{font-size:13px;color:var(--text2)}
+.r-val{font-size:13px;font-weight:500;color:var(--text)}
+.r-overdue{color:var(--red)}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:#1a1a18;color:#f0efe9;font-size:12px;padding:10px 18px;border-radius:var(--radius);opacity:0;transform:translateY(8px);transition:opacity 0.25s,transform 0.25s;pointer-events:none;z-index:999;font-family:var(--font)}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* Theme toggle */
+.theme-btn{width:32px;height:32px;border-radius:var(--radius);border:0.5px solid var(--border2);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:background 0.15s}
+.theme-btn:hover{background:var(--surface2)}
+
+/* Notes tooltip */
+.notes-cell{cursor:pointer;color:var(--blue-mid);font-size:11px}
+
+/* Responsive */
+@media(max-width:600px){
+  .charts-row{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+  .fg.full{grid-column:1}
+  .topbar{flex-direction:column;align-items:flex-start}
+}
+
+@media print{
+  .tab-bar,.controls,.topbar-right,.act-btn,.bulk-bar,.modal-bg{display:none!important}
+  .app{padding:0}
+  body{background:white}
+  .chart-card,.report-wrap{box-shadow:none;border:1px solid #ddd}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+      </div>
+      <div>
+        <h1>SF Case Tracker</h1>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span id="today-label" style="font-size:12px;color:var(--text3)"></span>
+      <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" title="Toggle dark mode">🌙</button>
+      <button class="btn" onclick="exportCSV()">Export CSV</button>
+      <button class="btn btn-add" onclick="openModal()">+ Add case</button>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('dashboard',this)">Dashboard</button>
+    <button class="tab" onclick="switchTab('cases',this)">All cases</button>
+    <button class="tab" onclick="switchTab('reports',this)">Reports</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="tab-dashboard" class="section active">
+    <div class="stats-grid" id="stats"></div>
+    <div id="overdue-alert" style="display:none" class="overdue-bar">
+      <div class="overdue-dot"></div>
+      <span id="overdue-msg"></span>
+    </div>
+    <div class="charts-row">
+      <div class="chart-card"><h3>Cases by status</h3><canvas id="chart-status" height="170"></canvas></div>
+      <div class="chart-card"><h3>Cases by priority</h3><canvas id="chart-priority" height="170"></canvas></div>
+    </div>
+    <div class="chart-card" style="margin-bottom:8px">
+      <h3>Cases opened — last 14 days</h3>
+      <canvas id="chart-timeline" height="110"></canvas>
+    </div>
+  </div>
+
+  <!-- CASES -->
+  <div id="tab-cases" class="section">
+    <div class="controls">
+      <input type="text" id="search" placeholder="Search by case name or number..." oninput="renderTable()">
+      <select id="f-status" onchange="renderTable()"><option value="">All statuses</option><option>Open</option><option>In progress</option><option>Pending</option><option>Closed</option></select>
+      <select id="f-priority" onchange="renderTable()"><option value="">All priorities</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
+      <select id="f-type" onchange="renderTable()"><option value="">All types</option><option>Bug</option><option>Feature</option><option>Query</option><option>Config</option></select>
+      <select id="f-assignee" onchange="renderTable()"><option value="">All assignees</option></select>
+    </div>
+    <div class="bulk-bar" id="bulk-bar">
+      <span id="bulk-label">0 selected</span>
+      <select id="bulk-status" style="font-size:12px;padding:3px 8px;height:28px">
+        <option value="">Change status to...</option>
+        <option>Open</option><option>In progress</option><option>Pending</option><option>Closed</option>
+      </select>
+      <button class="btn btn-primary" style="height:28px;padding:3px 10px;font-size:12px" onclick="applyBulk()">Apply</button>
+      <button class="btn" style="height:28px;padding:3px 10px;font-size:12px" onclick="clearSelection()">Clear</button>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="no-sort" style="width:32px"><input type="checkbox" id="chk-all" onchange="toggleAll(this)"></th>
+            <th style="width:88px" onclick="sortBy('number')">Case no <span class="sort-arrow" id="s-number"></span></th>
+            <th style="width:145px" onclick="sortBy('name')">Name <span class="sort-arrow" id="s-name"></span></th>
+            <th style="width:70px" onclick="sortBy('type')">Type <span class="sort-arrow" id="s-type"></span></th>
+            <th style="width:78px" onclick="sortBy('status')">Status <span class="sort-arrow" id="s-status"></span></th>
+            <th style="width:74px" onclick="sortBy('priority')">Priority <span class="sort-arrow" id="s-priority"></span></th>
+            <th style="width:85px" onclick="sortBy('assignee')">Assignee <span class="sort-arrow" id="s-assignee"></span></th>
+            <th style="width:74px" onclick="sortBy('start')">Start <span class="sort-arrow" id="s-start"></span></th>
+            <th style="width:74px" onclick="sortBy('end')">Done <span class="sort-arrow" id="s-end"></span></th>
+            <th style="width:44px" onclick="sortBy('banners')">Ban. <span class="sort-arrow" id="s-banners"></span></th>
+            <th style="width:60px" class="no-sort">Notes</th>
+            <th style="width:85px" class="no-sort">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div id="empty" class="empty" style="display:none">No cases found. Add your first case using the button above.</div>
+    <div class="count-label" id="count-label"></div>
+  </div>
+
+  <!-- REPORTS -->
+  <div id="tab-reports" class="section">
+    <div class="report-wrap">
+      <h3>Case report</h3>
+      <div class="report-controls">
+        <select id="report-range" onchange="renderReport()">
+          <option value="daily">Daily — today</option>
+          <option value="weekly">Weekly — last 7 days</option>
+          <option value="monthly">Monthly — last 30 days</option>
+          <option value="all">All time</option>
+        </select>
+        <button class="btn" onclick="window.print()">Print / Save as PDF</button>
+      </div>
+      <div id="report-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg" onclick="handleModalBgClick(event)">
+  <div class="modal">
+    <h3 id="modal-title">Add new case</h3>
+    <div class="form-grid">
+      <div class="fg"><label>Case number</label><input type="text" id="f-number" placeholder="e.g. 00123456"></div>
+      <div class="fg"><label>Banner count</label><input type="number" id="f-banners" placeholder="0" min="0"></div>
+      <div class="fg full"><label>Case name *</label><input type="text" id="f-name" placeholder="Short description of the case"></div>
+      <div class="fg full"><label>Case URL</label><input type="text" id="f-url" placeholder="https://...salesforce.com/..."></div>
+      <div class="fg"><label>Case type</label>
+        <select id="f-type-modal"><option>Bug</option><option>Feature</option><option>Query</option><option>Config</option></select>
+      </div>
+      <div class="fg"><label>Priority</label>
+        <select id="f-priority-modal"><option>Low</option><option>Medium</option><option>High</option><option>Critical</option></select>
+      </div>
+      <div class="fg"><label>Status</label>
+        <select id="f-status-modal"><option>Open</option><option>In progress</option><option>Pending</option><option>Closed</option></select>
+      </div>
+      <div class="fg"><label>Assignee</label><input type="text" id="f-assignee-modal" placeholder="Name"></div>
+      <div class="fg"><label>Start date</label><input type="date" id="f-start"></div>
+      <div class="fg"><label>Completion date</label><input type="date" id="f-end"></div>
+      <div class="fg full"><label>Notes</label><textarea id="f-notes" placeholder="Any additional context, links, or notes..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" style="font-size:13px;padding:6px 18px" onclick="saveCase()">Save case</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORE = 'sf_cases_v3';
+let cases = [], editId = null, sortKey = 'start', sortDir = -1, selected = new Set();
+let cStatus = null, cPriority = null, cTimeline = null;
+
+function load() {
+  try { const d = localStorage.getItem(STORE); if (d) cases = JSON.parse(d); } catch(e) {}
+  updateAssigneeFilter();
+  renderAll();
+  document.getElementById('today-label').textContent = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  const theme = localStorage.getItem('sf_theme');
+  if (theme === 'dark') { document.documentElement.setAttribute('data-theme','dark'); document.getElementById('theme-btn').textContent = '☀️'; }
+}
+
+function save() {
+  try { localStorage.setItem(STORE, JSON.stringify(cases)); } catch(e) {}
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
+  document.getElementById('theme-btn').textContent = isDark ? '🌙' : '☀️';
+  localStorage.setItem('sf_theme', isDark ? 'light' : 'dark');
+  renderCharts();
+}
+
+function switchTab(name, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  el.classList.add('active');
+  if (name === 'dashboard') renderCharts();
+  if (name === 'reports') renderReport();
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  const p = d.split('-');
+  return p[2] + '/' + p[1] + '/' + p[0].slice(2);
+}
+
+function daysSince(d) {
+  if (!d) return null;
+  return Math.floor((new Date() - new Date(d)) / 86400000);
+}
+
+function isOverdue(c) {
+  return ['Open','In progress','Pending'].includes(c.status) && c.start && daysSince(c.start) > 7;
+}
+
+function bStatus(s) {
+  const m = {'Open':'s-open','In progress':'s-inprogress','Closed':'s-closed','Pending':'s-pending'};
+  return `<span class="badge ${m[s]||'s-open'}">${s}</span>`;
+}
+function bPriority(p) {
+  const m = {'Critical':'p-critical','High':'p-high','Medium':'p-medium','Low':'p-low'};
+  return `<span class="badge ${m[p]||'p-low'}">${p||'Low'}</span>`;
+}
+function bType(t) {
+  const m = {'Bug':'t-bug','Feature':'t-feature','Query':'t-query','Config':'t-config'};
+  return `<span class="badge ${m[t]||'t-query'}">${t}</span>`;
+}
+
+function renderAll() { renderStats(); renderOverdue(); renderTable(); renderCharts(); }
+
+function renderStats() {
+  const total = cases.length;
+  const open = cases.filter(c => c.status === 'Open').length;
+  const inp = cases.filter(c => c.status === 'In progress').length;
+  const closed = cases.filter(c => c.status === 'Closed').length;
+  const pending = cases.filter(c => c.status === 'Pending').length;
+  const overdue = cases.filter(isOverdue).length;
+  const banners = cases.reduce((s,c) => s + (parseInt(c.banners)||0), 0);
+  const resolved = cases.filter(c => c.status === 'Closed' && c.start && c.end);
+  const avgRes = resolved.length ? Math.round(resolved.reduce((s,c) => s + (new Date(c.end) - new Date(c.start)) / 86400000, 0) / resolved.length) : null;
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="stat-label">Total</div><div class="stat-num">${total}</div></div>
+    <div class="stat"><div class="stat-label">Open</div><div class="stat-num" style="color:var(--blue)">${open}</div></div>
+    <div class="stat"><div class="stat-label">In progress</div><div class="stat-num" style="color:var(--amber-mid)">${inp}</div></div>
+    <div class="stat"><div class="stat-label">Pending</div><div class="stat-num" style="color:var(--purple)">${pending}</div></div>
+    <div class="stat"><div class="stat-label">Closed</div><div class="stat-num" style="color:var(--green)">${closed}</div></div>
+    <div class="stat"><div class="stat-label">Overdue</div><div class="stat-num" style="color:var(--red)">${overdue}</div></div>
+    <div class="stat"><div class="stat-label">Total banners</div><div class="stat-num">${banners}</div></div>
+    <div class="stat"><div class="stat-label">Avg resolution</div><div class="stat-num" style="font-size:18px">${avgRes !== null ? avgRes + 'd' : '—'}</div></div>
+  `;
+}
+
+function renderOverdue() {
+  const od = cases.filter(isOverdue);
+  const el = document.getElementById('overdue-alert');
+  if (od.length) {
+    el.style.display = 'flex';
+    document.getElementById('overdue-msg').innerHTML = `<strong>${od.length} case${od.length > 1 ? 's' : ''} overdue</strong> (open for 7+ days): ${od.map(c => (c.number || c.name)).join(', ')}`;
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+function renderTable() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const fs = document.getElementById('f-status').value;
+  const fp = document.getElementById('f-priority').value;
+  const ft = document.getElementById('f-type').value;
+  const fa = document.getElementById('f-assignee').value;
+  let list = cases.filter(c =>
+    (!q || (c.name||'').toLowerCase().includes(q) || (c.number||'').toLowerCase().includes(q)) &&
+    (!fs || c.status === fs) && (!fp || c.priority === fp) &&
+    (!ft || c.type === ft) && (!fa || c.assignee === fa)
+  );
+  list.sort((a,b) => {
+    let av = a[sortKey]||'', bv = b[sortKey]||'';
+    if (sortKey === 'banners') { av = parseInt(av)||0; bv = parseInt(bv)||0; }
+    return av < bv ? -sortDir : av > bv ? sortDir : 0;
+  });
+  const tbody = document.getElementById('tbody');
+  document.getElementById('empty').style.display = list.length ? 'none' : 'block';
+  document.getElementById('count-label').textContent = list.length ? `Showing ${list.length} of ${cases.length} cases` : '';
+  tbody.innerHTML = list.map(c => `
+    <tr class="${isOverdue(c) ? 'overdue-row' : ''}">
+      <td><input type="checkbox" class="row-chk" data-id="${c.id}" onchange="toggleRow('${c.id}',this)" ${selected.has(c.id) ? 'checked' : ''}></td>
+      <td style="font-family:var(--mono);font-size:10px;color:var(--text2)">${c.number||'—'}</td>
+      <td title="${c.name||''}">${c.url ? `<a href="${c.url}" target="_blank">${c.name||'—'}</a>` : (c.name||'—')}</td>
+      <td>${bType(c.type)}</td>
+      <td>${bStatus(c.status)}</td>
+      <td>${bPriority(c.priority)}</td>
+      <td style="font-size:11px;color:var(--text2)" title="${c.assignee||''}">${c.assignee||'—'}</td>
+      <td style="font-size:11px">${fmtDate(c.start)}</td>
+      <td style="font-size:11px">${fmtDate(c.end)}</td>
+      <td style="text-align:center;font-weight:500">${c.banners||0}</td>
+      <td>${c.notes ? `<span class="notes-cell" title="${c.notes.replace(/"/g,'&quot;')}">View</span>` : '<span style="color:var(--text3)">—</span>'}</td>
+      <td>
+        <button class="act-btn" onclick="openModal('${c.id}')">Edit</button>
+        <button class="act-btn del" onclick="deleteCase('${c.id}')">Del</button>
+      </td>
+    </tr>`).join('');
+  updateBulkBar(); updateSortArrows();
+}
+
+function renderCharts() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  const tickColor = isDark ? '#6b6b65' : '#9b9b93';
+  Chart.defaults.color = tickColor;
+
+  const sc = {Open:0,'In progress':0,Pending:0,Closed:0};
+  const pc = {Critical:0,High:0,Medium:0,Low:0};
+  cases.forEach(c => { if(sc[c.status]!==undefined)sc[c.status]++; if(pc[c.priority]!==undefined)pc[c.priority]++; });
+
+  const days=[], counts=[];
+  for(let i=13;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const ds=d.toISOString().slice(0,10);
+    days.push(i===0?'Today':d.toLocaleDateString('en-IN',{day:'numeric',month:'short'}));
+    counts.push(cases.filter(c=>c.start===ds).length);
+  }
+
+  if(cStatus) cStatus.destroy();
+  cStatus = new Chart(document.getElementById('chart-status'),{
+    type:'doughnut',
+    data:{labels:Object.keys(sc),datasets:[{data:Object.values(sc),backgroundColor:['#378ADD','#EF9F27','#7F77DD','#639922'],borderWidth:0,hoverOffset:4}]},
+    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:10,usePointStyle:true}}},cutout:'65%'}
+  });
+  if(cPriority) cPriority.destroy();
+  cPriority = new Chart(document.getElementById('chart-priority'),{
+    type:'doughnut',
+    data:{labels:Object.keys(pc),datasets:[{data:Object.values(pc),backgroundColor:['#E24B4A','#D85A30','#EF9F27','#639922'],borderWidth:0,hoverOffset:4}]},
+    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:10,usePointStyle:true}}},cutout:'65%'}
+  });
+  if(cTimeline) cTimeline.destroy();
+  cTimeline = new Chart(document.getElementById('chart-timeline'),{
+    type:'bar',
+    data:{labels:days,datasets:[{data:counts,backgroundColor:'#85B7EB',borderRadius:5,hoverBackgroundColor:'#378ADD'}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{
+      y:{beginAtZero:true,ticks:{stepSize:1,font:{size:11}},grid:{color:gridColor}},
+      x:{ticks:{font:{size:10},maxRotation:45},grid:{display:false}}
+    }}
+  });
+}
+
+function renderReport() {
+  const range = document.getElementById('report-range').value;
+  const now = new Date();
+  let from = null;
+  if(range==='daily') from = new Date(now.toDateString());
+  else if(range==='weekly') from = new Date(now - 7*864e5);
+  else if(range==='monthly') from = new Date(now - 30*864e5);
+
+  const inRange = c => {
+    if(!from) return true;
+    return (c.start && new Date(c.start) >= from) || (c.end && new Date(c.end) >= from);
+  };
+  const filtered = cases.filter(inRange);
+  const opened = cases.filter(c => c.start && (from ? new Date(c.start) >= from : true));
+  const closed = cases.filter(c => c.status==='Closed' && c.end && (from ? new Date(c.end) >= from : true));
+  const overdue = cases.filter(isOverdue);
+  const bt={Bug:0,Feature:0,Query:0,Config:0}, bp={Critical:0,High:0,Medium:0,Low:0};
+  filtered.forEach(c=>{if(bt[c.type]!==undefined)bt[c.type]++;if(bp[c.priority]!==undefined)bp[c.priority]++;});
+  const labels = {daily:'Today',weekly:'Last 7 days',monthly:'Last 30 days',all:'All time'};
+
+  document.getElementById('report-body').innerHTML = `
+    <div class="r-section-title">Period: ${labels[range]} · Generated ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}</div>
+    <div class="r-row"><span class="r-label">Cases in period</span><span class="r-val">${filtered.length}</span></div>
+    <div class="r-row"><span class="r-label">Opened</span><span class="r-val">${opened.length}</span></div>
+    <div class="r-row"><span class="r-label">Closed</span><span class="r-val">${closed.length}</span></div>
+    <div class="r-row"><span class="r-label">Currently overdue (7+ days open)</span><span class="r-val r-overdue">${overdue.length}</span></div>
+    <div class="r-section-title">Breakdown by type</div>
+    ${Object.entries(bt).map(([k,v])=>`<div class="r-row"><span class="r-label">${k}</span><span class="r-val">${v}</span></div>`).join('')}
+    <div class="r-section-title">Breakdown by priority</div>
+    ${Object.entries(bp).map(([k,v])=>`<div class="r-row"><span class="r-label">${k}</span><span class="r-val">${v}</span></div>`).join('')}
+    ${overdue.length ? `<div class="r-section-title">Overdue case details</div>${overdue.map(c=>`<div class="r-row"><span class="r-label">${c.number||'—'} — ${c.name}</span><span class="r-val r-overdue">${daysSince(c.start)}d old</span></div>`).join('')}` : ''}
+  `;
+}
+
+function exportCSV() {
+  if(!cases.length){toast('No cases to export');return;}
+  const h = ['Case Number','Case Name','Type','Status','Priority','Assignee','Start Date','Completion Date','Banners','URL','Notes'];
+  const rows = cases.map(c => [c.number,c.name,c.type,c.status,c.priority,c.assignee,c.start,c.end,c.banners,c.url,c.notes].map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`));
+  const csv = [h,...rows].map(r=>r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'sf_cases_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  toast('CSV exported!');
+}
+
+function sortBy(key) {
+  if(sortKey===key) sortDir*=-1; else {sortKey=key;sortDir=1;}
+  renderTable();
+}
+function updateSortArrows() {
+  ['number','name','type','status','priority','assignee','start','end','banners'].forEach(k=>{
+    const el=document.getElementById('s-'+k);
+    if(el) el.textContent = sortKey===k ? (sortDir===1?'▲':'▼') : '';
+  });
+}
+
+function toggleAll(chk) {
+  document.querySelectorAll('.row-chk').forEach(b=>{
+    const id=b.dataset.id;
+    chk.checked ? selected.add(id) : selected.delete(id);
+    b.checked = chk.checked;
+  });
+  updateBulkBar();
+}
+function toggleRow(id, chk) {
+  chk.checked ? selected.add(id) : selected.delete(id);
+  updateBulkBar();
+}
+function updateBulkBar() {
+  const bar = document.getElementById('bulk-bar');
+  bar.classList.toggle('show', selected.size > 0);
+  document.getElementById('bulk-label').textContent = `${selected.size} selected`;
+}
+function clearSelection() {
+  selected.clear();
+  document.querySelectorAll('.row-chk').forEach(b=>b.checked=false);
+  document.getElementById('chk-all').checked=false;
+  updateBulkBar();
+}
+function applyBulk() {
+  const ns = document.getElementById('bulk-status').value;
+  if(!ns){toast('Select a status first');return;}
+  const count = selected.size;
+  selected.forEach(id=>{const c=cases.find(x=>x.id===id);if(c)c.status=ns;});
+  save(); clearSelection(); renderAll();
+  toast(`Updated ${count} case${count>1?'s':''} to "${ns}"`);
+}
+
+function updateAssigneeFilter() {
+  const sel = document.getElementById('f-assignee');
+  const assignees = [...new Set(cases.map(c=>c.assignee).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">All assignees</option>' + assignees.map(a=>`<option>${a}</option>`).join('');
+}
+
+function openModal(id) {
+  editId = id || null;
+  document.getElementById('modal-title').textContent = id ? 'Edit case' : 'Add new case';
+  if(id) {
+    const c = cases.find(x=>x.id===id);
+    document.getElementById('f-number').value = c.number||'';
+    document.getElementById('f-name').value = c.name||'';
+    document.getElementById('f-url').value = c.url||'';
+    document.getElementById('f-type-modal').value = c.type||'Bug';
+    document.getElementById('f-status-modal').value = c.status||'Open';
+    document.getElementById('f-priority-modal').value = c.priority||'Medium';
+    document.getElementById('f-assignee-modal').value = c.assignee||'';
+    document.getElementById('f-start').value = c.start||'';
+    document.getElementById('f-end').value = c.end||'';
+    document.getElementById('f-banners').value = c.banners||0;
+    document.getElementById('f-notes').value = c.notes||'';
+  } else {
+    ['f-number','f-name','f-url','f-start','f-end','f-notes','f-assignee-modal'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('f-type-modal').value='Bug';
+    document.getElementById('f-status-modal').value='Open';
+    document.getElementById('f-priority-modal').value='Medium';
+    document.getElementById('f-banners').value=0;
+  }
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modal-bg').classList.remove('open'); editId=null; }
+function handleModalBgClick(e) { if(e.target===document.getElementById('modal-bg')) closeModal(); }
+
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+
+function saveCase() {
+  const name = document.getElementById('f-name').value.trim();
+  if(!name){toast('Case name is required');return;}
+  const c = {
+    id: editId || Date.now().toString(),
+    number: document.getElementById('f-number').value.trim(),
+    name,
+    url: document.getElementById('f-url').value.trim(),
+    type: document.getElementById('f-type-modal').value,
+    status: document.getElementById('f-status-modal').value,
+    priority: document.getElementById('f-priority-modal').value,
+    assignee: document.getElementById('f-assignee-modal').value.trim(),
+    start: document.getElementById('f-start').value,
+    end: document.getElementById('f-end').value,
+    banners: parseInt(document.getElementById('f-banners').value)||0,
+    notes: document.getElementById('f-notes').value.trim()
+  };
+  if(editId){const idx=cases.findIndex(x=>x.id===editId);cases[idx]=c;}
+  else cases.push(c);
+  save(); updateAssigneeFilter(); closeModal(); renderAll();
+  toast(editId ? 'Case updated!' : 'Case added!');
+}
+
+function deleteCase(id) {
+  if(!confirm('Delete this case? This cannot be undone.')) return;
+  cases = cases.filter(c=>c.id!==id);
+  selected.delete(id);
+  save(); updateAssigneeFilter(); renderAll();
+  toast('Case deleted');
+}
+
+load();
+</script>
+</body>
+</html>
