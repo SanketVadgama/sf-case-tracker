@@ -6,527 +6,547 @@
 <title>SF Case Tracker</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=Geist+Mono:wght@400;500&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* ── DESIGN TOKENS: BLACK & WHITE MINIMAL ── */
 :root {
-  --bg: #EDEBE4;
-  --sidebar: #18181A;
-  --surface: #FAFAF8;
-  --surface2: #F0EEE7;
-  --surface3: #E5E2D8;
-  --border: rgba(0,0,0,0.07);
-  --border2: rgba(0,0,0,0.13);
-  --text: #18181A;
-  --text2: #5A5A60;
-  --text3: #9A9A9F;
-  --ink: #18181A;
-  --accent: #C94F1A;
-  --accent2: #E8793A;
-  --accent-bg: #FBF1EC;
-  --blue: #1A5FA8; --blue-bg: #E8F2FC; --blue-mid: #2E7DD4;
-  --green: #1A5C0A; --green-bg: #EAF5DE; --green-mid: #339918;
-  --amber: #7A4400; --amber-bg: #FFF3DC; --amber-mid: #E8A020;
-  --red: #8C1F1F; --red-bg: #FCEAEA; --red-mid: #D03838;
-  --purple: #3D2E9A; --purple-bg: #F0EEFF; --purple-mid: #6050D0;
-  --teal: #0A5548; --teal-bg: #E2F6F0; --teal-mid: #1A8C76;
-  --slate: #3A3A40; --slate-bg: #F0EFE9;
-  --font: 'Lato', sans-serif;
-  --font-display: 'Bricolage Grotesque', sans-serif;
+  --bg: #F4F4F4;
+  --sidebar: #111111;
+  --surface: #FFFFFF;
+  --surface2: #F8F8F8;
+  --surface3: #EFEFEF;
+  --border: #E4E4E4;
+  --border2: #CCCCCC;
+  --text: #111111;
+  --text2: #555555;
+  --text3: #999999;
+  --accent: #111111;
+  --accent-inv: #FFFFFF;
+  /* Status — minimal color only where needed */
+  --s-new:      #111111; --s-new-bg:    #F2F2F2;
+  --s-inp:      #1D4ED8; --s-inp-bg:    #EFF6FF;
+  --s-pyi:      #B45309; --s-pyi-bg:    #FFFBEB;
+  --s-pyc:      #6D28D9; --s-pyc-bg:    #F5F3FF;
+  --s-closed:   #15803D; --s-closed-bg: #F0FDF4;
+  /* Priority */
+  --p-critical: #DC2626; --p-critical-bg: #FEF2F2;
+  --p-high:     #EA580C; --p-high-bg:     #FFF7ED;
+  --p-medium:   #1D4ED8; --p-medium-bg:   #EFF6FF;
+  --p-low:      #15803D; --p-low-bg:      #F0FDF4;
+  /* Type */
+  --t-acm:  #1D4ED8; --t-acm-bg:  #EFF6FF;
+  --t-abm:  #B45309; --t-abm-bg:  #FFFBEB;
+  --t-lcm:  #15803D; --t-lcm-bg:  #F0FDF4;
+  --t-lbm:  #6D28D9; --t-lbm-bg:  #F5F3FF;
+  --font: 'Inter', sans-serif;
   --mono: 'Geist Mono', monospace;
-  --r: 10px; --r-lg: 16px; --r-xl: 22px;
-  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.05);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.05);
-  --sidebar-w: 220px;
-  --detail-w: 400px;
+  --r: 8px; --r-lg: 12px; --r-xl: 18px;
+  --sh: 0 1px 3px rgba(0,0,0,.07), 0 0 0 1px rgba(0,0,0,.05);
+  --sh-lg: 0 6px 24px rgba(0,0,0,.1), 0 0 0 1px rgba(0,0,0,.05);
+  --sidebar-w: 216px;
+  --detail-w: 380px;
+  --top-h: 52px;
   --ease: cubic-bezier(.4,0,.2,1);
 }
 [data-theme="dark"] {
-  --bg: #141416; --sidebar: #0E0E10;
-  --surface: #1C1C1E; --surface2: #232328; --surface3: #2C2C32;
-  --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.13);
-  --text: #F0F0EC; --text2: #9898A0; --text3: #5A5A62;
-  --accent-bg: #2A1810; --blue-bg: #0C2848; --green-bg: #0E2806;
-  --amber-bg: #2C1C04; --red-bg: #2A1010; --purple-bg: #1A1640;
-  --teal-bg: #051E18; --slate-bg: #232328;
+  --bg:#0D0D0D; --sidebar:#000000;
+  --surface:#161616; --surface2:#1E1E1E; --surface3:#282828;
+  --border:#2A2A2A; --border2:#3C3C3C;
+  --text:#F0F0F0; --text2:#A0A0A0; --text3:#606060;
+  --accent:#F0F0F0; --accent-inv:#111111;
+  --s-new-bg:#1E1E1E; --s-inp-bg:#0C1F4A; --s-pyi-bg:#2C1800;
+  --s-pyc-bg:#1A0E40; --s-closed-bg:#082010;
+  --p-critical-bg:#2C0A0A; --p-high-bg:#2C1400; --p-medium-bg:#0C1F4A; --p-low-bg:#082010;
+  --t-acm-bg:#0C1F4A; --t-abm-bg:#2C1800; --t-lcm-bg:#082010; --t-lbm-bg:#1A0E40;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden}
-body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;transition:background .2s,color .2s}
-a{color:var(--blue-mid);text-decoration:none}
-a:hover{text-decoration:underline}
-::-webkit-scrollbar{width:5px;height:5px}
+html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px}
+a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+a:hover{opacity:.65}
+::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
 
 /* ── SHELL ── */
 .shell{display:flex;height:100vh;overflow:hidden}
 
 /* ── SIDEBAR ── */
-.sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--sidebar);display:flex;flex-direction:column;padding:0;z-index:30;border-right:1px solid rgba(255,255,255,0.04)}
-.sb-logo{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;flex-shrink:0}
-.sb-mark{width:32px;height:32px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.sb-mark svg{width:17px;height:17px;fill:white}
-.sb-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:#F0F0EC;line-height:1.1}
-.sb-title small{font-size:10px;color:rgba(240,240,236,.35);font-weight:400;display:block;font-family:var(--font)}
-.sb-nav{padding:12px 10px;flex:1;overflow-y:auto}
-.sb-section{margin-bottom:18px}
-.sb-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(240,240,236,.28);padding:0 8px;margin-bottom:6px}
-.sb-item{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:8px;cursor:pointer;color:rgba(240,240,236,.45);font-size:12.5px;font-weight:500;transition:all .15s var(--ease);border:none;background:none;width:100%;font-family:var(--font);text-align:left}
-.sb-item:hover{color:rgba(240,240,236,.8);background:rgba(255,255,255,.05)}
-.sb-item.active{color:#F0F0EC;background:rgba(255,255,255,.09)}
-.sb-item svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.8}
-.sb-badge{margin-left:auto;font-size:10px;padding:1px 6px;border-radius:10px;background:rgba(201,79,26,.35);color:#F4936E;font-weight:700;font-family:var(--mono)}
-.sb-footer{padding:12px 10px;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0}
-.sb-date{font-size:10px;color:rgba(240,240,236,.28);padding:0 8px;margin-bottom:8px;font-family:var(--mono)}
+.sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--sidebar);display:flex;flex-direction:column}
+.sb-logo{padding:17px 15px 14px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:9px;flex-shrink:0}
+.sb-mark{width:30px;height:30px;background:#fff;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-mark svg{width:16px;height:16px;fill:#111}
+.sb-title{font-size:13px;font-weight:700;color:#fff;letter-spacing:-.01em;line-height:1.1}
+.sb-title small{font-size:9.5px;color:rgba(255,255,255,.3);font-weight:400;display:block;margin-top:1px}
+.sb-nav{padding:10px 8px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:1px}
+.sb-sep{height:1px;background:rgba(255,255,255,.07);margin:7px 4px}
+.sb-grp{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.22);padding:6px 8px 3px}
+.sb-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;cursor:pointer;color:rgba(255,255,255,.4);font-size:12.5px;font-weight:500;transition:all .12s;border:none;background:none;width:100%;font-family:var(--font);text-align:left}
+.sb-item:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.07)}
+.sb-item.active{color:#fff;background:rgba(255,255,255,.11)}
+.sb-item svg{width:14px;height:14px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.8}
+.sb-badge{margin-left:auto;font-size:9.5px;padding:1px 5px;border-radius:10px;background:rgba(255,255,255,.14);color:rgba(255,255,255,.65);font-weight:700;font-family:var(--mono)}
+.sb-footer{padding:8px 8px 12px;border-top:1px solid rgba(255,255,255,.07);flex-shrink:0}
+.sb-date{font-size:9.5px;color:rgba(255,255,255,.22);padding:0 8px;margin-bottom:6px;font-family:var(--mono)}
 
 /* ── MAIN ── */
 .main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
-.topbar{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;gap:12px}
-.topbar-title{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text)}
-.topbar-right{display:flex;gap:8px;align-items:center}
-.content{flex:1;overflow-y:auto;overflow-x:hidden}
-.pad{padding:20px 24px}
+.topbar{height:var(--top-h);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:var(--surface);border-bottom:1px solid var(--border);gap:12px}
+.topbar-title{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.01em}
+.topbar-right{display:flex;gap:7px;align-items:center}
 
-/* ── SECTIONS ── */
-.section{display:none}.section.active{display:block}
+/* Each section fills remaining height and scrolls independently */
+.section{display:none}
+.section.active{display:flex;flex-direction:column;height:calc(100vh - var(--top-h));overflow:hidden}
 
-/* ── BENTO GRID ── */
-.bento{display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:auto;gap:12px;padding:20px 24px}
-.b{background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;transition:box-shadow .15s}
-.b:hover{box-shadow:var(--shadow-lg)}
-.b-pad{padding:18px 20px}
-.b-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);margin-bottom:10px}
-.b-num{font-family:var(--font-display);font-size:36px;font-weight:700;line-height:1;color:var(--text)}
-.b-sub{font-size:11px;color:var(--text3);margin-top:5px}
+/* Scrollable content inside normal tabs */
+.tab-scroll{flex:1;overflow-y:auto;overflow-x:hidden}
+.pad{padding:20px 22px}
 
-/* Bento column spans */
-.c1{grid-column:span 1}.c2{grid-column:span 2}.c3{grid-column:span 3}.c4{grid-column:span 4}
-.c5{grid-column:span 5}.c6{grid-column:span 6}.c8{grid-column:span 8}.c12{grid-column:span 12}
-.c7{grid-column:span 7}.c9{grid-column:span 9}.c10{grid-column:span 10}
+/* Cases tab is special — horizontal flex for list + detail panel */
+#tab-cases.active{flex-direction:row}
+.cases-layout{display:flex;flex:1;overflow:hidden}
+.list-pane{flex:1;min-width:0;padding:20px 22px;overflow-y:auto}
 
-/* Stat bento cards */
-.stat-bento{display:flex;flex-direction:column;justify-content:space-between;padding:16px 18px;min-height:110px}
-.stat-bento .b-label{margin-bottom:auto}
-.stat-bento .b-num{margin-top:8px}
-.stat-accent{background:var(--accent);border-color:var(--accent)}
-.stat-accent .b-label,.stat-accent .b-num,.stat-accent .b-sub{color:white}
-.stat-blue{background:var(--blue-bg);border-color:rgba(46,125,212,.2)}
-.stat-blue .b-num{color:var(--blue)}
-.stat-amber{background:var(--amber-bg);border-color:rgba(232,160,32,.25)}
-.stat-amber .b-num{color:var(--amber)}
-.stat-red{background:var(--red-bg);border-color:rgba(208,56,56,.2)}
-.stat-red .b-num{color:var(--red-mid)}
-.stat-green{background:var(--green-bg);border-color:rgba(51,153,24,.2)}
-.stat-green .b-num{color:var(--green-mid)}
-.stat-purple{background:var(--purple-bg);border-color:rgba(96,80,208,.2)}
-.stat-purple .b-num{color:var(--purple-mid)}
+/* ── BENTO ── */
+.bento{display:grid;grid-template-columns:repeat(12,1fr);gap:10px;padding:20px 22px}
+.b{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;transition:box-shadow .13s}
+.b:hover{box-shadow:var(--sh-lg)}
+.bp{padding:15px 17px}
+.b-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:7px}
+.b-num{font-size:30px;font-weight:700;line-height:1;color:var(--text);font-family:var(--mono)}
+.b-sub{font-size:10.5px;color:var(--text3);margin-top:4px}
+.c2{grid-column:span 2}.c3{grid-column:span 3}.c4{grid-column:span 4}
+.c5{grid-column:span 5}.c6{grid-column:span 6}.c7{grid-column:span 7}
+.c8{grid-column:span 8}.c9{grid-column:span 9}.c12{grid-column:span 12}
 
-/* Overdue bento */
-.overdue-bento{background:var(--red-bg);border-color:rgba(208,56,56,.22);padding:14px 18px;display:flex;align-items:center;gap:12px}
-.overdue-pulse{width:8px;height:8px;border-radius:50%;background:var(--red-mid);flex-shrink:0;animation:pulse 1.6s infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
-.overdue-text{font-size:12.5px;color:var(--red);line-height:1.5}
+/* Stat variants */
+.b-dark{background:var(--text);border-color:var(--text)}
+.b-dark .b-lbl{color:rgba(255,255,255,.35)}
+.b-dark .b-num{color:#fff}
+.b-dark .b-sub{color:rgba(255,255,255,.3)}
 
-/* Charts inside bento */
-.b-chart-wrap{padding:16px 18px 14px}
-.b-chart-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:14px}
+/* Alerts */
+.b-alert{padding:11px 15px;display:flex;align-items:center;gap:10px}
+.b-alert-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;animation:blink 1.8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.b-alert.danger{background:var(--p-critical-bg);border-color:rgba(220,38,38,.2)}
+.b-alert.danger .b-alert-dot{background:var(--p-critical)}
+.b-alert.danger .b-alert-text{font-size:12px;color:var(--p-critical)}
+.b-alert.warn{background:var(--p-high-bg);border-color:rgba(234,88,12,.18)}
+.b-alert.warn .b-alert-dot{background:var(--p-high)}
+.b-alert.warn .b-alert-text{font-size:12px;color:var(--p-high)}
 
-/* Recent cases bento */
-.recent-case-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
-.recent-case-row:last-child{border-bottom:none}
-.recent-case-row:hover .recent-case-name{color:var(--blue-mid)}
-.recent-case-num{font-family:var(--mono);font-size:9.5px;color:var(--text3);width:68px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.recent-case-name{font-size:12px;font-weight:500;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.recent-case-age{font-size:10px;color:var(--text3);flex-shrink:0;font-family:var(--mono)}
+/* Chart bento */
+.b-chart{padding:15px 17px 13px}
+.b-chart-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:11px}
 
-/* Quick add bento */
-.quick-add-bento{padding:16px 18px;display:flex;flex-direction:column;gap:10px}
-.quick-add-bento input,.quick-add-bento select{font-size:12.5px;height:32px}
+/* Recent cases */
+.rc-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.rc-row:last-child{border-bottom:none}
+.rc-row:hover .rc-name{text-decoration:underline}
+.rc-num{font-family:var(--mono);font-size:9.5px;color:var(--text3);width:72px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rc-name{font-size:12px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rc-age{font-size:10px;color:var(--text3);flex-shrink:0;font-family:var(--mono)}
 
-/* Digest bento */
-.digest-bento{padding:16px 18px;background:linear-gradient(135deg,#18181A 0%,#2A2A30 100%);border-color:rgba(255,255,255,.08)}
-.digest-bento .b-label{color:rgba(255,255,255,.4)}
-.digest-period{font-size:11px;color:rgba(255,255,255,.4);font-family:var(--mono);margin-bottom:10px}
-.digest-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.07)}
-.digest-row:last-child{border-bottom:none}
-.digest-key{font-size:12px;color:rgba(255,255,255,.55)}
-.digest-val{font-size:12px;font-weight:700;color:white;font-family:var(--mono)}
-.digest-val.up{color:#6ED66A}.digest-val.warn{color:#F4A050}.digest-val.bad{color:#F06060}
+/* Quick add */
+.b-quickadd{padding:15px 17px;display:flex;flex-direction:column;gap:8px}
+
+/* Digest */
+.b-digest{padding:15px 17px;background:var(--text);border-color:var(--text)}
+.b-digest .b-lbl{color:rgba(255,255,255,.3)}
+.drow{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.drow:last-child{border-bottom:none}
+.drow-k{font-size:11.5px;color:rgba(255,255,255,.45)}
+.drow-v{font-size:11.5px;font-weight:700;color:#fff;font-family:var(--mono)}
+.drow-v.ok{color:#6EE7B7}.drow-v.warn{color:#FCD34D}.drow-v.bad{color:#FCA5A5}
 
 /* Heatmap */
-.heatmap-wrap{padding:14px 16px}
-.heatmap-grid{display:grid;grid-template-columns:repeat(15,1fr);gap:3px;margin-top:4px}
-.hm-cell{aspect-ratio:1;border-radius:3px;background:var(--surface3);cursor:pointer;transition:transform .1s}
-.hm-cell:hover{transform:scale(1.3)}
-.hm-0{background:var(--surface3)}
-.hm-1{background:rgba(46,125,212,.25)}
-.hm-2{background:rgba(46,125,212,.5)}
-.hm-3{background:rgba(46,125,212,.75)}
-.hm-4{background:var(--blue-mid)}
-.hm-closed{background:rgba(51,153,24,.55)}
-.hm-overdue{background:rgba(208,56,56,.6)}
-.heatmap-legend{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:10px;color:var(--text3)}
-.hm-legend-swatch{width:10px;height:10px;border-radius:2px}
+.hm-grid{display:grid;grid-template-columns:repeat(15,1fr);gap:3px;margin-top:6px}
+.hm-cell{aspect-ratio:1;border-radius:2px;background:var(--surface3);cursor:default;transition:transform .1s}
+.hm-cell:hover{transform:scale(1.4)}
+.hm-1{background:rgba(17,17,17,.12)}[data-theme="dark"] .hm-1{background:rgba(240,240,240,.1)}
+.hm-2{background:rgba(17,17,17,.3)}[data-theme="dark"] .hm-2{background:rgba(240,240,240,.28)}
+.hm-3{background:rgba(17,17,17,.55)}[data-theme="dark"] .hm-3{background:rgba(240,240,240,.52)}
+.hm-4{background:rgba(17,17,17,.85)}[data-theme="dark"] .hm-4{background:rgba(240,240,240,.82)}
+.hm-closed{background:rgba(21,128,61,.45)}
+.hm-overdue{background:rgba(220,38,38,.45)}
+.hm-legend{display:flex;align-items:center;gap:5px;margin-top:7px;font-size:9.5px;color:var(--text3)}
+.hm-sw{width:9px;height:9px;border-radius:1px}
 
 /* Leaderboard */
-.leader-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)}
-.leader-row:last-child{border-bottom:none}
-.leader-rank{font-family:var(--mono);font-size:10px;color:var(--text3);width:18px;flex-shrink:0}
-.leader-name{font-size:12px;font-weight:600;color:var(--text);flex:1}
-.leader-bar-wrap{width:80px;height:4px;background:var(--surface3);border-radius:2px;overflow:hidden}
-.leader-bar{height:100%;background:var(--accent);border-radius:2px;transition:width .4s var(--ease)}
-.leader-count{font-family:var(--mono);font-size:11px;color:var(--text2);width:28px;text-align:right;flex-shrink:0}
+.ldr-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)}
+.ldr-row:last-child{border-bottom:none}
+.ldr-rank{font-family:var(--mono);font-size:10px;color:var(--text3);width:16px;flex-shrink:0}
+.ldr-name{font-size:12px;font-weight:600;color:var(--text);flex:1}
+.ldr-bar-bg{width:68px;height:3px;background:var(--surface3);border-radius:2px;overflow:hidden}
+.ldr-bar{height:100%;background:var(--text);border-radius:2px}
+.ldr-n{font-family:var(--mono);font-size:11px;color:var(--text2);width:22px;text-align:right;flex-shrink:0}
 
-/* Banner impact */
-.impact-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)}
-.impact-row:last-child{border-bottom:none}
-.impact-type{font-size:11px;font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.impact-bar-wrap{width:70px;height:4px;background:var(--surface3);border-radius:2px;overflow:hidden}
-.impact-bar{height:100%;background:var(--amber-mid);border-radius:2px}
-.impact-count{font-family:var(--mono);font-size:11px;color:var(--text2);width:32px;text-align:right;flex-shrink:0}
+/* ── FORMS / INPUTS / BUTTONS ── */
+input,select,textarea{font-family:var(--font);font-size:13px;color:var(--text);background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:6px 10px;outline:none;transition:border .12s,box-shadow .12s;-webkit-appearance:none}
+input[type=text],input[type=date],input[type=number]{height:34px}
+select{height:34px;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:26px}
+input:focus,select:focus,textarea:focus{border-color:var(--text);box-shadow:0 0 0 3px rgba(17,17,17,.07)}
+[data-theme="dark"] input:focus,[data-theme="dark"] select:focus,[data-theme="dark"] textarea:focus{box-shadow:0 0 0 3px rgba(240,240,240,.08)}
+input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--text);-webkit-appearance:auto}
 
-/* ── CONTROLS / TABLE ── */
-.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap}
-.page-header h2{font-family:var(--font-display);font-size:19px;font-weight:700;color:var(--text)}
-.controls{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
-.search-wrap{position:relative;flex:1;min-width:160px}
-.search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--text3);stroke:currentColor;fill:none;stroke-width:2;pointer-events:none}
-input,select,textarea{font-family:var(--font);font-size:13px;color:var(--text);background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:6px 10px;outline:none;transition:border .15s,box-shadow .15s}
-input[type=text],input[type=date],input[type=number]{height:33px}
-select{height:33px;cursor:pointer}
-input:focus,select:focus,textarea:focus{border-color:var(--blue-mid);box-shadow:0 0 0 3px rgba(46,125,212,.1)}
-input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--blue-mid)}
-.search-wrap input{width:100%;padding-left:30px}
-
-.btn{font-family:var(--font);font-size:12px;font-weight:600;padding:6px 12px;height:33px;border-radius:var(--r);cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--text);transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.btn{font-family:var(--font);font-size:12px;font-weight:600;padding:0 11px;height:34px;border-radius:var(--r);cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--text);transition:all .12s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
 .btn:hover{background:var(--surface2)}
 .btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
-.btn-accent{background:var(--accent);color:white;border-color:var(--accent);height:35px;padding:0 16px;font-size:13px}
-.btn-accent:hover{background:#B04015;border-color:#B04015}
-.btn-primary{background:var(--blue-bg);color:var(--blue);border-color:rgba(46,125,212,.25)}
-.btn-primary:hover{background:#C0D8F5}
-.btn-danger{background:var(--red-bg);color:var(--red);border-color:rgba(208,56,56,.2)}
-.btn-danger:hover{background:#F5C8C8}
-.btn-sm{height:28px;padding:0 9px;font-size:11px}
-.btn-icon{width:33px;padding:0;justify-content:center}
+.btn-primary{background:var(--text);color:var(--accent-inv);border-color:var(--text)}
+.btn-primary:hover{opacity:.82}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--text2)}
+.btn-ghost:hover{background:var(--surface2);border-color:var(--border)}
+.btn-danger{color:var(--p-critical);border-color:rgba(220,38,38,.18);background:var(--p-critical-bg)}
+.btn-danger:hover{background:#fee2e2}
+.btn-sm{height:28px;padding:0 8px;font-size:11px}
+.btn-icon{width:34px;padding:0;justify-content:center}
+.btn-icon.sm{width:28px;height:28px}
 
-/* Bulk */
-.bulk-bar{display:none;align-items:center;gap:8px;padding:7px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;font-size:12px;color:var(--text2)}
-.bulk-bar.show{display:flex}
+/* Controls */
+.controls{display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.sw{position:relative;flex:1;min-width:150px}
+.sw svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--text3);fill:none;stroke-width:2;pointer-events:none}
+.sw input{width:100%;padding-left:28px}
 
-/* Table */
-.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r-lg);background:var(--surface);box-shadow:var(--shadow)}
-table{width:100%;border-collapse:collapse;font-size:12px}
-thead th{background:var(--surface2);padding:8px 10px;text-align:left;font-weight:700;font-size:10px;color:var(--text3);border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none;text-transform:uppercase;letter-spacing:.05em}
-thead th:hover{color:var(--text2)}
-thead th.no-sort{cursor:default}
-tbody tr{border-bottom:1px solid var(--border);transition:background .1s;cursor:pointer}
-tbody tr:last-child{border-bottom:none}
-tbody tr:hover{background:var(--surface2)}
-tbody tr.sel-row{background:var(--blue-bg)}
-tbody tr.overdue-row{border-left:3px solid var(--red-mid)}
-tbody td{padding:8px 10px;color:var(--text);vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sort-arrow{font-size:8px;margin-left:2px;opacity:.5}
-.due-warn{color:var(--red-mid);font-weight:700}
-.due-ok{color:var(--green-mid)}
-
-/* Badges */
-.badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:700;white-space:nowrap;font-family:var(--font)}
-.badge::before{content:'';width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.65}
-.s-open{background:var(--blue-bg);color:var(--blue)}
-.s-inprogress{background:var(--amber-bg);color:var(--amber)}
-.s-closed{background:var(--green-bg);color:var(--green)}
-.s-pending{background:var(--purple-bg);color:var(--purple)}
-.p-critical{background:var(--red-bg);color:var(--red)}
-.p-high{background:#FFF0EB;color:var(--accent)}
-.p-medium{background:var(--amber-bg);color:var(--amber)}
-.p-low{background:var(--green-bg);color:var(--green)}
-.t-acm{background:#EBF5FF;color:#1A4A80}
-.t-abm{background:#FFF3EB;color:#7A3800}
-.t-lcm{background:#F0FFF0;color:#1A5C0A}
-.t-lbm{background:#F5F0FF;color:#3D2E8A}
-
-/* Empty */
-.empty{text-align:center;padding:4rem 2rem;color:var(--text3);font-size:13px}
-.empty-icon{font-size:38px;margin-bottom:10px;opacity:.4}
-.count-label{font-size:11px;color:var(--text3);margin-top:9px}
+/* Page header */
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px;gap:10px;flex-wrap:wrap}
+.ph h2{font-size:17px;font-weight:700;color:var(--text);letter-spacing:-.01em}
 
 /* View toggle */
-.view-toggle{display:flex;border:1px solid var(--border2);border-radius:var(--r);overflow:hidden;background:var(--surface)}
-.vbtn{padding:5px 10px;background:transparent;border:none;cursor:pointer;font-size:11px;font-weight:600;color:var(--text3);transition:all .15s;font-family:var(--font);display:flex;align-items:center;gap:5px}
+.vtog{display:flex;border:1px solid var(--border2);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.vbtn{padding:0 10px;height:34px;background:transparent;border:none;cursor:pointer;font-size:11px;font-weight:600;color:var(--text3);transition:all .12s;font-family:var(--font);display:flex;align-items:center;gap:5px}
 .vbtn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
 .vbtn.active{background:var(--surface2);color:var(--text)}
 
+/* Bulk bar */
+.bulk-bar{display:none;align-items:center;gap:7px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:9px;font-size:12px;color:var(--text2)}
+.bulk-bar.show{display:flex}
+
+/* Table */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r-lg);background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:var(--surface2);padding:7px 10px;text-align:left;font-weight:700;font-size:9.5px;color:var(--text3);border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none;text-transform:uppercase;letter-spacing:.05em}
+thead th:hover{color:var(--text2)}
+thead th.ns{cursor:default}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;cursor:pointer}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+tbody tr.sel-row{background:#EFF6FF}[data-theme="dark"] tbody tr.sel-row{background:#0C1F4A}
+tbody tr.od-row{border-left:2px solid var(--p-critical)}
+tbody td{padding:7px 10px;color:var(--text);vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sa{font-size:8px;margin-left:2px;opacity:.4}
+.due-warn{color:var(--p-critical);font-weight:600}
+.due-soon{color:var(--p-high)}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;white-space:nowrap}
+.s-new{background:var(--s-new-bg);color:var(--s-new);border:1px solid var(--border)}
+.s-inp{background:var(--s-inp-bg);color:var(--s-inp)}
+.s-pyi{background:var(--s-pyi-bg);color:var(--s-pyi)}
+.s-pyc{background:var(--s-pyc-bg);color:var(--s-pyc)}
+.s-closed{background:var(--s-closed-bg);color:var(--s-closed)}
+.p-critical{background:var(--p-critical-bg);color:var(--p-critical)}
+.p-high{background:var(--p-high-bg);color:var(--p-high)}
+.p-medium{background:var(--p-medium-bg);color:var(--p-medium)}
+.p-low{background:var(--p-low-bg);color:var(--p-low)}
+.t-acm{background:var(--t-acm-bg);color:var(--t-acm)}
+.t-abm{background:var(--t-abm-bg);color:var(--t-abm)}
+.t-lcm{background:var(--t-lcm-bg);color:var(--t-lcm)}
+.t-lbm{background:var(--t-lbm-bg);color:var(--t-lbm)}
+
+/* Empty */
+.empty{text-align:center;padding:3.5rem 2rem;color:var(--text3);font-size:13px}
+.count-lbl{font-size:11px;color:var(--text3);margin-top:8px}
+
 /* ── DETAIL PANEL ── */
-.cases-layout{display:flex;height:100%;overflow:hidden}
-.list-pane{flex:1;min-width:0;padding:20px 24px;overflow-y:auto}
-.detail-panel{width:0;flex-shrink:0;border-left:1px solid var(--border);background:var(--surface);overflow:hidden;transition:width .22s var(--ease);display:flex;flex-direction:column}
+.detail-panel{width:0;flex-shrink:0;border-left:1px solid var(--border);background:var(--surface);overflow:hidden;transition:width .2s var(--ease);display:flex;flex-direction:column}
 .detail-panel.open{width:var(--detail-w)}
 .d-inner{width:var(--detail-w);height:100%;display:flex;flex-direction:column;overflow:hidden}
-.d-head{padding:16px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
-.d-head-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
-.d-num{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:3px}
-.d-name{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text);line-height:1.3}
-.d-close{background:none;border:none;cursor:pointer;color:var(--text3);width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
-.d-close:hover{background:var(--surface2);color:var(--text)}
+.d-head{padding:13px 15px;border-bottom:1px solid var(--border);flex-shrink:0}
+.d-head-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:7px}
+.d-num{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:2px}
+.d-name{font-size:14px;font-weight:700;color:var(--text);line-height:1.3;letter-spacing:-.01em}
+.d-close{background:none;border:none;cursor:pointer;color:var(--text3);width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;transition:all .12s;flex-shrink:0}
+.d-close:hover{background:var(--surface3);color:var(--text)}
 .d-close svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5}
-.d-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0}
-.d-tab{font-size:11.5px;font-weight:600;padding:9px 14px;cursor:pointer;color:var(--text3);border:none;border-bottom:2px solid transparent;background:transparent;transition:all .15s;margin-bottom:-1px;font-family:var(--font)}
-.d-tab.active{color:var(--text);border-bottom-color:var(--accent)}
-.d-body{flex:1;overflow-y:auto;padding:16px 18px}
-.d-section{margin-bottom:16px}
-.d-section-title{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px}
+.d-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.d-tab{font-size:11.5px;font-weight:600;padding:8px 13px;cursor:pointer;color:var(--text3);border:none;border-bottom:2px solid transparent;background:transparent;transition:all .12s;margin-bottom:-1px;font-family:var(--font)}
+.d-tab.active{color:var(--text);border-bottom-color:var(--text)}
+.d-body{flex:1;overflow-y:auto;padding:13px 15px}
+.d-sec{margin-bottom:14px}
+.d-sec-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:7px}
 .d-row{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--border);gap:10px}
 .d-row:last-child{border-bottom:none}
-.d-row-label{font-size:12px;color:var(--text2);flex-shrink:0}
-.d-row-val{font-size:12px;color:var(--text);text-align:right;word-break:break-word}
-.d-notes{background:var(--surface2);border-radius:var(--r);padding:10px 12px;font-size:12px;color:var(--text2);line-height:1.6;border:1px solid var(--border)}
-.d-notes.empty{color:var(--text3);font-style:italic}
-.d-foot{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:7px;flex-shrink:0}
+.d-rl{font-size:12px;color:var(--text2);flex-shrink:0}
+.d-rv{font-size:12px;color:var(--text);text-align:right;word-break:break-word;font-weight:500}
+.d-notes{background:var(--surface2);border-radius:var(--r);padding:9px 11px;font-size:12px;color:var(--text2);line-height:1.6;border:1px solid var(--border)}
+.d-notes.mt{color:var(--text3);font-style:italic}
+.d-foot{padding:10px 13px;border-top:1px solid var(--border);display:flex;gap:6px;flex-shrink:0}
 
-/* SLA bar */
-.sla-wrap{background:var(--accent-bg);border:1px solid rgba(201,79,26,.18);border-radius:var(--r);padding:10px 12px;margin-bottom:12px}
-.sla-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);margin-bottom:2px}
-.sla-val{font-family:var(--mono);font-size:18px;font-weight:600;color:var(--accent)}
-.sla-bar-wrap{height:3px;background:var(--surface3);border-radius:2px;overflow:hidden;margin:6px 0 4px}
-.sla-bar-fill{height:100%;border-radius:2px;transition:width .4s}
+/* SLA box */
+.sla-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:10px 11px;margin-bottom:11px}
+.sla-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.sla-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3)}
+.sla-val{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--text)}
+.sla-bar-bg{height:3px;background:var(--surface3);border-radius:2px;overflow:hidden;margin-bottom:4px}
+.sla-bar{height:100%;border-radius:2px;transition:width .4s}
 .sla-meta{display:flex;justify-content:space-between;font-size:9.5px;color:var(--text3)}
 
 /* Comments */
-.comment-item{display:flex;gap:9px;padding:8px 0;border-bottom:1px solid var(--border)}
-.comment-item:last-child{border-bottom:none}
-.comment-avatar{width:24px;height:24px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;flex-shrink:0;margin-top:1px}
-.comment-body{flex:1;min-width:0}
-.comment-meta{font-size:10px;color:var(--text3);margin-bottom:3px;display:flex;gap:6px;align-items:center}
-.comment-author{font-weight:700;color:var(--text2)}
-.comment-text{font-size:12px;color:var(--text);line-height:1.5;word-break:break-word}
-.comment-input-wrap{display:flex;gap:8px;margin-top:10px}
-.comment-input-wrap textarea{flex:1;min-height:60px;resize:none;font-size:12px;line-height:1.4;padding:8px 10px}
+.cmt{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
+.cmt:last-child{border-bottom:none}
+.cmt-av{width:22px;height:22px;border-radius:50%;background:var(--text);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--accent-inv);flex-shrink:0;margin-top:1px}
+.cmt-body{flex:1;min-width:0}
+.cmt-meta{font-size:10px;color:var(--text3);margin-bottom:2px;display:flex;gap:5px}
+.cmt-author{font-weight:700;color:var(--text2)}
+.cmt-text{font-size:12px;color:var(--text);line-height:1.5;word-break:break-word}
+.cmt-wrap{display:flex;gap:7px;margin-top:10px}
+.cmt-wrap textarea{flex:1;min-height:55px;resize:none;font-size:12px;line-height:1.4;padding:7px 9px}
 
-/* Status history */
-.hist-item{display:flex;gap:9px;padding:6px 0;font-size:12px;border-bottom:1px solid var(--border)}
-.hist-item:last-child{border-bottom:none}
-.hist-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+/* History */
+.hist{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)}
+.hist:last-child{border-bottom:none}
+.hist-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px;background:var(--text3)}
 .hist-content{flex:1}
-.hist-time{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.hist-time{font-size:9.5px;color:var(--text3);font-family:var(--mono)}
 
-/* Banner log modal */
-.banner-log-list{max-height:180px;overflow-y:auto;margin-bottom:10px}
-.bl-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
+/* Banner log */
+.bl-list{max-height:155px;overflow-y:auto;margin-bottom:10px}
+.bl-item{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;gap:8px}
 .bl-item:last-child{border-bottom:none}
-.bl-count{font-family:var(--mono);font-weight:700;color:var(--accent);font-size:13px}
-.bl-date{color:var(--text3);font-family:var(--mono);font-size:10px}
-.bl-note{color:var(--text2);flex:1;padding:0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bl-cnt{font-family:var(--mono);font-weight:700;color:var(--text);font-size:13px;flex-shrink:0}
+.bl-note{color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bl-date{color:var(--text3);font-family:var(--mono);font-size:10px;flex-shrink:0}
+
+/* ── KANBAN ── */
+.kanban{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:start}
+.k-col{background:var(--surface2);border-radius:var(--r-lg);border:1px solid var(--border)}
+.k-head{padding:9px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.k-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2)}
+.k-cnt{font-size:10px;padding:1px 6px;border-radius:10px;background:var(--surface3);color:var(--text3);font-weight:700;font-family:var(--mono)}
+.k-cards{padding:8px;display:flex;flex-direction:column;gap:6px;min-height:46px}
+.k-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;cursor:pointer;transition:box-shadow .12s}
+.k-card:hover{box-shadow:var(--sh)}
+.k-card-num{font-family:var(--mono);font-size:9px;color:var(--text3);margin-bottom:2px}
+.k-card-name{font-size:11px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:5px}
+.k-card-meta{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.k-card-age{font-size:9px;color:var(--text3);margin-left:auto;font-family:var(--mono)}
+.k-empty{font-size:11px;color:var(--text3);text-align:center;padding:8px 0}
+
+/* ── ANALYTICS ── */
+.analytics-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.a-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:15px 17px}
+.a-card-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:11px}
 
 /* ── REPORTS ── */
-.report-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px;box-shadow:var(--shadow)}
-.report-card h3{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text);margin-bottom:14px}
-.report-controls{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
-.r-section{font-size:9.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin:18px 0 8px}
-.r-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)}
-.r-row:last-child{border-bottom:none}
-.r-label{font-size:13px;color:var(--text2)}
-.r-val{font-size:13px;font-weight:700;color:var(--text)}
-.r-warn{color:var(--red-mid)}
+.report-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 22px}
+.report-wrap h3{font-size:15px;font-weight:700;color:var(--text);margin-bottom:13px;letter-spacing:-.01em}
+.rpt-controls{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+/* Report layout */
+.rpt-period{font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:14px;padding:8px 10px;background:var(--surface2);border-radius:var(--r);border:1px solid var(--border)}
+.rpt-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text2);margin:18px 0 8px;padding-bottom:6px;border-bottom:2px solid var(--border)}
+.rpt-tbl-wrap{overflow-x:auto;margin-bottom:4px;border:1px solid var(--border);border-radius:var(--r-lg)}
+.rpt-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.rpt-tbl th{background:var(--surface2);padding:7px 10px;text-align:left;font-weight:700;font-size:10px;color:var(--text3);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.rpt-tbl td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+.rpt-tbl tr:last-child td{border-bottom:none}
+.rpt-tbl tr:hover td{background:var(--surface2)}
+.rpt-totals{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;margin-top:14px}
+.rpt-totals-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:9px}
+.rpt-total-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)}
+.rpt-total-row:last-child{border-bottom:none}
+.rpt-total-k{font-size:12.5px;color:var(--text2)}
+.rpt-total-v{font-size:12.5px;font-weight:700;color:var(--text);font-family:var(--mono)}
+.rpt-note{font-size:11px;color:var(--text3);margin-top:9px;font-style:italic;line-height:1.5}
+.rpt-warn{color:var(--p-critical)}
 
 /* ── MODAL ── */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:200;align-items:flex-start;justify-content:center;padding:44px 16px;overflow-y:auto;backdrop-filter:blur(4px)}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.32);z-index:200;align-items:flex-start;justify-content:center;padding:44px 16px;overflow-y:auto}
 .modal-bg.open{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);width:100%;max-width:540px;box-shadow:var(--shadow-lg);overflow:hidden}
-.modal-sm{max-width:360px}
-.m-head{padding:18px 22px 0;display:flex;align-items:center;justify-content:space-between}
-.m-head h3{font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--text)}
-.m-body{padding:16px 22px 0}
-.m-foot{padding:18px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
-.fg{display:flex;flex-direction:column;gap:5px}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);width:100%;max-width:520px;box-shadow:var(--sh-lg)}
+.modal-sm{max-width:340px}
+.m-head{padding:17px 20px 0;display:flex;align-items:center;justify-content:space-between}
+.m-head h3{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.01em}
+.m-body{padding:14px 20px 0}
+.m-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:7px;justify-content:flex-end;margin-top:13px}
+.fg{display:flex;flex-direction:column;gap:4px}
 .fg.full{grid-column:1/-1}
-.fg label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)}
-.fg textarea{resize:vertical;min-height:72px;padding:8px 10px;line-height:1.5}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:4px}
+.fg label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2)}
+.fg textarea{resize:vertical;min-height:68px;padding:8px 10px;line-height:1.5}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:4px}
 
 /* Toast */
-.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(12px);background:#18181A;color:#F0F0EC;font-size:12px;font-weight:600;padding:9px 20px;border-radius:40px;opacity:0;transition:opacity .22s,transform .22s;pointer-events:none;z-index:999;font-family:var(--font);white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--text);color:var(--accent-inv);font-size:12px;font-weight:600;padding:8px 18px;border-radius:40px;opacity:0;transition:opacity .18s,transform .18s;pointer-events:none;z-index:999;font-family:var(--font);white-space:nowrap;box-shadow:var(--sh-lg)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* Kanban */
-.kanban-board{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:start}
-.k-col{background:var(--surface2);border-radius:var(--r-lg);border:1px solid var(--border)}
-.k-col-head{padding:11px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.k-col-title{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2)}
-.k-count{font-size:10px;padding:1px 7px;border-radius:10px;background:var(--surface3);color:var(--text3);font-weight:700;font-family:var(--mono)}
-.k-cards{padding:9px;display:flex;flex-direction:column;gap:7px;min-height:55px}
-.k-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:9px 11px;cursor:pointer;transition:all .15s}
-.k-card:hover{border-color:var(--border2);box-shadow:var(--shadow)}
-.k-card-num{font-family:var(--mono);font-size:9px;color:var(--text3);margin-bottom:3px}
-.k-card-name{font-size:11.5px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:6px}
-.k-card-meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
-.k-card-age{font-size:9.5px;color:var(--text3);margin-left:auto;font-family:var(--mono)}
-.k-empty{font-size:11px;color:var(--text3);text-align:center;padding:10px 0}
-
 @media(max-width:900px){
-  .sidebar{width:56px}.sb-title,.sb-item span,.sb-badge,.sb-date,.sb-label{display:none}
-  .sb-logo{justify-content:center;padding:16px 12px}.sb-nav{padding:8px}
-  .sb-item{justify-content:center;padding:8px}
+  .sidebar{width:50px}
+  .sb-title,.sb-item span,.sb-badge,.sb-date,.sb-grp,.sb-sep{display:none}
+  .sb-logo{justify-content:center;padding:13px 9px}
+  .sb-item{justify-content:center}
   .detail-panel.open{width:100%;position:fixed;inset:0;z-index:50}
-  .kanban-board{grid-template-columns:1fr 1fr}
+  .kanban{grid-template-columns:1fr 1fr}
   .bento{grid-template-columns:repeat(6,1fr)}
-  .c7,.c8,.c9,.c10{grid-column:span 6}.c4{grid-column:span 3}.c3{grid-column:span 3}.c2{grid-column:span 3}
+  .c7,.c8,.c9{grid-column:span 6}.c4{grid-column:span 3}.c3{grid-column:span 3}
+  .analytics-grid{grid-template-columns:1fr}
 }
 @media(max-width:600px){
   .bento{grid-template-columns:repeat(2,1fr);padding:12px}
-  .c2,.c3,.c4,.c6,.c7,.c8,.c12{grid-column:span 2}
-  .kanban-board{grid-template-columns:1fr}
+  .c2,.c3,.c4,.c5,.c6,.c7,.c8,.c9,.c12{grid-column:span 2}
+  .kanban{grid-template-columns:1fr}
   .form-grid{grid-template-columns:1fr}.fg.full{grid-column:1}
 }
 @media print{
-  .sidebar,.topbar-right,.bulk-bar,.modal-bg,.detail-panel,.view-toggle{display:none!important}
-  .shell{display:block}.main{overflow:visible}.content{overflow:visible}
-  body{background:white}
+  .sidebar,.topbar-right,.bulk-bar,.modal-bg,.detail-panel,.vtog,.controls{display:none!important}
+  .shell{display:block}
+  .section.active{display:block!important;height:auto;overflow:visible}
+  .tab-scroll,.cases-layout,.list-pane{overflow:visible}
+  body{background:#fff}
 }
 </style>
 </head>
 <body>
 <div class="shell">
 
-<!-- SIDEBAR -->
+<!-- ── SIDEBAR ── -->
 <aside class="sidebar">
   <div class="sb-logo">
     <div class="sb-mark"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg></div>
     <div class="sb-title">SF Tracker<small>Case Manager</small></div>
   </div>
-  <div class="sb-nav">
-    <div class="sb-section">
-      <div class="sb-label">Workspace</div>
-      <button class="sb-item active" onclick="switchTab('dashboard',this)" data-tab="dashboard">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-        <span>Dashboard</span>
-      </button>
-      <button class="sb-item" onclick="switchTab('cases',this)" data-tab="cases">
-        <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
-        <span>All Cases</span>
-        <span class="sb-badge" id="open-badge">0</span>
-      </button>
-      <button class="sb-item" onclick="switchTab('kanban',this)" data-tab="kanban">
-        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="10" rx="1"/><rect x="17" y="4" width="5" height="13" rx="1"/></svg>
-        <span>Kanban</span>
-      </button>
-      <button class="sb-item" onclick="switchTab('analytics',this)" data-tab="analytics">
-        <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
-        <span>Analytics</span>
-      </button>
-      <button class="sb-item" onclick="switchTab('reports',this)" data-tab="reports">
-        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-        <span>Reports</span>
-      </button>
-    </div>
-    <div class="sb-section">
-      <div class="sb-label">Data</div>
-      <button class="sb-item" onclick="exportCSV()">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span>Export CSV</span>
-      </button>
-      <button class="sb-item" onclick="openImportModal()">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <span>Import CSV</span>
-      </button>
-    </div>
-  </div>
+  <nav class="sb-nav">
+    <div class="sb-grp">Workspace</div>
+    <button class="sb-item active" onclick="switchTab('dashboard',this)" data-tab="dashboard">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>Dashboard</span>
+    </button>
+    <button class="sb-item" onclick="switchTab('cases',this)" data-tab="cases">
+      <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+      <span>All Cases</span>
+      <span class="sb-badge" id="open-badge" style="display:none">0</span>
+    </button>
+    <button class="sb-item" onclick="switchTab('kanban',this)" data-tab="kanban">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="10" rx="1"/><rect x="17" y="4" width="5" height="13" rx="1"/></svg>
+      <span>Kanban</span>
+    </button>
+    <button class="sb-item" onclick="switchTab('analytics',this)" data-tab="analytics">
+      <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+      <span>Analytics</span>
+    </button>
+    <button class="sb-item" onclick="switchTab('reports',this)" data-tab="reports">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>Reports</span>
+    </button>
+    <div class="sb-sep"></div>
+    <div class="sb-grp">Data</div>
+    <button class="sb-item" onclick="exportCSV()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span>Export CSV</span>
+    </button>
+    <button class="sb-item" onclick="openImportModal()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <span>Import CSV</span>
+    </button>
+  </nav>
   <div class="sb-footer">
     <div class="sb-date" id="sb-date"></div>
     <button class="sb-item" onclick="toggleTheme()" id="theme-btn">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
-      <span id="theme-label">Light mode</span>
+      <span id="theme-lbl">Dark mode</span>
     </button>
   </div>
 </aside>
 
-<!-- MAIN -->
+<!-- ── MAIN ── -->
 <div class="main">
   <div class="topbar">
     <div class="topbar-title" id="topbar-title">Dashboard</div>
     <div class="topbar-right">
-      <button class="btn btn-accent" onclick="openModal()">
+      <button class="btn btn-primary" onclick="openModal()">
         <svg viewBox="0 0 24 24" style="stroke-width:2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         New Case
       </button>
     </div>
   </div>
 
-  <!-- ── DASHBOARD ── -->
+  <!-- DASHBOARD -->
   <div id="tab-dashboard" class="section active">
-    <div class="bento" id="bento-grid"></div>
+    <div class="tab-scroll">
+      <div class="bento" id="bento-grid"></div>
+    </div>
   </div>
 
-  <!-- ── CASES ── -->
-  <div id="tab-cases" class="section" style="height:calc(100vh - 52px);overflow:hidden">
+  <!-- CASES -->
+  <div id="tab-cases" class="section">
     <div class="cases-layout">
       <div class="list-pane">
-        <div class="page-header">
+        <div class="ph">
           <h2>All Cases</h2>
-          <div style="display:flex;gap:8px;align-items:center">
-            <div class="view-toggle">
-              <button class="vbtn active" id="vbtn-table" onclick="setView('table',this)">
-                <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>Table
-              </button>
-              <button class="vbtn" id="vbtn-cards" onclick="setView('cards',this)">
-                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Cards
-              </button>
-            </div>
+          <div class="vtog">
+            <button class="vbtn active" id="vbtn-table" onclick="setView('table',this)">
+              <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>Table
+            </button>
+            <button class="vbtn" id="vbtn-cards" onclick="setView('cards',this)">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Cards
+            </button>
           </div>
         </div>
         <div class="controls">
-          <div class="search-wrap">
+          <div class="sw">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input type="text" id="search" placeholder="Search cases…" oninput="renderTable()">
           </div>
-          <select id="f-status" onchange="renderTable()"><option value="">All statuses</option><option>Open</option><option>In progress</option><option>Pending</option><option>Closed</option></select>
+          <select id="f-status" onchange="renderTable()">
+            <option value="">All statuses</option>
+            <option>New</option><option>In Progress</option><option>Pending Your Input</option><option>Pending Your Confirmation</option><option>Closed</option>
+          </select>
           <select id="f-priority" onchange="renderTable()"><option value="">All priorities</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
           <select id="f-type" onchange="renderTable()">
             <option value="">All types</option>
-            <option>Automotive Content Migration</option>
-            <option>Automotive Blog Migration</option>
-            <option>LeadScience Content Migration</option>
-            <option>LeadScience Blog Migration</option>
+            <option>Automotive Content Migration</option><option>Automotive Blog Migration</option>
+            <option>LeadScience Content Migration</option><option>LeadScience Blog Migration</option>
           </select>
-          <select id="f-assignee" onchange="renderTable()"><option value="">All assignees</option></select>
-          <button class="btn btn-sm" onclick="clearFilters()">Clear</button>
+          <button class="btn btn-sm btn-ghost" onclick="clearFilters()">Clear</button>
         </div>
         <div class="bulk-bar" id="bulk-bar">
-          <span id="bulk-label">0 selected</span>
-          <select id="bulk-status" class="btn-sm"><option value="">Change status…</option><option>Open</option><option>In progress</option><option>Pending</option><option>Closed</option></select>
-          <button class="btn btn-primary btn-sm" onclick="applyBulk()">Apply</button>
-          <button class="btn btn-sm" onclick="clearSelection()">Clear</button>
-          <button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="bulkDelete()">Delete</button>
+          <span id="bulk-lbl" style="font-size:12px">0 selected</span>
+          <select id="bulk-status" class="btn-sm">
+            <option value="">Change status…</option>
+            <option>New</option><option>In Progress</option><option>Pending Your Input</option><option>Pending Your Confirmation</option><option>Closed</option>
+          </select>
+          <button class="btn btn-sm btn-primary" onclick="applyBulk()">Apply</button>
+          <button class="btn btn-sm btn-ghost" onclick="clearSel()">Clear</button>
+          <button class="btn btn-sm btn-danger" style="margin-left:auto" onclick="bulkDelete()">Delete</button>
         </div>
         <div id="view-table">
           <div class="tbl-wrap">
             <table>
               <thead><tr>
-                <th class="no-sort" style="width:30px"><input type="checkbox" id="chk-all" onchange="toggleAll(this)"></th>
-                <th style="width:86px" onclick="sortBy('number')">Case # <span class="sort-arrow" id="s-number"></span></th>
-                <th onclick="sortBy('name')">Name <span class="sort-arrow" id="s-name"></span></th>
-                <th style="width:90px" onclick="sortBy('type')">Type <span class="sort-arrow" id="s-type"></span></th>
-                <th style="width:86px" onclick="sortBy('status')">Status <span class="sort-arrow" id="s-status"></span></th>
-                <th style="width:78px" onclick="sortBy('priority')">Priority <span class="sort-arrow" id="s-priority"></span></th>
-                <th style="width:86px" onclick="sortBy('assignee')">Assignee <span class="sort-arrow" id="s-assignee"></span></th>
-                <th style="width:72px" onclick="sortBy('start')">Start <span class="sort-arrow" id="s-start"></span></th>
-                <th style="width:72px" onclick="sortBy('dueDate')">Due <span class="sort-arrow" id="s-dueDate"></span></th>
-                <th style="width:50px" onclick="sortBy('totalBanners')">Ban. <span class="sort-arrow" id="s-totalBanners"></span></th>
-                <th style="width:60px" class="no-sort">Actions</th>
+                <th class="ns" style="width:28px"><input type="checkbox" id="chk-all" onchange="toggleAll(this)"></th>
+                <th style="width:88px" onclick="sortBy('number')">Case # <span class="sa" id="s-number"></span></th>
+                <th onclick="sortBy('name')">Name <span class="sa" id="s-name"></span></th>
+                <th style="width:86px" onclick="sortBy('type')">Type <span class="sa" id="s-type"></span></th>
+                <th style="width:112px" onclick="sortBy('status')">Status <span class="sa" id="s-status"></span></th>
+                <th style="width:76px" onclick="sortBy('priority')">Priority <span class="sa" id="s-priority"></span></th>
+                <th style="width:72px" onclick="sortBy('start')">Start <span class="sa" id="s-start"></span></th>
+                <th style="width:72px" onclick="sortBy('dueDate')">Due <span class="sa" id="s-dueDate"></span></th>
+                <th style="width:50px;text-align:center" onclick="sortBy('totalBanners')">Ban. <span class="sa" id="s-totalBanners"></span></th>
+                <th style="width:55px" class="ns">Edit</th>
               </tr></thead>
               <tbody id="tbody"></tbody>
             </table>
           </div>
-          <div id="empty" class="empty" style="display:none"><div class="empty-icon">📋</div>No cases found</div>
-          <div class="count-label" id="count-label"></div>
+          <div id="tbl-empty" class="empty" style="display:none"><div style="font-size:30px;margin-bottom:8px;opacity:.25">📋</div>No cases found</div>
+          <div class="count-lbl" id="count-lbl"></div>
         </div>
         <div id="view-cards" style="display:none">
-          <div id="cards-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:11px"></div>
-          <div id="cards-empty" class="empty" style="display:none"><div class="empty-icon">📋</div>No cases found</div>
+          <div id="cards-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(252px,1fr));gap:10px"></div>
+          <div id="cards-empty" class="empty" style="display:none">No cases found</div>
         </div>
       </div>
 
-      <!-- Detail Panel -->
+      <!-- DETAIL PANEL -->
       <div class="detail-panel" id="detail-panel">
         <div class="d-inner">
           <div class="d-head">
@@ -534,114 +554,111 @@ tbody td{padding:8px 10px;color:var(--text);vertical-align:middle;overflow:hidde
               <div><div class="d-num" id="d-num"></div><div class="d-name" id="d-name"></div></div>
               <button class="d-close" onclick="closeDetail()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap" id="d-badges"></div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap" id="d-badges"></div>
           </div>
           <div class="d-tabs">
-            <button class="d-tab active" onclick="switchDetailTab('info',this)">Info</button>
-            <button class="d-tab" onclick="switchDetailTab('comments',this)">Comments</button>
-            <button class="d-tab" onclick="switchDetailTab('history',this)">History</button>
-            <button class="d-tab" onclick="switchDetailTab('banners',this)">Banners</button>
+            <button class="d-tab active" onclick="switchDTab('info',this)">Info</button>
+            <button class="d-tab" onclick="switchDTab('comments',this)">Comments</button>
+            <button class="d-tab" onclick="switchDTab('history',this)">History</button>
+            <button class="d-tab" onclick="switchDTab('banners',this)">Banners</button>
           </div>
           <div class="d-body" id="d-body"></div>
           <div class="d-foot">
-            <button class="btn btn-primary" style="flex:1" onclick="editFromDetail()"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</button>
-            <button class="btn" onclick="openBannerLogModal()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Banners</button>
-            <button class="btn" onclick="quickStatus()"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Status</button>
-            <button class="btn btn-danger btn-icon" onclick="deleteFromDetail()" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg></button>
+            <button class="btn btn-sm btn-primary" style="flex:1" onclick="editFromDetail()"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</button>
+            <button class="btn btn-sm btn-ghost" onclick="openBannerModal()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Banners</button>
+            <button class="btn btn-sm btn-ghost" onclick="openQStatus()"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Status</button>
+            <button class="btn btn-sm btn-danger btn-icon sm" onclick="deleteFromDetail()" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg></button>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ── KANBAN ── -->
+  <!-- KANBAN -->
   <div id="tab-kanban" class="section">
-    <div class="pad">
-      <div class="page-header"><h2>Kanban Board</h2></div>
-      <div class="kanban-board" id="kanban-board"></div>
+    <div class="tab-scroll">
+      <div class="pad">
+        <div class="ph"><h2>Kanban Board</h2></div>
+        <div class="kanban" id="kanban-board"></div>
+      </div>
     </div>
   </div>
 
-  <!-- ── ANALYTICS ── -->
+  <!-- ANALYTICS -->
   <div id="tab-analytics" class="section">
-    <div class="pad">
-      <div class="page-header"><h2>Analytics</h2></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;box-shadow:var(--shadow)">
-          <div class="b-chart-title">Resolution Trend (last 8 weeks)</div>
-          <canvas id="chart-trend" height="160"></canvas>
+    <div class="tab-scroll">
+      <div class="pad">
+        <div class="ph"><h2>Analytics</h2></div>
+        <div class="analytics-grid">
+          <div class="a-card"><div class="a-card-title">Resolution Trend (last 8 weeks)</div><canvas id="chart-trend" height="160"></canvas></div>
+          <div class="a-card"><div class="a-card-title">Banners by Case Type</div><canvas id="chart-impact" height="160"></canvas></div>
         </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;box-shadow:var(--shadow)">
-          <div class="b-chart-title">Banners by Case Type</div>
-          <canvas id="chart-banner-impact" height="160"></canvas>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;box-shadow:var(--shadow)">
-          <div class="b-chart-title">Assignee Leaderboard (cases closed)</div>
-          <div id="leaderboard-list"></div>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;box-shadow:var(--shadow)">
-          <div class="b-chart-title">Case Aging Heatmap (last 90 days)</div>
-          <div id="heatmap-container"></div>
+        <div class="analytics-grid">
+          <div class="a-card"><div class="a-card-title">Top Closers</div><div id="leaderboard"></div></div>
+          <div class="a-card"><div class="a-card-title">Case Aging Heatmap (last 90 days)</div><div id="heatmap"></div></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ── REPORTS ── -->
+  <!-- REPORTS -->
   <div id="tab-reports" class="section">
-    <div class="pad">
-      <div class="report-card">
-        <h3>Case Report</h3>
-        <div class="report-controls">
-          <select id="report-range" onchange="renderReport()">
-            <option value="daily">Today</option>
-            <option value="weekly">Last 7 days</option>
-            <option value="monthly">Last 30 days</option>
-          </select>
-          <button class="btn" onclick="window.print()"><svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Print / PDF</button>
+    <div class="tab-scroll">
+      <div class="pad">
+        <div class="report-wrap">
+          <h3>Productivity Report</h3>
+          <div class="rpt-controls">
+            <select id="rpt-range" onchange="renderReport()">
+              <option value="daily">Daily — Today</option>
+              <option value="weekly" selected>Weekly — Last 7 days</option>
+              <option value="monthly">Monthly — Last 30 days</option>
+            </select>
+            <button class="btn" onclick="window.print()"><svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Print / PDF</button>
+          </div>
+          <div id="report-body"></div>
         </div>
-        <div id="report-body"></div>
       </div>
     </div>
   </div>
-</div>
-</div>
+</div><!-- /main -->
+</div><!-- /shell -->
 
 <!-- ADD/EDIT MODAL -->
 <div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
   <div class="modal">
-    <div class="m-head"><h3 id="modal-title">New Case</h3><button class="btn btn-icon" onclick="closeModal()" style="border:none;background:none"><svg viewBox="0 0 24 24" style="width:17px;height:17px;stroke:var(--text3);fill:none;stroke-width:2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="m-head">
+      <h3 id="modal-title">New Case</h3>
+      <button class="btn btn-icon btn-ghost" onclick="closeModal()"><svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:var(--text3);fill:none;stroke-width:2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
     <div class="m-body">
       <div class="form-grid">
         <div class="fg"><label>Case Number</label><input type="text" id="f-number" placeholder="e.g. 00123456"></div>
         <div class="fg"><label>Due Date</label><input type="date" id="f-due"></div>
-        <div class="fg full"><label>Case Name *</label><input type="text" id="f-name" placeholder="Short description"></div>
-        <div class="fg full"><label>Salesforce URL</label><input type="text" id="f-url" placeholder="https://...salesforce.com/..."></div>
+        <div class="fg full"><label>Case Name *</label><input type="text" id="f-name" placeholder="Short description of the case"></div>
+        <div class="fg full"><label>Salesforce URL</label><input type="text" id="f-url" placeholder="https://…salesforce.com/…"></div>
         <div class="fg"><label>Type</label>
-          <select id="f-type-modal">
-            <option>Automotive Content Migration</option>
-            <option>Automotive Blog Migration</option>
-            <option>LeadScience Content Migration</option>
-            <option>LeadScience Blog Migration</option>
+          <select id="f-type-m">
+            <option>Automotive Content Migration</option><option>Automotive Blog Migration</option>
+            <option>LeadScience Content Migration</option><option>LeadScience Blog Migration</option>
           </select>
         </div>
         <div class="fg"><label>Priority</label>
-          <select id="f-priority-modal"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select>
+          <select id="f-priority-m"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select>
         </div>
         <div class="fg"><label>Status</label>
-          <select id="f-status-modal"><option selected>Open</option><option>In progress</option><option>Pending</option><option>Closed</option></select>
+          <select id="f-status-m">
+            <option selected>New</option><option>In Progress</option><option>Pending Your Input</option><option>Pending Your Confirmation</option><option>Closed</option>
+          </select>
         </div>
-        <div class="fg"><label>Assignee</label><input type="text" id="f-assignee-modal" placeholder="Name"></div>
+        <div class="fg"><label>Banner Count</label><input type="number" id="f-banners-init" placeholder="0" min="0"></div>
         <div class="fg"><label>Start Date</label><input type="date" id="f-start"></div>
         <div class="fg"><label>Completion Date</label><input type="date" id="f-end"></div>
         <div class="fg full"><label>Notes</label><textarea id="f-notes" placeholder="Context, links, or notes…"></textarea></div>
       </div>
     </div>
     <div class="m-foot">
-      <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-accent" onclick="saveCase()">Save Case</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCase()">Save Case</button>
     </div>
   </div>
 </div>
@@ -650,12 +667,16 @@ tbody td{padding:8px 10px;color:var(--text);vertical-align:middle;overflow:hidde
 <div class="modal-bg" id="status-modal" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="modal modal-sm">
     <div class="m-head"><h3>Update Status</h3></div>
-    <div class="m-body"><div class="fg" style="margin-bottom:4px"><label>New Status</label>
-      <select id="q-status"><option>Open</option><option>In progress</option><option>Pending</option><option>Closed</option></select>
-    </div></div>
+    <div class="m-body">
+      <div class="fg" style="margin-bottom:4px"><label>New Status</label>
+        <select id="q-status">
+          <option>New</option><option>In Progress</option><option>Pending Your Input</option><option>Pending Your Confirmation</option><option>Closed</option>
+        </select>
+      </div>
+    </div>
     <div class="m-foot">
-      <button class="btn" onclick="document.getElementById('status-modal').classList.remove('open')">Cancel</button>
-      <button class="btn btn-accent" onclick="applyQuickStatus()">Update</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('status-modal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" onclick="applyQStatus()">Update</button>
     </div>
   </div>
 </div>
@@ -663,20 +684,23 @@ tbody td{padding:8px 10px;color:var(--text);vertical-align:middle;overflow:hidde
 <!-- BANNER LOG MODAL -->
 <div class="modal-bg" id="banner-modal" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="modal modal-sm">
-    <div class="m-head"><h3>Log Banners</h3><button class="btn btn-icon" onclick="document.getElementById('banner-modal').classList.remove('open')" style="border:none;background:none"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:var(--text3);fill:none;stroke-width:2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="m-head">
+      <h3>Log Banners</h3>
+      <button class="btn btn-icon btn-ghost" onclick="document.getElementById('banner-modal').classList.remove('open')"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--text3);fill:none;stroke-width:2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
     <div class="m-body">
-      <div class="banner-log-list" id="banner-log-list"></div>
-      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
+      <div class="bl-list" id="bl-list"></div>
+      <div style="border-top:1px solid var(--border);padding-top:11px">
         <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0">
-          <div class="fg"><label>Count</label><input type="number" id="bl-count" placeholder="0" min="0"></div>
+          <div class="fg"><label>Count</label><input type="number" id="bl-count" placeholder="0" min="1"></div>
           <div class="fg"><label>Date</label><input type="date" id="bl-date"></div>
           <div class="fg full"><label>Note (optional)</label><input type="text" id="bl-note" placeholder="e.g. Sprint 12 banners"></div>
         </div>
       </div>
     </div>
     <div class="m-foot">
-      <button class="btn" onclick="document.getElementById('banner-modal').classList.remove('open')">Close</button>
-      <button class="btn btn-accent" onclick="saveBannerLog()">Add Entry</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('banner-modal').classList.remove('open')">Close</button>
+      <button class="btn btn-primary" onclick="saveBannerEntry()">Add Entry</button>
     </div>
   </div>
 </div>
@@ -684,19 +708,27 @@ tbody td{padding:8px 10px;color:var(--text);vertical-align:middle;overflow:hidde
 <!-- IMPORT MODAL -->
 <div class="modal-bg" id="import-modal" onclick="if(event.target===this)closeImportModal()">
   <div class="modal">
-    <div class="m-head"><h3>Import CSV</h3><button class="btn btn-icon" onclick="closeImportModal()" style="border:none;background:none"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:var(--text3);fill:none;stroke-width:2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="m-head">
+      <h3>Import CSV</h3>
+      <button class="btn btn-icon btn-ghost" onclick="closeImportModal()"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--text3);fill:none;stroke-width:2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
     <div class="m-body">
-      <div id="import-drop" onclick="document.getElementById('import-file').click()" ondragover="event.preventDefault();this.style.borderColor='var(--blue-mid)'" ondragleave="this.style.borderColor=''" ondrop="event.preventDefault();this.style.borderColor='';handleFileDrop(event)" style="border:2px dashed var(--border2);border-radius:var(--r-lg);padding:28px;text-align:center;cursor:pointer;background:var(--surface2);transition:border-color .15s">
+      <div id="import-drop"
+        onclick="document.getElementById('import-file').click()"
+        ondragover="event.preventDefault();this.style.borderColor='var(--text)'"
+        ondragleave="this.style.borderColor=''"
+        ondrop="event.preventDefault();this.style.borderColor='';handleFileDrop(event)"
+        style="border:2px dashed var(--border2);border-radius:var(--r-lg);padding:26px;text-align:center;cursor:pointer;background:var(--surface2);transition:border-color .13s">
         <div style="font-size:28px;margin-bottom:8px">📂</div>
-        <div style="font-size:13px;color:var(--text2);margin-bottom:4px">Click or drag CSV to import</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:3px">Click or drag CSV to import</div>
         <div style="font-size:11px;color:var(--text3)">Same format as exported CSV</div>
       </div>
       <input type="file" id="import-file" accept=".csv" style="display:none" onchange="handleFileSelect(event)">
-      <div id="import-preview" style="display:none;margin-top:12px;font-size:12px;color:var(--text2)"></div>
+      <div id="import-preview" style="display:none;margin-top:10px;font-size:12px;color:var(--text2)"></div>
     </div>
     <div class="m-foot">
-      <button class="btn" onclick="closeImportModal()">Cancel</button>
-      <button class="btn btn-accent" id="import-confirm" onclick="confirmImport()" style="display:none">Import</button>
+      <button class="btn btn-ghost" onclick="closeImportModal()">Cancel</button>
+      <button class="btn btn-primary" id="import-confirm" onclick="confirmImport()" style="display:none">Import Cases</button>
     </div>
   </div>
 </div>
@@ -705,789 +737,623 @@ tbody td{padding:8px 10px;color:var(--text);vertical-align:middle;overflow:hidde
 
 <script>
 // ── CONSTANTS ──
-const STORE = 'sf_cases_v5';
-const TYPE_SHORT = {
-  'Automotive Content Migration':'ACM',
-  'Automotive Blog Migration':'ABM',
-  'LeadScience Content Migration':'LCM',
-  'LeadScience Blog Migration':'LBM'
-};
-const TYPE_CLASS = {
-  'Automotive Content Migration':'t-acm',
-  'Automotive Blog Migration':'t-abm',
-  'LeadScience Content Migration':'t-lcm',
-  'LeadScience Blog Migration':'t-lbm'
-};
+const STORE = 'sf_cases_v6';
+const STATUSES = ['New','In Progress','Pending Your Input','Pending Your Confirmation','Closed'];
+const WORKED = ['Pending Your Confirmation','Closed']; // counted in totals
+const TYPES = ['Automotive Content Migration','Automotive Blog Migration','LeadScience Content Migration','LeadScience Blog Migration'];
+const TSHORT = {'Automotive Content Migration':'ACM','Automotive Blog Migration':'ABM','LeadScience Content Migration':'LCM','LeadScience Blog Migration':'LBM'};
+const TCLASS = {'Automotive Content Migration':'t-acm','Automotive Blog Migration':'t-abm','LeadScience Content Migration':'t-lcm','LeadScience Blog Migration':'t-lbm'};
 
 // ── STATE ──
-let cases = [];
-let editId = null;
-let sortKey = 'start';
-let sortDir = -1;
-let selected = new Set();
-let openDetailId = null;
-let openDetailTab = 'info';
-let currentView = 'table';
-let pendingImport = null;
-let cTrend = null, cBannerImpact = null, cDashStatus = null, cDashPriority = null, cDashTimeline = null;
+let cases=[], editId=null, sortKey='start', sortDir=-1, selected=new Set();
+let openDetailId=null, openDTab='info', curView='table', pendingImport=null;
+let charts={};
 
 // ── INIT ──
 function load() {
-  try { const d = localStorage.getItem(STORE); if (d) cases = JSON.parse(d); } catch(e) {}
-  // Migrate old case types
-  cases.forEach(c => {
-    if (!c.bannerLog) c.bannerLog = [];
-    if (!c.comments) c.comments = [];
-    if (!c.statusHistory) c.statusHistory = [];
-    if (!c.totalBanners) c.totalBanners = c.bannerLog.reduce((s,b)=>s+(b.count||0),0) || (c.banners||0);
-    // Map old types
-    const oldTypes = {'Bug':'Automotive Content Migration','Feature':'Automotive Blog Migration','Query':'LeadScience Content Migration','Config':'LeadScience Blog Migration'};
-    if (oldTypes[c.type]) c.type = oldTypes[c.type];
+  try { const d=localStorage.getItem(STORE); if(d) cases=JSON.parse(d); } catch(e){}
+  // Migrate old data
+  cases.forEach(c=>{
+    if(!c.bannerLog) c.bannerLog=[];
+    if(!c.comments) c.comments=[];
+    if(!c.statusHistory) c.statusHistory=[];
+    // Migrate old banner value into log if no entries
+    if(c.bannerLog.length===0&&(c.banners||c.totalBanners)){
+      const n=parseInt(c.totalBanners||c.banners)||0;
+      if(n>0) c.bannerLog.push({count:n,date:c.start||today(),note:'Migrated',ts:Date.now()});
+    }
+    c.totalBanners=sumB(c);
+    // Migrate old statuses
+    const sm={'Open':'New','In progress':'In Progress','Pending':'Pending Your Input','Closed':'Closed'};
+    if(sm[c.status]) c.status=sm[c.status];
+    // Migrate old types
+    const tm={'Bug':'Automotive Content Migration','Feature':'Automotive Blog Migration','Query':'LeadScience Content Migration','Config':'LeadScience Blog Migration'};
+    if(tm[c.type]) c.type=tm[c.type];
+    if(!c.assignee) c.assignee='';
   });
-  const theme = localStorage.getItem('sf_theme');
-  if (theme === 'dark') { document.documentElement.setAttribute('data-theme','dark'); updateThemeBtn(true); }
-  document.getElementById('sb-date').textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
-  updateAssigneeFilter();
+  const th=localStorage.getItem('sf_theme');
+  if(th==='dark'){document.documentElement.setAttribute('data-theme','dark');updateThemeBtn(true);}
+  document.getElementById('sb-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
   renderAll();
 }
-
-function save() {
-  try { localStorage.setItem(STORE, JSON.stringify(cases)); } catch(e) {}
-}
-
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2400);
-}
-
-// ── THEME ──
-function toggleTheme() {
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
-  localStorage.setItem('sf_theme', isDark ? 'light' : 'dark');
-  updateThemeBtn(!isDark);
-  renderCharts(); renderAnalytics();
-}
-function updateThemeBtn(isDark) {
-  const lbl = document.getElementById('theme-label');
-  if (lbl) lbl.textContent = isDark ? 'Dark mode' : 'Light mode';
-}
-
-// ── TABS ──
-const TAB_TITLES = {dashboard:'Dashboard',cases:'All Cases',kanban:'Kanban',analytics:'Analytics',reports:'Reports'};
-function switchTab(name, el) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.sb-item').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  el.classList.add('active');
-  document.getElementById('topbar-title').textContent = TAB_TITLES[name] || name;
-  if (name === 'dashboard') { renderBento(); renderDashCharts(); }
-  if (name === 'analytics') renderAnalytics();
-  if (name === 'reports') renderReport();
-  if (name === 'kanban') renderKanban();
-}
+function save(){try{localStorage.setItem(STORE,JSON.stringify(cases));}catch(e){}}
+function today(){return new Date().toISOString().slice(0,10);}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
 
 // ── HELPERS ──
-function fmtDate(d) { if (!d) return '—'; const p = d.split('-'); return p[2]+'/'+p[1]+'/'+p[0].slice(2); }
-function fmtDateFull(d) { if (!d) return '—'; return new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}); }
-function fmtTs(ts) { const d = new Date(ts); const now = new Date(); const diff = Math.floor((now-d)/6e4); if(diff<1)return'just now'; if(diff<60)return diff+'m ago'; if(diff<1440)return Math.floor(diff/60)+'h ago'; return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'}); }
-function daysSince(d) { if (!d) return null; return Math.floor((new Date() - new Date(d+'T00:00:00')) / 86400000); }
-function isOverdue(c) { return ['Open','In progress','Pending'].includes(c.status) && c.start && daysSince(c.start) > 7; }
-function isDueSoon(c) { if (!c.dueDate || c.status === 'Closed') return false; const d = Math.floor((new Date(c.dueDate+'T00:00:00') - new Date()) / 86400000); return d <= 2; }
-function isPastDue(c) { if (!c.dueDate || c.status === 'Closed') return false; return new Date(c.dueDate+'T00:00:00') < new Date(); }
-function totalBanners(c) { return (c.bannerLog||[]).reduce((s,b)=>s+(b.count||0),0) || (c.banners||0); }
+function fmtD(d){if(!d)return'—';const p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0].slice(2);}
+function fmtDF(d){if(!d)return'—';return new Date(d+'T12:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});}
+function fmtTs(ts){const d=new Date(ts),now=new Date(),diff=Math.floor((now-d)/6e4);if(diff<1)return'just now';if(diff<60)return diff+'m ago';if(diff<1440)return Math.floor(diff/60)+'h ago';return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});}
+function dSince(d){if(!d)return null;return Math.floor((new Date()-(new Date(d+'T12:00:00')))/86400000);}
+function isOD(c){return c.status!=='Closed'&&c.start&&dSince(c.start)>7;}
+function isPD(c){if(!c.dueDate||c.status==='Closed')return false;return new Date(c.dueDate+'T12:00:00')<new Date();}
+function isDS(c){if(!c.dueDate||c.status==='Closed')return false;const d=Math.floor((new Date(c.dueDate+'T12:00:00')-new Date())/86400000);return d<=2&&d>=0;}
+function sumB(c){return(c.bannerLog||[]).reduce((s,b)=>s+(parseInt(b.count)||0),0);}
+// Banners logged in a period
+function sumBInPeriod(c,from){return(c.bannerLog||[]).filter(b=>!from||new Date(b.date+'T12:00:00')>=from).reduce((s,b)=>s+(parseInt(b.count)||0),0);}
 
 // ── BADGES ──
-function bStatus(s) {
-  const m = {'Open':'s-open','In progress':'s-inprogress','Closed':'s-closed','Pending':'s-pending'};
-  return `<span class="badge ${m[s]||'s-open'}">${s}</span>`;
+function bS(s){const m={'New':'s-new','In Progress':'s-inp','Pending Your Input':'s-pyi','Pending Your Confirmation':'s-pyc','Closed':'s-closed'};return`<span class="badge ${m[s]||'s-new'}">${s}</span>`;}
+function bP(p){const m={'Critical':'p-critical','High':'p-high','Medium':'p-medium','Low':'p-low'};return`<span class="badge ${m[p]||'p-low'}">${p||'—'}</span>`;}
+function bT(t){return`<span class="badge ${TCLASS[t]||'t-acm'}" title="${t}">${TSHORT[t]||t}</span>`;}
+
+// ── THEME ──
+function toggleTheme(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',isDark?'':'dark');
+  localStorage.setItem('sf_theme',isDark?'light':'dark');
+  updateThemeBtn(!isDark);
+  Object.values(charts).forEach(c=>{try{c.destroy();}catch(e){}});charts={};
+  const active=document.querySelector('.section.active');
+  if(!active)return;
+  const tab=active.id.replace('tab-','');
+  if(tab==='dashboard')renderBento();
+  if(tab==='analytics')renderAnalytics();
 }
-function bPriority(p) {
-  const m = {'Critical':'p-critical','High':'p-high','Medium':'p-medium','Low':'p-low'};
-  return `<span class="badge ${m[p]||'p-low'}">${p||'Low'}</span>`;
-}
-function bType(t) {
-  const cls = TYPE_CLASS[t] || 't-acm';
-  const short = TYPE_SHORT[t] || t;
-  return `<span class="badge ${cls}" title="${t}">${short}</span>`;
+function updateThemeBtn(isDark){const l=document.getElementById('theme-lbl');if(l)l.textContent=isDark?'Dark mode':'Light mode';}
+
+// ── TABS ──
+const TAB_TITLES={dashboard:'Dashboard',cases:'All Cases',kanban:'Kanban',analytics:'Analytics',reports:'Reports'};
+function switchTab(name,el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('topbar-title').textContent=TAB_TITLES[name]||name;
+  if(name==='dashboard'){renderBento();setTimeout(renderDashCharts,60);}
+  if(name==='analytics')renderAnalytics();
+  if(name==='reports')renderReport();
+  if(name==='kanban')renderKanban();
+  if(name==='cases')renderTable();
 }
 
 // ── RENDER ALL ──
-function renderAll() {
-  renderBento();
-  renderDashCharts();
-  renderTable();
-  const open = cases.filter(c => ['Open','In progress','Pending'].includes(c.status)).length;
-  const badge = document.getElementById('open-badge');
-  if (badge) { badge.textContent = open; badge.style.display = open ? '' : 'none'; }
+function renderAll(){
+  const open=cases.filter(c=>c.status!=='Closed').length;
+  const b=document.getElementById('open-badge');
+  if(b){b.textContent=open;b.style.display=open?'':'none';}
+  const active=document.querySelector('.section.active');
+  if(!active)return;
+  const tab=active.id.replace('tab-','');
+  if(tab==='dashboard'){renderBento();setTimeout(renderDashCharts,60);}
+  else if(tab==='cases')renderTable();
+  else if(tab==='kanban')renderKanban();
+  else if(tab==='analytics')renderAnalytics();
+  else if(tab==='reports')renderReport();
 }
 
 // ── BENTO DASHBOARD ──
-function renderBento() {
-  const total = cases.length;
-  const open = cases.filter(c => c.status==='Open').length;
-  const inp = cases.filter(c => c.status==='In progress').length;
-  const closed = cases.filter(c => c.status==='Closed').length;
-  const pending = cases.filter(c => c.status==='Pending').length;
-  const overdue = cases.filter(isOverdue);
-  const dueSoon = cases.filter(c => isDueSoon(c) && !isPastDue(c));
-  const pastDue = cases.filter(isPastDue);
-  const allBanners = cases.reduce((s,c)=>s+totalBanners(c),0);
-  const resolved = cases.filter(c=>c.status==='Closed'&&c.start&&c.end);
-  const avgRes = resolved.length ? Math.round(resolved.reduce((s,c)=>s+(new Date(c.end)-new Date(c.start))/86400000,0)/resolved.length) : null;
+function renderBento(){
+  const total=cases.length;
+  const bySt=s=>cases.filter(c=>c.status===s).length;
+  const overdue=cases.filter(isOD);
+  const pastDue=cases.filter(isPD);
+  const dueSoon=cases.filter(c=>isDS(c)&&!isPD(c));
+  const allB=cases.reduce((s,c)=>s+sumB(c),0);
+  const resolved=cases.filter(c=>c.status==='Closed'&&c.start&&c.end);
+  const avgRes=resolved.length?Math.round(resolved.reduce((s,c)=>s+(new Date(c.end+'T12:00:00')-new Date(c.start+'T12:00:00'))/86400000,0)/resolved.length):null;
+  const now=new Date(),wa=new Date(now-7*864e5);
+  const wOpened=cases.filter(c=>c.start&&new Date(c.start+'T12:00:00')>=wa).length;
+  const wClosed=cases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=wa).length;
+  const wB=cases.reduce((s,c)=>s+sumBInPeriod(c,wa),0);
+  const recent=[...cases].sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6);
+  const alerts=[
+    overdue.length?`<div class="b c12 b-alert danger" style="min-height:auto"><div class="b-alert-dot"></div><div class="b-alert-text"><strong>${overdue.length} case${overdue.length>1?'s':''} overdue</strong> (7+ days open): ${overdue.map(c=>c.number||c.name).slice(0,5).join(', ')}${overdue.length>5?` +${overdue.length-5} more`:''}</div></div>`:'',
+    pastDue.length?`<div class="b c12 b-alert warn" style="min-height:auto"><div class="b-alert-dot"></div><div class="b-alert-text"><strong>${pastDue.length} case${pastDue.length>1?'s':''} past due date</strong>: ${pastDue.map(c=>c.number||c.name).slice(0,4).join(', ')}</div></div>`:''
+  ].join('');
 
-  // Weekly digest data
-  const now = new Date(); const weekAgo = new Date(now-7*864e5);
-  const wOpened = cases.filter(c=>c.start&&new Date(c.start+'T00:00:00')>=weekAgo).length;
-  const wClosed = cases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T00:00:00')>=weekAgo).length;
-  const wBanners = cases.reduce((s,c)=>{
-    return s+(c.bannerLog||[]).filter(b=>new Date(b.date+'T00:00:00')>=weekAgo).reduce((a,b)=>a+(b.count||0),0);
-  },0);
+  document.getElementById('bento-grid').innerHTML=`
+    ${alerts}
+    <div class="b c2 bp b-dark"><div class="b-lbl">Total</div><div class="b-num">${total}</div><div class="b-sub">all cases</div></div>
+    <div class="b c2 bp"><div class="b-lbl">New</div><div class="b-num" style="color:var(--s-new)">${bySt('New')}</div><div class="b-sub">awaiting</div></div>
+    <div class="b c2 bp"><div class="b-lbl">In Progress</div><div class="b-num" style="color:var(--s-inp)">${bySt('In Progress')}</div><div class="b-sub">active</div></div>
+    <div class="b c2 bp"><div class="b-lbl">Pend. Input</div><div class="b-num" style="color:var(--s-pyi)">${bySt('Pending Your Input')}</div><div class="b-sub">needs info</div></div>
+    <div class="b c2 bp"><div class="b-lbl">Pend. Confirm</div><div class="b-num" style="color:var(--s-pyc)">${bySt('Pending Your Confirmation')}</div><div class="b-sub">awaiting OK</div></div>
+    <div class="b c2 bp"><div class="b-lbl">Closed</div><div class="b-num" style="color:var(--s-closed)">${bySt('Closed')}</div><div class="b-sub">resolved</div></div>
 
-  // Recent cases
-  const recent = [...cases].sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,5);
+    <div class="b c4 b-chart"><div class="b-chart-title">Status</div><canvas id="dash-status" height="170"></canvas></div>
+    <div class="b c4 b-chart"><div class="b-chart-title">Priority</div><canvas id="dash-priority" height="170"></canvas></div>
+    <div class="b c4 b-chart"><div class="b-chart-title">Opened — last 14 days</div><canvas id="dash-timeline" height="170"></canvas></div>
 
-  // Overdue html
-  const overdueHtml = overdue.length ? `
-    <div class="b c12 overdue-bento" style="min-height:auto">
-      <div class="overdue-pulse"></div>
-      <div class="overdue-text"><strong>${overdue.length} case${overdue.length>1?'s':''} overdue</strong> (open 7+ days): ${overdue.map(c=>c.number||c.name).slice(0,5).join(', ')}${overdue.length>5?` +${overdue.length-5} more`:''}</div>
-    </div>` : '';
-
-  const pastDueHtml = pastDue.length ? `
-    <div class="b c12" style="background:var(--amber-bg);border-color:rgba(232,160,32,.25);padding:12px 16px;display:flex;align-items:center;gap:10px;min-height:auto">
-      <span style="font-size:14px">⏰</span>
-      <div style="font-size:12.5px;color:var(--amber)"><strong>${pastDue.length} case${pastDue.length>1?'s':''} past due date</strong>: ${pastDue.map(c=>c.number||c.name).slice(0,4).join(', ')}</div>
-    </div>` : '';
-
-  document.getElementById('bento-grid').innerHTML = `
-    ${overdueHtml}${pastDueHtml}
-
-    <!-- Stat cards -->
-    <div class="b c2 stat-bento stat-accent">
-      <div class="b-label">Total Cases</div>
-      <div class="b-num">${total}</div>
-      <div class="b-sub">all time</div>
+    <div class="b c5 bp">
+      <div class="b-lbl">Recent Cases</div>
+      ${recent.length?recent.map(c=>`
+        <div class="rc-row" onclick="switchTab('cases',document.querySelector('[data-tab=cases]'));openDetail('${c.id}')">
+          <div class="rc-num">${c.number||'—'}</div>
+          <div class="rc-name">${c.name}</div>
+          ${bS(c.status)}
+          <div class="rc-age">${c.start?dSince(c.start)+'d':''}</div>
+        </div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px 0">No cases yet</div>'}
     </div>
-    <div class="b c2 stat-bento stat-blue">
-      <div class="b-label">Open</div>
-      <div class="b-num">${open}</div>
-      <div class="b-sub">awaiting action</div>
-    </div>
-    <div class="b c2 stat-bento stat-amber">
-      <div class="b-label">In Progress</div>
-      <div class="b-num">${inp}</div>
-      <div class="b-sub">being worked on</div>
-    </div>
-    <div class="b c2 stat-bento stat-purple">
-      <div class="b-label">Pending</div>
-      <div class="b-num">${pending}</div>
-      <div class="b-sub">waiting</div>
-    </div>
-    <div class="b c2 stat-bento stat-green">
-      <div class="b-label">Closed</div>
-      <div class="b-num">${closed}</div>
-      <div class="b-sub">resolved</div>
-    </div>
-    <div class="b c2 stat-bento stat-red">
-      <div class="b-label">Overdue</div>
-      <div class="b-num">${overdue.length}</div>
-      <div class="b-sub">7+ days open</div>
-    </div>
-
-    <!-- Charts row -->
-    <div class="b c4 b-chart-wrap">
-      <div class="b-chart-title">Status breakdown</div>
-      <canvas id="dash-chart-status" height="160"></canvas>
-    </div>
-    <div class="b c4 b-chart-wrap">
-      <div class="b-chart-title">Priority breakdown</div>
-      <canvas id="dash-chart-priority" height="160"></canvas>
-    </div>
-    <div class="b c4 b-chart-wrap">
-      <div class="b-chart-title">Cases opened — last 14 days</div>
-      <canvas id="dash-chart-timeline" height="160"></canvas>
-    </div>
-
-    <!-- Recent cases + Quick add -->
-    <div class="b c5 b-pad">
-      <div class="b-label">Recent Cases</div>
-      ${recent.length ? recent.map(c=>`
-        <div class="recent-case-row" onclick="switchTab('cases',document.querySelector('[data-tab=cases]'));openDetail('${c.id}')">
-          <div class="recent-case-num">${c.number||'—'}</div>
-          <div class="recent-case-name">${c.name}</div>
-          ${bStatus(c.status)}
-          <div class="recent-case-age">${c.start?daysSince(c.start)+'d':''}</div>
-        </div>`).join('') : '<div style="font-size:12px;color:var(--text3);padding:8px 0">No cases yet</div>'}
-    </div>
-    <div class="b c4 quick-add-bento">
-      <div class="b-label">Quick Add</div>
-      <input type="text" id="qa-name" placeholder="Case name…" style="height:32px;font-size:13px">
-      <select id="qa-type" style="height:32px;font-size:12px">
-        <option>Automotive Content Migration</option>
-        <option>Automotive Blog Migration</option>
-        <option>LeadScience Content Migration</option>
-        <option>LeadScience Blog Migration</option>
-      </select>
-      <select id="qa-priority" style="height:32px;font-size:12px">
-        <option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option>
-      </select>
-      <button class="btn btn-accent" style="height:34px;font-size:13px" onclick="quickAdd()">
-        <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:white;fill:none;stroke-width:2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Add Case
+    <div class="b c4 b-quickadd">
+      <div class="b-lbl">Quick Add</div>
+      <input type="text" id="qa-name" placeholder="Case name…" onkeydown="if(event.key==='Enter')quickAdd()">
+      <select id="qa-type"><option>Automotive Content Migration</option><option>Automotive Blog Migration</option><option>LeadScience Content Migration</option><option>LeadScience Blog Migration</option></select>
+      <select id="qa-priority"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="quickAdd()">
+        <svg viewBox="0 0 24 24" style="stroke-width:2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Case
       </button>
     </div>
-    <div class="b c3 digest-bento">
-      <div class="b-label">Weekly Digest</div>
-      <div class="digest-period">Last 7 days</div>
-      <div class="digest-row"><span class="digest-key">Opened</span><span class="digest-val ${wOpened>wClosed?'warn':''}">${wOpened}</span></div>
-      <div class="digest-row"><span class="digest-key">Closed</span><span class="digest-val up">${wClosed}</span></div>
-      <div class="digest-row"><span class="digest-key">Banners</span><span class="digest-val">${wBanners}</span></div>
-      <div class="digest-row"><span class="digest-key">Overdue</span><span class="digest-val ${overdue.length>0?'bad':''}">${overdue.length}</span></div>
-      <div class="digest-row"><span class="digest-key">Avg Resolution</span><span class="digest-val">${avgRes!==null?avgRes+'d':'—'}</span></div>
+    <div class="b c3 b-digest">
+      <div class="b-lbl">Weekly Digest</div>
+      <div style="font-size:9.5px;color:rgba(255,255,255,.25);font-family:var(--mono);margin-bottom:8px">Last 7 days</div>
+      <div class="drow"><span class="drow-k">Opened</span><span class="drow-v ${wOpened>wClosed?'warn':''}">${wOpened}</span></div>
+      <div class="drow"><span class="drow-k">Closed</span><span class="drow-v ok">${wClosed}</span></div>
+      <div class="drow"><span class="drow-k">Banners</span><span class="drow-v">${wB}</span></div>
+      <div class="drow"><span class="drow-k">Overdue</span><span class="drow-v ${overdue.length?'bad':''}">${overdue.length}</span></div>
+      <div class="drow"><span class="drow-k">Avg Res.</span><span class="drow-v">${avgRes!==null?avgRes+'d':'—'}</span></div>
     </div>
 
-    <!-- Banners + avg res -->
-    <div class="b c3 stat-bento" style="background:var(--surface)">
-      <div class="b-label">Total Banners</div>
-      <div class="b-num">${allBanners}</div>
-      <div class="b-sub">across all cases</div>
-    </div>
-    <div class="b c3 stat-bento" style="background:var(--surface)">
-      <div class="b-label">Avg Resolution</div>
-      <div class="b-num" style="font-size:${avgRes!==null?'28px':'22px'}">${avgRes!==null?avgRes+'d':'—'}</div>
-      <div class="b-sub">days to close</div>
-    </div>
-    <div class="b c3 stat-bento" style="background:var(--surface)">
-      <div class="b-label">Due Soon</div>
-      <div class="b-num" style="color:${dueSoon.length?'var(--amber-mid)':'var(--text)'}">${dueSoon.length}</div>
-      <div class="b-sub">within 2 days</div>
-    </div>
-    <div class="b c3 stat-bento" style="background:var(--surface)">
-      <div class="b-label">Past Due Date</div>
-      <div class="b-num" style="color:${pastDue.length?'var(--red-mid)':'var(--text)'}">${pastDue.length}</div>
-      <div class="b-sub">missed deadline</div>
-    </div>
+    <div class="b c3 bp"><div class="b-lbl">Total Banners</div><div class="b-num">${allB}</div><div class="b-sub">all time</div></div>
+    <div class="b c3 bp"><div class="b-lbl">Avg Resolution</div><div class="b-num" style="font-size:${avgRes!==null?'26':'18'}px">${avgRes!==null?avgRes+'d':'—'}</div><div class="b-sub">days to close</div></div>
+    <div class="b c3 bp"><div class="b-lbl">Due Soon</div><div class="b-num" style="color:${dueSoon.length?'var(--s-pyi)':'var(--text)'}">${dueSoon.length}</div><div class="b-sub">within 2 days</div></div>
+    <div class="b c3 bp"><div class="b-lbl">Past Due</div><div class="b-num" style="color:${pastDue.length?'var(--p-critical)':'var(--text)'}">${pastDue.length}</div><div class="b-sub">missed deadline</div></div>
   `;
-
-  setTimeout(renderDashCharts, 50);
-}
-
-// ── QUICK ADD ──
-function quickAdd() {
-  const name = document.getElementById('qa-name')?.value.trim();
-  if (!name) { toast('Enter a case name'); return; }
-  const c = {
-    id: Date.now().toString(),
-    name,
-    number: '',
-    type: document.getElementById('qa-type').value,
-    priority: document.getElementById('qa-priority').value,
-    status: 'Open',
-    assignee: '',
-    start: new Date().toISOString().slice(0,10),
-    end: '', dueDate: '', url: '', notes: '',
-    bannerLog: [], comments: [],
-    statusHistory: [{ from: '', to: 'Open', ts: Date.now() }],
-    totalBanners: 0, banners: 0
-  };
-  cases.push(c);
-  save(); updateAssigneeFilter(); renderAll();
-  document.getElementById('qa-name').value = '';
-  toast('Case added!');
 }
 
 // ── DASHBOARD CHARTS ──
-function renderDashCharts() {
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  const gc = isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.05)';
-  const tc = isDark ? '#5A5A62' : '#9A9A9F';
-  Chart.defaults.color = tc;
-  Chart.defaults.font.family = "'Lato', sans-serif";
-
-  const sc = {Open:0,'In progress':0,Pending:0,Closed:0};
-  const pc = {Critical:0,High:0,Medium:0,Low:0};
-  cases.forEach(c => { if(sc[c.status]!==undefined)sc[c.status]++; if(pc[c.priority]!==undefined)pc[c.priority]++; });
-
-  const days=[], counts=[];
-  for(let i=13;i>=0;i--){
-    const d=new Date(); d.setDate(d.getDate()-i);
-    const ds=d.toISOString().slice(0,10);
-    days.push(i===0?'Today':d.toLocaleDateString('en-IN',{day:'numeric',month:'short'}));
-    counts.push(cases.filter(c=>c.start===ds).length);
-  }
-
-  const dOpts = {responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:10,usePointStyle:true,pointStyleWidth:7}}},cutout:'68%'};
-  const bDark = isDark?'#1C1C1E':'#FAFAF8';
-
-  const sc1 = document.getElementById('dash-chart-status');
-  const sc2 = document.getElementById('dash-chart-priority');
-  const sc3 = document.getElementById('dash-chart-timeline');
-  if (!sc1||!sc2||!sc3) return;
-
-  if(cDashStatus) cDashStatus.destroy();
-  cDashStatus = new Chart(sc1,{type:'doughnut',data:{labels:Object.keys(sc),datasets:[{data:Object.values(sc),backgroundColor:['#2E7DD4','#E8A020','#6050D0','#339918'],borderWidth:2,borderColor:bDark,hoverOffset:5}]},options:dOpts});
-
-  if(cDashPriority) cDashPriority.destroy();
-  cDashPriority = new Chart(sc2,{type:'doughnut',data:{labels:Object.keys(pc),datasets:[{data:Object.values(pc),backgroundColor:['#D03838','#C94F1A','#E8A020','#339918'],borderWidth:2,borderColor:bDark,hoverOffset:5}]},options:dOpts});
-
-  if(cDashTimeline) cDashTimeline.destroy();
-  cDashTimeline = new Chart(sc3,{type:'bar',data:{labels:days,datasets:[{data:counts,backgroundColor:'rgba(46,125,212,.18)',borderColor:'#2E7DD4',borderWidth:1.5,borderRadius:4,hoverBackgroundColor:'rgba(46,125,212,.4)'}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,font:{size:10}},grid:{color:gc}},x:{ticks:{font:{size:9},maxRotation:45},grid:{display:false}}}}});
+function renderDashCharts(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const gc=isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.05)';
+  const tc=isDark?'#606060':'#999999';
+  Chart.defaults.color=tc; Chart.defaults.font.family="'Inter',sans-serif";
+  const sc={};STATUSES.forEach(s=>sc[s]=0);
+  const pc={Critical:0,High:0,Medium:0,Low:0};
+  cases.forEach(c=>{if(sc[c.status]!==undefined)sc[c.status]++;if(pc[c.priority]!==undefined)pc[c.priority]++;});
+  const days=[],counts=[];
+  for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().slice(0,10);days.push(i===0?'Today':d.toLocaleDateString('en-IN',{day:'numeric',month:'short'}));counts.push(cases.filter(c=>c.start===ds).length);}
+  const bd=isDark?'#161616':'#fff';
+  const dopts={responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:9,usePointStyle:true,pointStyleWidth:7}}},cutout:'68%'};
+  ['dash-status','dash-priority','dash-timeline'].forEach(id=>{const el=document.getElementById(id);if(el&&charts[id]){charts[id].destroy();delete charts[id];}});
+  const s1=document.getElementById('dash-status'),s2=document.getElementById('dash-priority'),s3=document.getElementById('dash-timeline');
+  if(!s1||!s2||!s3)return;
+  const bgS=isDark?['#333','#0C1F4A','#2C1800','#1A0E40','#082010']:['#F2F2F2','#EFF6FF','#FFFBEB','#F5F3FF','#F0FDF4'];
+  const bgP=isDark?['#2C0A0A','#2C1400','#0C1F4A','#082010']:['#FEF2F2','#FFF7ED','#EFF6FF','#F0FDF4'];
+  charts['dash-status']=new Chart(s1,{type:'doughnut',data:{labels:Object.keys(sc),datasets:[{data:Object.values(sc),backgroundColor:bgS,borderWidth:2,borderColor:bd,hoverOffset:5}]},options:dopts});
+  charts['dash-priority']=new Chart(s2,{type:'doughnut',data:{labels:Object.keys(pc),datasets:[{data:Object.values(pc),backgroundColor:bgP,borderWidth:2,borderColor:bd,hoverOffset:5}]},options:dopts});
+  charts['dash-timeline']=new Chart(s3,{type:'bar',data:{labels:days,datasets:[{data:counts,backgroundColor:isDark?'rgba(240,240,240,.1)':'rgba(17,17,17,.08)',borderColor:isDark?'rgba(240,240,240,.45)':'rgba(17,17,17,.4)',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,font:{size:10}},grid:{color:gc}},x:{ticks:{font:{size:9},maxRotation:45},grid:{display:false}}}}});
 }
 
-// ── ANALYTICS ──
-function renderAnalytics() {
-  renderResolutionTrend();
-  renderBannerImpact();
-  renderLeaderboard();
-  renderHeatmap();
+// ── QUICK ADD ──
+function quickAdd(){
+  const name=document.getElementById('qa-name')?.value.trim();
+  if(!name){toast('Enter a case name');return;}
+  const c=newCase({name,type:document.getElementById('qa-type').value,priority:document.getElementById('qa-priority').value,status:'New',start:today()});
+  cases.push(c);save();renderAll();
+  document.getElementById('qa-name').value='';toast('Case added!');
 }
-
-function renderResolutionTrend() {
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  const gc = isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.05)';
-  const weeks = [], avgs = [];
-  for (let i=7;i>=0;i--) {
-    const wEnd = new Date(); wEnd.setDate(wEnd.getDate()-i*7);
-    const wStart = new Date(wEnd); wStart.setDate(wStart.getDate()-7);
-    const resolved = cases.filter(c=>c.status==='Closed'&&c.start&&c.end&&new Date(c.end+'T00:00:00')>=wStart&&new Date(c.end+'T00:00:00')<wEnd);
-    const avg = resolved.length ? Math.round(resolved.reduce((s,c)=>s+(new Date(c.end)-new Date(c.start))/86400000,0)/resolved.length) : null;
-    weeks.push(i===0?'This wk':`-${i}w`);
-    avgs.push(avg);
-  }
-  const el = document.getElementById('chart-trend');
-  if (!el) return;
-  if (cTrend) cTrend.destroy();
-  cTrend = new Chart(el,{type:'line',data:{labels:weeks,datasets:[{data:avgs,borderColor:'#C94F1A',backgroundColor:'rgba(201,79,26,.08)',tension:.35,pointRadius:4,pointBackgroundColor:'#C94F1A',borderWidth:2,spanGaps:true}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:10}},grid:{color:gc},title:{display:true,text:'Avg days',font:{size:10}}},x:{ticks:{font:{size:10}},grid:{display:false}}}}});
-}
-
-function renderBannerImpact() {
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  const gc = isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.05)';
-  const byType = {};
-  const countByType = {};
-  cases.forEach(c => {
-    const t = TYPE_SHORT[c.type] || c.type;
-    byType[t] = (byType[t]||0) + totalBanners(c);
-    countByType[t] = (countByType[t]||0) + 1;
-  });
-  const labels = Object.keys(byType);
-  const data = labels.map(t => countByType[t]>0 ? Math.round(byType[t]/countByType[t]) : 0);
-  const el = document.getElementById('chart-banner-impact');
-  if (!el) return;
-  if (cBannerImpact) cBannerImpact.destroy();
-  cBannerImpact = new Chart(el,{type:'bar',data:{labels,datasets:[{data,backgroundColor:['rgba(46,125,212,.7)','rgba(201,79,26,.7)','rgba(51,153,24,.7)','rgba(96,80,208,.7)'],borderRadius:5}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{font:{size:10}},grid:{color:gc},title:{display:true,text:'Avg banners/case',font:{size:10}}},y:{ticks:{font:{size:10}},grid:{display:false}}}}});
-}
-
-function renderLeaderboard() {
-  const el = document.getElementById('leaderboard-list');
-  if (!el) return;
-  const board = {};
-  cases.filter(c=>c.status==='Closed'&&c.assignee).forEach(c=>{ board[c.assignee]=(board[c.assignee]||0)+1; });
-  const sorted = Object.entries(board).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  const max = sorted[0]?.[1] || 1;
-  el.innerHTML = sorted.length ? sorted.map(([name,count],i)=>`
-    <div class="leader-row">
-      <div class="leader-rank">${i+1}</div>
-      <div class="leader-name">${name}</div>
-      <div class="leader-bar-wrap"><div class="leader-bar" style="width:${Math.round(count/max*100)}%"></div></div>
-      <div class="leader-count">${count}</div>
-    </div>`).join('') : '<div style="font-size:12px;color:var(--text3);padding:10px 0">No closed cases with assignees yet</div>';
-}
-
-function renderHeatmap() {
-  const el = document.getElementById('heatmap-container');
-  if (!el) return;
-  const cells = [];
-  const counts = {};
-  const closedDates = {};
-  const overdueDates = {};
-  cases.forEach(c => {
-    if (c.start) counts[c.start] = (counts[c.start]||0)+1;
-    if (c.end) closedDates[c.end] = (closedDates[c.end]||0)+1;
-    if (isOverdue(c) && c.start) overdueDates[c.start] = true;
-  });
-  const today = new Date();
-  const htmlCells = [];
-  for (let i=89;i>=0;i--) {
-    const d = new Date(today); d.setDate(d.getDate()-i);
-    const ds = d.toISOString().slice(0,10);
-    const cnt = counts[ds]||0;
-    const isClosed = !!closedDates[ds];
-    const isOD = !!overdueDates[ds];
-    let cls = 'hm-0';
-    if (isClosed) cls='hm-closed';
-    else if (isOD) cls='hm-overdue';
-    else if (cnt>=4) cls='hm-4';
-    else if (cnt===3) cls='hm-3';
-    else if (cnt===2) cls='hm-2';
-    else if (cnt===1) cls='hm-1';
-    htmlCells.push(`<div class="hm-cell ${cls}" title="${ds}: ${cnt} opened${isClosed?' (has closures)':''}${isOD?' (overdue)':''}"></div>`);
-  }
-  el.innerHTML = `
-    <div class="heatmap-grid">${htmlCells.join('')}</div>
-    <div class="heatmap-legend">
-      <span>Less</span>
-      <div class="hm-legend-swatch" style="background:var(--surface3)"></div>
-      <div class="hm-legend-swatch" style="background:rgba(46,125,212,.25)"></div>
-      <div class="hm-legend-swatch" style="background:rgba(46,125,212,.5)"></div>
-      <div class="hm-legend-swatch" style="background:var(--blue-mid)"></div>
-      <span>More</span>
-      <span style="margin-left:8px">·</span>
-      <div class="hm-legend-swatch" style="background:rgba(51,153,24,.55)"></div><span>Closed</span>
-      <div class="hm-legend-swatch" style="background:rgba(208,56,56,.6)"></div><span>Overdue</span>
-    </div>`;
-}
+function newCase(o){return{id:Date.now().toString()+Math.random().toString(36).slice(2,5),number:'',name:'',url:'',type:TYPES[0],status:'New',priority:'Medium',start:'',end:'',dueDate:'',notes:'',bannerLog:[],comments:[],statusHistory:[],totalBanners:0,...o};}
 
 // ── TABLE ──
-function clearFilters() {
-  ['search','f-status','f-priority','f-type','f-assignee'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
-  renderTable();
-}
-function getFiltered() {
-  const q = (document.getElementById('search')?.value||'').toLowerCase();
-  const fs = document.getElementById('f-status')?.value||'';
-  const fp = document.getElementById('f-priority')?.value||'';
-  const ft = document.getElementById('f-type')?.value||'';
-  const fa = document.getElementById('f-assignee')?.value||'';
-  let list = cases.filter(c =>
-    (!q || (c.name||'').toLowerCase().includes(q)||(c.number||'').toLowerCase().includes(q)||(c.assignee||'').toLowerCase().includes(q)||(c.notes||'').toLowerCase().includes(q)) &&
-    (!fs||c.status===fs)&&(!fp||c.priority===fp)&&(!ft||c.type===ft)&&(!fa||c.assignee===fa)
+function clearFilters(){['search','f-status','f-priority','f-type'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});renderTable();}
+function getFiltered(){
+  const q=(document.getElementById('search')?.value||'').toLowerCase();
+  const fs=document.getElementById('f-status')?.value||'';
+  const fp=document.getElementById('f-priority')?.value||'';
+  const ft=document.getElementById('f-type')?.value||'';
+  let list=cases.filter(c=>
+    (!q||(c.name||'').toLowerCase().includes(q)||(c.number||'').toLowerCase().includes(q)||(c.notes||'').toLowerCase().includes(q))&&
+    (!fs||c.status===fs)&&(!fp||c.priority===fp)&&(!ft||c.type===ft)
   );
   list.sort((a,b)=>{
-    let av=a[sortKey]||'', bv=b[sortKey]||'';
-    if(sortKey==='totalBanners'){av=totalBanners(a);bv=totalBanners(b);}
+    let av=a[sortKey]||'',bv=b[sortKey]||'';
+    if(sortKey==='totalBanners'){av=sumB(a);bv=sumB(b);}
     return av<bv?-sortDir:av>bv?sortDir:0;
   });
   return list;
 }
-function renderTable() {
-  const list = getFiltered();
-  const tbody = document.getElementById('tbody');
-  if (!tbody) return;
-  const isEmpty = !list.length;
-  document.getElementById('empty').style.display = isEmpty?'block':'none';
-  document.getElementById('count-label').textContent = !isEmpty?`Showing ${list.length} of ${cases.length} cases`:'';
-  tbody.innerHTML = list.map(c=>{
-    const tb = totalBanners(c);
-    const pd = isPastDue(c);
-    const ds = isDueSoon(c);
-    const dueStr = c.dueDate ? `<span class="${pd?'due-warn':ds?'due-warn due-ok':''}" title="${pd?'Past due':'Due '+fmtDateFull(c.dueDate)}">${fmtDate(c.dueDate)}${pd?' ⚠':ds?' ●':''}</span>` : '—';
-    return `<tr class="${isOverdue(c)?'overdue-row':''} ${openDetailId===c.id?'sel-row':''}" onclick="openDetail('${c.id}')">
+function renderTable(){
+  const list=getFiltered();
+  const tbody=document.getElementById('tbody');
+  if(!tbody)return;
+  document.getElementById('tbl-empty').style.display=list.length?'none':'block';
+  document.getElementById('count-lbl').textContent=list.length?`Showing ${list.length} of ${cases.length} cases`:'';
+  tbody.innerHTML=list.map(c=>{
+    const tb=sumB(c),pd=isPD(c),ds=isDS(c);
+    const dueStr=c.dueDate?`<span class="${pd?'due-warn':ds?'due-soon':''}">${fmtD(c.dueDate)}${pd?' ⚠':ds?' ●':''}</span>`:'—';
+    // Case number linked to URL — NOT the name
+    const numCell=c.url&&c.number
+      ?`<a href="${c.url}" target="_blank" onclick="event.stopPropagation()" style="font-family:var(--mono);font-size:10.5px">${c.number}</a>`
+      :`<span style="font-family:var(--mono);font-size:10.5px;color:var(--text3)">${c.number||'—'}</span>`;
+    return`<tr class="${isOD(c)?'od-row':''} ${openDetailId===c.id?'sel-row':''}" onclick="openDetail('${c.id}')">
       <td onclick="event.stopPropagation()"><input type="checkbox" class="row-chk" data-id="${c.id}" onchange="toggleRow('${c.id}',this)" ${selected.has(c.id)?'checked':''}></td>
-      <td style="font-family:var(--mono);font-size:10px;color:var(--text3)">${c.number||'—'}</td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis" title="${c.name||''}">${c.url?`<a href="${c.url}" target="_blank" onclick="event.stopPropagation()">${c.name||'—'}</a>`:(c.name||'—')}</td>
-      <td>${bType(c.type)}</td>
-      <td>${bStatus(c.status)}</td>
-      <td>${bPriority(c.priority)}</td>
-      <td style="font-size:11px;color:var(--text2);max-width:80px;overflow:hidden;text-overflow:ellipsis">${c.assignee||'—'}</td>
-      <td style="font-size:11px">${fmtDate(c.start)}</td>
+      <td>${numCell}</td>
+      <td style="max-width:195px;overflow:hidden;text-overflow:ellipsis" title="${c.name||''}">${c.name||'—'}</td>
+      <td>${bT(c.type)}</td>
+      <td>${bS(c.status)}</td>
+      <td>${bP(c.priority)}</td>
+      <td style="font-size:11px">${fmtD(c.start)}</td>
       <td style="font-size:11px">${dueStr}</td>
-      <td style="text-align:center;font-weight:700;font-family:var(--mono);font-size:11px">${tb||0}</td>
-      <td onclick="event.stopPropagation()"><button class="btn btn-sm" style="padding:0 7px;height:25px;font-size:10px" onclick="openModal('${c.id}')">Edit</button></td>
+      <td style="text-align:center;font-family:var(--mono);font-weight:700;font-size:11px">${tb||0}</td>
+      <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-ghost" style="font-size:10px;height:24px;padding:0 6px" onclick="openModal('${c.id}')">Edit</button></td>
     </tr>`;
   }).join('');
-  updateBulkBar(); updateSortArrows();
-  if (currentView==='cards') renderCards(list);
+  updateBulkBar();updateSortArrows();
+  if(curView==='cards')renderCards(list);
 }
 
-function setView(v,btn) {
-  currentView=v;
-  document.querySelectorAll('.vbtn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+// ── CARD VIEW ──
+function setView(v,btn){
+  curView=v;document.querySelectorAll('.vbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
   document.getElementById('view-table').style.display=v==='table'?'':'none';
   document.getElementById('view-cards').style.display=v==='cards'?'':'none';
-  if(v==='cards') renderCards(getFiltered());
+  if(v==='cards')renderCards(getFiltered());
 }
-function renderCards(list) {
-  const grid=document.getElementById('cards-grid');
-  const empty=document.getElementById('cards-empty');
-  if(!grid) return;
+function renderCards(list){
+  const grid=document.getElementById('cards-grid'),empty=document.getElementById('cards-empty');
+  if(!grid)return;
   empty.style.display=!list.length?'block':'none';
   grid.style.display=list.length?'':'none';
-  grid.innerHTML=list.map(c=>`
-    <div onclick="openDetail('${c.id}')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;cursor:pointer;transition:all .15s;box-shadow:var(--shadow);${isOverdue(c)?'border-left:3px solid var(--red-mid)':''}" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow='var(--shadow)'">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:7px"><div style="font-family:var(--mono);font-size:9px;color:var(--text3)">${c.number||'—'}</div>${bPriority(c.priority)}</div>
-      <div style="font-size:13px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:8px">${c.name||'—'}</div>
-      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">${bStatus(c.status)} ${bType(c.type)}</div>
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);border-top:1px solid var(--border);padding-top:7px">
-        <span>${c.assignee||'Unassigned'}</span><span>${c.start?daysSince(c.start)+'d ago':'—'}</span>
-      </div>
-    </div>`).join('');
+  grid.innerHTML=list.map(c=>{
+    const tb=sumB(c);
+    return`<div onclick="openDetail('${c.id}')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:13px;cursor:pointer;transition:box-shadow .12s;${isOD(c)?'border-left:2px solid var(--p-critical)':''}" onmouseover="this.style.boxShadow='var(--sh-lg)'" onmouseout="this.style.boxShadow=''">
+      <div style="display:flex;justify-content:space-between;gap:5px;margin-bottom:5px"><span style="font-family:var(--mono);font-size:10px;color:var(--text3)">${c.number||'—'}</span>${bP(c.priority)}</div>
+      <div style="font-size:12.5px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:7px">${c.name||'—'}</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:7px">${bS(c.status)} ${bT(c.type)}</div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);border-top:1px solid var(--border);padding-top:6px">
+        <span>${c.start?dSince(c.start)+'d ago':'—'}</span>
+        <span>${tb?tb+' banners':''}</span>
+      </div></div>`;
+  }).join('');
 }
 
 // ── DETAIL PANEL ──
-function openDetail(id) {
-  const c = cases.find(x=>x.id===id);
-  if (!c) return;
-  openDetailId = id;
-  document.getElementById('d-num').textContent = c.number ? '#'+c.number : '';
-  document.getElementById('d-name').textContent = c.name||'—';
-  document.getElementById('d-badges').innerHTML = bStatus(c.status)+' '+bPriority(c.priority)+' '+bType(c.type);
+function openDetail(id){
+  const c=cases.find(x=>x.id===id);if(!c)return;
+  openDetailId=id;
+  document.getElementById('d-num').textContent=c.number?'#'+c.number:'';
+  document.getElementById('d-name').textContent=c.name||'—';
+  document.getElementById('d-badges').innerHTML=bS(c.status)+' '+bP(c.priority)+' '+bT(c.type);
   document.getElementById('detail-panel').classList.add('open');
-  renderDetailTab(openDetailTab);
+  openDTab='info';
+  document.querySelectorAll('.d-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
+  renderDTab('info');
   document.querySelectorAll('#tbody tr').forEach(tr=>{
-    tr.classList.toggle('sel-row', !!tr.querySelector(`[data-id="${id}"]`));
+    const chk=tr.querySelector('.row-chk');
+    tr.classList.toggle('sel-row',!!(chk&&chk.dataset.id===id));
   });
 }
-function closeDetail() {
+function closeDetail(){
   openDetailId=null;
   document.getElementById('detail-panel').classList.remove('open');
   document.querySelectorAll('#tbody tr').forEach(tr=>tr.classList.remove('sel-row'));
 }
-function switchDetailTab(tab, el) {
-  openDetailTab=tab;
+function switchDTab(tab,el){
+  openDTab=tab;
   document.querySelectorAll('.d-tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  renderDetailTab(tab);
+  renderDTab(tab);
 }
-function renderDetailTab(tab) {
-  const c = cases.find(x=>x.id===openDetailId);
-  if (!c) return;
-  const body = document.getElementById('d-body');
-  if (tab==='info') {
-    const age = c.start ? daysSince(c.start) : null;
-    const isActive = ['Open','In progress','Pending'].includes(c.status);
-    let slaHtml = '';
-    if (age!==null && isActive) {
-      const pct = Math.min(100, Math.round(age/7*100));
-      const barColor = age>7?'var(--red-mid)':age>5?'var(--amber-mid)':'var(--green-mid)';
-      slaHtml = `<div class="sla-wrap"><div class="sla-label">⏱ Age</div><div class="sla-val">${age} day${age!==1?'s':''}</div><div class="sla-bar-wrap"><div class="sla-bar-fill" style="width:${pct}%;background:${barColor}"></div></div><div class="sla-meta"><span>SLA: 7 days</span><span style="color:${age>7?'var(--red-mid)':'inherit'}">${age>7?'⚠ Overdue':(7-age)+'d left'}</span></div></div>`;
+function renderDTab(tab){
+  const c=cases.find(x=>x.id===openDetailId);if(!c)return;
+  const body=document.getElementById('d-body');if(!body)return;
+  if(tab==='info'){
+    const age=c.start?dSince(c.start):null;
+    const active=c.status!=='Closed';
+    let sla='';
+    if(age!==null&&active){
+      const pct=Math.min(100,Math.round(age/7*100));
+      const bc=age>7?'var(--p-critical)':age>5?'var(--p-high)':'var(--s-closed)';
+      sla=`<div class="sla-box"><div class="sla-top"><span class="sla-lbl">Age</span><span class="sla-val">${age}d</span></div><div class="sla-bar-bg"><div class="sla-bar" style="width:${pct}%;background:${bc}"></div></div><div class="sla-meta"><span>7-day SLA</span><span style="color:${age>7?'var(--p-critical)':'var(--text3)'}">${age>7?'⚠ Overdue':(7-age)+'d left'}</span></div></div>`;
     }
-    const tb = totalBanners(c);
+    const tb=sumB(c);
     let dur='—';
-    if(c.start&&c.end){const d=Math.round((new Date(c.end)-new Date(c.start))/86400000);dur=d+'d';}
-    else if(c.start&&c.status!=='Closed'){const d=daysSince(c.start);dur=d+'d (open)';}
-    const dueMeta = c.dueDate ? `${fmtDateFull(c.dueDate)} ${isPastDue(c)?'<span style="color:var(--red-mid);font-size:10px">⚠ Past due</span>':isDueSoon(c)?'<span style="color:var(--amber-mid);font-size:10px">⏰ Due soon</span>':''}` : '—';
-    body.innerHTML = `${slaHtml}
-      <div class="d-section">
-        <div class="d-section-title">Details</div>
-        <div class="d-row"><span class="d-row-label">Assignee</span><span class="d-row-val">${c.assignee||'—'}</span></div>
-        <div class="d-row"><span class="d-row-label">Banners</span><span class="d-row-val" style="font-family:var(--mono);font-weight:700">${tb}</span></div>
-        <div class="d-row"><span class="d-row-label">Start</span><span class="d-row-val">${fmtDateFull(c.start)}</span></div>
-        <div class="d-row"><span class="d-row-label">Due Date</span><span class="d-row-val">${dueMeta}</span></div>
-        <div class="d-row"><span class="d-row-label">Completion</span><span class="d-row-val">${fmtDateFull(c.end)}</span></div>
-        <div class="d-row"><span class="d-row-label">Duration</span><span class="d-row-val">${dur}</span></div>
-        ${c.url?`<div class="d-row"><span class="d-row-label">Link</span><span class="d-row-val"><a href="${c.url}" target="_blank" style="font-size:11px">Open in SF ↗</a></span></div>`:''}
+    if(c.start&&c.end){const d=Math.round((new Date(c.end+'T12:00:00')-new Date(c.start+'T12:00:00'))/86400000);dur=d+'d';}
+    else if(c.start&&c.status!=='Closed'){dur=age+'d (open)';}
+    const dueMeta=c.dueDate?fmtDF(c.dueDate)+(isPD(c)?' <span style="color:var(--p-critical);font-size:10px">⚠ Past due</span>':isDS(c)?' <span style="color:var(--p-high);font-size:10px">⏰ Due soon</span>':''):'—';
+    body.innerHTML=`${sla}
+      <div class="d-sec"><div class="d-sec-title">Details</div>
+        <div class="d-row"><span class="d-rl">Banners</span><span class="d-rv" style="font-family:var(--mono)">${tb}</span></div>
+        <div class="d-row"><span class="d-rl">Start</span><span class="d-rv">${fmtDF(c.start)}</span></div>
+        <div class="d-row"><span class="d-rl">Due Date</span><span class="d-rv">${dueMeta}</span></div>
+        <div class="d-row"><span class="d-rl">Completion</span><span class="d-rv">${fmtDF(c.end)}</span></div>
+        <div class="d-row"><span class="d-rl">Duration</span><span class="d-rv">${dur}</span></div>
+        ${c.url?`<div class="d-row"><span class="d-rl">Link</span><span class="d-rv"><a href="${c.url}" target="_blank">Open in SF ↗</a></span></div>`:''}
       </div>
-      <div class="d-section">
-        <div class="d-section-title">Notes</div>
-        <div class="d-notes ${c.notes?'':'empty'}">${c.notes||'No notes added.'}</div>
+      <div class="d-sec"><div class="d-sec-title">Notes</div>
+        <div class="d-notes ${c.notes?'':'mt'}">${c.notes||'No notes added.'}</div>
       </div>`;
-  } else if (tab==='comments') {
-    const comments = c.comments||[];
-    body.innerHTML = `
-      <div class="d-section">
-        ${comments.length ? comments.map(cm=>`
-          <div class="comment-item">
-            <div class="comment-avatar">${(cm.author||'?')[0].toUpperCase()}</div>
-            <div class="comment-body">
-              <div class="comment-meta"><span class="comment-author">${cm.author||'You'}</span><span>${fmtTs(cm.ts)}</span></div>
-              <div class="comment-text">${cm.text}</div>
-            </div>
-          </div>`).join('') : '<div style="font-size:12px;color:var(--text3);padding:8px 0">No comments yet.</div>'}
-        <div class="comment-input-wrap">
-          <textarea id="comment-input" placeholder="Add a comment…"></textarea>
-          <button class="btn btn-primary btn-sm" style="align-self:flex-end;height:60px" onclick="addComment()">Post</button>
-        </div>
-      </div>`;
-  } else if (tab==='history') {
-    const hist = [...(c.statusHistory||[])].reverse();
-    body.innerHTML = `<div class="d-section">
-      <div class="d-section-title">Status changes</div>
-      ${hist.length ? hist.map(h=>{
-        const m={'Open':'var(--blue-mid)','In progress':'var(--amber-mid)','Pending':'var(--purple-mid)','Closed':'var(--green-mid)'};
-        return `<div class="hist-item">
-          <div class="hist-dot" style="background:${m[h.to]||'var(--text3)'}"></div>
-          <div class="hist-content">
-            <div style="font-size:12px;color:var(--text)">${h.from?`<span style="color:var(--text3)">${h.from}</span> → `:''}<strong>${h.to}</strong></div>
-            <div class="hist-time">${h.ts?fmtTs(h.ts):'—'}</div>
-          </div>
-        </div>`;
-      }).join('') : '<div style="font-size:12px;color:var(--text3);padding:8px 0">No status history.</div>'}
+  } else if(tab==='comments'){
+    const coms=c.comments||[];
+    body.innerHTML=`<div class="d-sec">
+      ${coms.length?coms.map(cm=>`<div class="cmt"><div class="cmt-av">${(cm.author||'Y')[0].toUpperCase()}</div><div class="cmt-body"><div class="cmt-meta"><span class="cmt-author">${cm.author||'You'}</span><span>${fmtTs(cm.ts)}</span></div><div class="cmt-text">${cm.text}</div></div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:5px 0">No comments yet.</div>'}
+      <div class="cmt-wrap"><textarea id="cmt-input" placeholder="Add a comment…"></textarea><button class="btn btn-sm btn-primary" style="align-self:flex-end;height:55px;width:55px;flex-direction:column" onclick="addComment()"><svg viewBox="0 0 24 24" style="stroke-width:2;width:14px;height:14px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div>
     </div>`;
-  } else if (tab==='banners') {
-    const log = [...(c.bannerLog||[])].reverse();
-    const tb = totalBanners(c);
-    body.innerHTML = `<div class="d-section">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div class="d-section-title" style="margin-bottom:0">Banner Log</div>
-        <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--accent)">${tb} total</div>
-      </div>
-      ${log.length ? log.map(b=>`
-        <div class="bl-item">
-          <div class="bl-count">+${b.count}</div>
-          <div class="bl-note">${b.note||'—'}</div>
-          <div class="bl-date">${b.date||'—'}</div>
-        </div>`).join('') : '<div style="font-size:12px;color:var(--text3);padding:8px 0">No banner entries yet. Use the Banners button to log.</div>'}
+  } else if(tab==='history'){
+    const hist=[...(c.statusHistory||[])].reverse();
+    const sc={'New':'var(--s-new)','In Progress':'var(--s-inp)','Pending Your Input':'var(--s-pyi)','Pending Your Confirmation':'var(--s-pyc)','Closed':'var(--s-closed)'};
+    body.innerHTML=`<div class="d-sec"><div class="d-sec-title">Status changes</div>
+      ${hist.length?hist.map(h=>`<div class="hist"><div class="hist-dot" style="background:${sc[h.to]||'var(--text3)'}"></div><div class="hist-content"><div style="font-size:12px">${h.from?`<span style="color:var(--text3)">${h.from}</span> → `:''}<strong>${h.to}</strong></div><div class="hist-time">${h.ts?fmtTs(h.ts):'—'}</div></div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:5px 0">No history yet.</div>'}
+    </div>`;
+  } else if(tab==='banners'){
+    const log=[...(c.bannerLog||[])].reverse(),tb=sumB(c);
+    body.innerHTML=`<div class="d-sec">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px"><div class="d-sec-title" style="margin-bottom:0">Banner Log</div><div style="font-family:var(--mono);font-size:20px;font-weight:700">${tb}</div></div>
+      ${log.length?log.map(b=>`<div class="bl-item"><div class="bl-cnt">+${b.count}</div><div class="bl-note">${b.note||'—'}</div><div class="bl-date">${b.date||'—'}</div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:5px 0">No entries yet.</div>'}
     </div>`;
   }
 }
-
-function addComment() {
-  const c = cases.find(x=>x.id===openDetailId);
-  if (!c) return;
-  const input = document.getElementById('comment-input');
-  const text = input?.value.trim();
-  if (!text) { toast('Enter a comment'); return; }
-  if (!c.comments) c.comments = [];
-  c.comments.push({ author: 'You', text, ts: Date.now() });
-  save();
-  renderDetailTab('comments');
-  toast('Comment added');
+function addComment(){
+  const c=cases.find(x=>x.id===openDetailId);if(!c)return;
+  const inp=document.getElementById('cmt-input');
+  const text=inp?.value.trim();if(!text){toast('Enter a comment');return;}
+  if(!c.comments)c.comments=[];
+  c.comments.push({author:'You',text,ts:Date.now()});
+  save();renderDTab('comments');toast('Comment added');
 }
-
-function editFromDetail() { if(openDetailId) openModal(openDetailId); }
-function deleteFromDetail() { if(openDetailId) { deleteCase(openDetailId); closeDetail(); } }
-function quickStatus() {
-  if (!openDetailId) return;
-  const c = cases.find(x=>x.id===openDetailId);
-  if (c) document.getElementById('q-status').value = c.status;
+function editFromDetail(){if(openDetailId)openModal(openDetailId);}
+function deleteFromDetail(){if(openDetailId){deleteCase(openDetailId);closeDetail();}}
+function openQStatus(){
+  const c=cases.find(x=>x.id===openDetailId);if(!c)return;
+  document.getElementById('q-status').value=c.status;
   document.getElementById('status-modal').classList.add('open');
 }
-function applyQuickStatus() {
-  const c = cases.find(x=>x.id===openDetailId);
-  if (!c) return;
-  const ns = document.getElementById('q-status').value;
-  const prev = c.status;
-  c.status = ns;
-  if (ns==='Closed' && !c.end) c.end = new Date().toISOString().slice(0,10);
-  if (!c.statusHistory) c.statusHistory = [];
-  c.statusHistory.push({ from: prev, to: ns, ts: Date.now() });
-  save(); renderAll();
-  openDetail(openDetailId);
+function applyQStatus(){
+  const c=cases.find(x=>x.id===openDetailId);if(!c)return;
+  const prev=c.status,ns=document.getElementById('q-status').value;
+  c.status=ns;
+  if(ns==='Closed'&&!c.end)c.end=today();
+  if(!c.statusHistory)c.statusHistory=[];
+  c.statusHistory.push({from:prev,to:ns,ts:Date.now()});
+  c.totalBanners=sumB(c);
+  save();renderAll();openDetail(openDetailId);
   document.getElementById('status-modal').classList.remove('open');
-  toast('Status updated to "'+ns+'"');
+  toast('Status → '+ns);
 }
 
-// ── BANNER LOG MODAL ──
-function openBannerLogModal() {
-  if (!openDetailId) return;
-  const c = cases.find(x=>x.id===openDetailId);
-  if (!c) return;
-  document.getElementById('bl-count').value = '';
-  document.getElementById('bl-date').value = new Date().toISOString().slice(0,10);
-  document.getElementById('bl-note').value = '';
-  renderBannerLogList(c);
+// ── BANNER LOG ──
+function openBannerModal(){
+  if(!openDetailId)return;
+  document.getElementById('bl-count').value='';
+  document.getElementById('bl-date').value=today();
+  document.getElementById('bl-note').value='';
+  renderBannerList();
   document.getElementById('banner-modal').classList.add('open');
 }
-function renderBannerLogList(c) {
-  const log = [...(c.bannerLog||[])].reverse();
-  const tb = totalBanners(c);
-  document.getElementById('banner-log-list').innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3)">Log history</div>
-      <div style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--accent)">${tb} total</div>
+function renderBannerList(){
+  const c=cases.find(x=>x.id===openDetailId);if(!c)return;
+  const log=[...(c.bannerLog||[])].reverse(),tb=sumB(c);
+  document.getElementById('bl-list').innerHTML=`
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px;align-items:center">
+      <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3)">Log history</span>
+      <span style="font-family:var(--mono);font-size:16px;font-weight:700">${tb} total</span>
     </div>
-    ${log.length ? log.map(b=>`<div class="bl-item"><div class="bl-count">+${b.count}</div><div class="bl-note">${b.note||'—'}</div><div class="bl-date">${b.date||'—'}</div></div>`).join('') : '<div style="font-size:12px;color:var(--text3);padding:4px 0">No entries yet.</div>'}`;
+    ${log.length?log.map(b=>`<div class="bl-item"><div class="bl-cnt">+${b.count}</div><div class="bl-note">${b.note||'—'}</div><div class="bl-date">${b.date||'—'}</div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:4px 0">No entries.</div>'}`;
 }
-function saveBannerLog() {
-  const c = cases.find(x=>x.id===openDetailId);
-  if (!c) return;
-  const count = parseInt(document.getElementById('bl-count').value)||0;
-  if (!count) { toast('Enter a count > 0'); return; }
-  const date = document.getElementById('bl-date').value || new Date().toISOString().slice(0,10);
-  const note = document.getElementById('bl-note').value.trim();
-  if (!c.bannerLog) c.bannerLog = [];
-  c.bannerLog.push({ count, date, note, ts: Date.now() });
-  c.totalBanners = totalBanners(c);
-  c.banners = c.totalBanners;
-  save(); renderAll();
-  renderBannerLogList(c);
-  if (openDetailId) renderDetailTab(openDetailTab);
-  document.getElementById('bl-count').value='';
-  document.getElementById('bl-note').value='';
+function saveBannerEntry(){
+  const c=cases.find(x=>x.id===openDetailId);if(!c)return;
+  const count=parseInt(document.getElementById('bl-count').value)||0;
+  if(count<=0){toast('Enter a count > 0');return;}
+  const date=document.getElementById('bl-date').value||today();
+  const note=document.getElementById('bl-note').value.trim();
+  if(!c.bannerLog)c.bannerLog=[];
+  c.bannerLog.push({count,date,note,ts:Date.now()});
+  c.totalBanners=sumB(c);
+  save();renderBannerList();renderAll();
+  if(openDetailId)renderDTab(openDTab);
+  document.getElementById('bl-count').value='';document.getElementById('bl-note').value='';
   toast(`+${count} banners logged`);
 }
 
 // ── KANBAN ──
-function renderKanban() {
-  const cols = ['Open','In progress','Pending','Closed'];
-  const colColors={'Open':'var(--blue)','In progress':'var(--amber-mid)','Pending':'var(--purple-mid)','Closed':'var(--green-mid)'};
-  document.getElementById('kanban-board').innerHTML = cols.map(status=>{
-    const cards = cases.filter(c=>c.status===status).sort((a,b)=>{const pw={Critical:0,High:1,Medium:2,Low:3};return(pw[a.priority]||2)-(pw[b.priority]||2);});
-    return `<div class="k-col">
-      <div class="k-col-head"><span class="k-col-title" style="color:${colColors[status]}">${status}</span><span class="k-count">${cards.length}</span></div>
+function renderKanban(){
+  document.getElementById('kanban-board').innerHTML=STATUSES.map(status=>{
+    const cards=cases.filter(c=>c.status===status).sort((a,b)=>{const pw={Critical:0,High:1,Medium:2,Low:3};return(pw[a.priority]||2)-(pw[b.priority]||2);});
+    return`<div class="k-col"><div class="k-head"><span class="k-title">${status}</span><span class="k-cnt">${cards.length}</span></div>
       <div class="k-cards">
         ${cards.map(c=>`<div class="k-card" onclick="switchTab('cases',document.querySelector('[data-tab=cases]'));openDetail('${c.id}')">
           <div class="k-card-num">${c.number?'#'+c.number:''}</div>
           <div class="k-card-name">${c.name||'—'}</div>
-          <div class="k-card-meta">${bPriority(c.priority)} ${bType(c.type)}<span class="k-card-age">${c.start?daysSince(c.start)+'d':''}</span></div>
+          <div class="k-card-meta">${bP(c.priority)} ${bT(c.type)}<span class="k-card-age">${c.start?dSince(c.start)+'d':''}</span></div>
         </div>`).join('')}
-        ${!cards.length?`<div class="k-empty">No cases</div>`:''}
-      </div>
-    </div>`;
+        ${!cards.length?`<div class="k-empty">Empty</div>`:''}
+      </div></div>`;
   }).join('');
 }
 
-// ── REPORTS ──
-function renderReport() {
-  const range = document.getElementById('report-range')?.value || 'weekly';
-  const now = new Date();
-  let from = null;
-  if(range==='daily') from = new Date(now.toDateString());
-  else if(range==='weekly') from = new Date(now-7*864e5);
-  else if(range==='monthly') from = new Date(now-30*864e5);
+// ── ANALYTICS ──
+function renderAnalytics(){renderTrend();renderImpact();renderLeaderboard();renderHeatmap();}
+function renderTrend(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const gc=isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.04)';
+  const weeks=[],avgs=[];
+  for(let i=7;i>=0;i--){
+    const wEnd=new Date();wEnd.setDate(wEnd.getDate()-i*7);
+    const wStart=new Date(wEnd);wStart.setDate(wStart.getDate()-7);
+    const res=cases.filter(c=>c.status==='Closed'&&c.start&&c.end&&new Date(c.end+'T12:00:00')>=wStart&&new Date(c.end+'T12:00:00')<wEnd);
+    weeks.push(i===0?'This wk':`-${i}w`);
+    avgs.push(res.length?Math.round(res.reduce((s,c)=>s+(new Date(c.end+'T12:00:00')-new Date(c.start+'T12:00:00'))/86400000,0)/res.length):null);
+  }
+  const el=document.getElementById('chart-trend');if(!el)return;
+  if(charts['trend']){charts['trend'].destroy();}
+  charts['trend']=new Chart(el,{type:'line',data:{labels:weeks,datasets:[{data:avgs,borderColor:isDark?'#F0F0F0':'#111',backgroundColor:isDark?'rgba(240,240,240,.05)':'rgba(17,17,17,.05)',tension:.3,pointRadius:4,pointBackgroundColor:isDark?'#F0F0F0':'#111',borderWidth:1.5,spanGaps:true}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:10}},grid:{color:gc},title:{display:true,text:'Avg days',font:{size:10}}},x:{ticks:{font:{size:10}},grid:{display:false}}}}});
+}
+function renderImpact(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const gc=isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.04)';
+  const bt={},ct={};
+  cases.forEach(c=>{const t=TSHORT[c.type]||c.type;bt[t]=(bt[t]||0)+sumB(c);ct[t]=(ct[t]||0)+1;});
+  const labels=Object.keys(bt);
+  const data=labels.map(t=>ct[t]>0?Math.round(bt[t]/ct[t]):0);
+  const el=document.getElementById('chart-impact');if(!el)return;
+  if(charts['impact']){charts['impact'].destroy();}
+  charts['impact']=new Chart(el,{type:'bar',data:{labels,datasets:[{data,backgroundColor:isDark?'rgba(240,240,240,.13)':'rgba(17,17,17,.09)',borderColor:isDark?'rgba(240,240,240,.45)':'rgba(17,17,17,.4)',borderWidth:1,borderRadius:4}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{font:{size:10}},grid:{color:gc},title:{display:true,text:'Avg banners/case',font:{size:10}}},y:{ticks:{font:{size:10}},grid:{display:false}}}}});
+}
+function renderLeaderboard(){
+  const el=document.getElementById('leaderboard');if(!el)return;
+  const board={};
+  cases.filter(c=>c.status==='Closed'&&c.assignee).forEach(c=>{board[c.assignee]=(board[c.assignee]||0)+1;});
+  const sorted=Object.entries(board).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const max=sorted[0]?.[1]||1;
+  el.innerHTML=sorted.length?sorted.map(([name,count],i)=>`<div class="ldr-row"><div class="ldr-rank">${i+1}</div><div class="ldr-name">${name}</div><div class="ldr-bar-bg"><div class="ldr-bar" style="width:${Math.round(count/max*100)}%"></div></div><div class="ldr-n">${count}</div></div>`).join(''):`<div style="font-size:12px;color:var(--text3);padding:8px 0">No closed cases with assignees yet</div>`;
+}
+function renderHeatmap(){
+  const el=document.getElementById('heatmap');if(!el)return;
+  const counts={},closedD={},odD={};
+  cases.forEach(c=>{if(c.start)counts[c.start]=(counts[c.start]||0)+1;if(c.end)closedD[c.end]=(closedD[c.end]||0)+1;if(isOD(c)&&c.start)odD[c.start]=true;});
+  const today2=new Date();const cells=[];
+  for(let i=89;i>=0;i--){
+    const d=new Date(today2);d.setDate(d.getDate()-i);
+    const ds=d.toISOString().slice(0,10);
+    const cnt=counts[ds]||0;
+    let cls='';
+    if(closedD[ds])cls='hm-closed';
+    else if(odD[ds])cls='hm-overdue';
+    else if(cnt>=4)cls='hm-4';else if(cnt===3)cls='hm-3';else if(cnt===2)cls='hm-2';else if(cnt===1)cls='hm-1';
+    cells.push(`<div class="hm-cell ${cls}" title="${ds}: ${cnt} opened"></div>`);
+  }
+  el.innerHTML=`<div class="hm-grid">${cells.join('')}</div>
+    <div class="hm-legend"><span>Less</span>
+      <div class="hm-sw" style="background:var(--surface3)"></div>
+      <div class="hm-sw hm-1"></div><div class="hm-sw hm-2"></div><div class="hm-sw hm-4"></div>
+      <span>More</span>&nbsp;·&nbsp;
+      <div class="hm-sw hm-closed"></div><span>Closed</span>
+      <div class="hm-sw hm-overdue"></div><span>Overdue</span>
+    </div>`;
+}
 
-  const inRange = c => {
-    if(!from) return true;
-    return (c.start&&new Date(c.start+'T00:00:00')>=from)||(c.end&&new Date(c.end+'T00:00:00')>=from);
+// ── REPORTS — Structured Productivity Report ──
+function renderReport(){
+  const range=document.getElementById('rpt-range')?.value||'weekly';
+  const now=new Date();
+  let from=null,periodLabel='';
+  if(range==='daily'){from=new Date(now.toDateString());periodLabel='Today, '+now.toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});}
+  else if(range==='weekly'){from=new Date(now-7*864e5);periodLabel='Last 7 days ('+from.toLocaleDateString('en-IN',{day:'numeric',month:'short'})+' – '+now.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})+')'; }
+  else if(range==='monthly'){from=new Date(now-30*864e5);periodLabel='Last 30 days ('+from.toLocaleDateString('en-IN',{day:'numeric',month:'short'})+' – '+now.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})+')'; }
+
+  const inPeriod=c=>{
+    if(!from)return true;
+    return(c.start&&new Date(c.start+'T12:00:00')>=from)||(c.end&&new Date(c.end+'T12:00:00')>=from);
   };
-  const filtered = cases.filter(inRange);
-  const opened = cases.filter(c=>c.start&&(from?new Date(c.start+'T00:00:00')>=from:true));
-  const closed = cases.filter(c=>c.status==='Closed'&&c.end&&(from?new Date(c.end+'T00:00:00')>=from:true));
-  const overdue = cases.filter(isOverdue);
+  const periodCases=cases.filter(inPeriod);
 
-  // Banners logged in period
-  const bannersInPeriod = cases.reduce((s,c)=>{
-    const logs = (c.bannerLog||[]).filter(b=> !from || new Date(b.date+'T00:00:00')>=from);
-    return s + logs.reduce((a,b)=>a+(b.count||0),0);
-  },0);
+  // Banners logged within period for a given case
+  const bInP=c=>sumBInPeriod(c,from);
 
-  // Banners + count by type in period
-  const TYPES = ['Automotive Content Migration','Automotive Blog Migration','LeadScience Content Migration','LeadScience Blog Migration'];
-  const typeData = TYPES.map(t => {
-    const typeCases = filtered.filter(c=>c.type===t);
-    const typeBanners = typeCases.reduce((s,c)=>{
-      const logs = (c.bannerLog||[]).filter(b=> !from || new Date(b.date+'T00:00:00')>=from);
-      return s + (logs.length ? logs.reduce((a,b)=>a+(b.count||0),0) : (c.banners||0));
-    },0);
-    return { t, count: typeCases.length, banners: typeBanners };
-  });
+  // Worked cases = Pending Your Confirmation OR Closed (in period)
+  const workedCases=periodCases.filter(c=>WORKED.includes(c.status));
 
-  const labels = {daily:'Today',weekly:'Last 7 days',monthly:'Last 30 days'};
-  document.getElementById('report-body').innerHTML = `
-    <div class="r-section">Period: ${labels[range]} · Generated ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}</div>
-    <div class="r-row"><span class="r-label">Total cases in period</span><span class="r-val">${filtered.length}</span></div>
-    <div class="r-row"><span class="r-label">Opened</span><span class="r-val">${opened.length}</span></div>
-    <div class="r-row"><span class="r-label">Closed</span><span class="r-val">${closed.length}</span></div>
-    <div class="r-row"><span class="r-label">Total banners logged in period</span><span class="r-val" style="color:var(--accent);font-family:var(--mono)">${bannersInPeriod}</span></div>
-    <div class="r-row"><span class="r-label">Currently overdue (7+ days open)</span><span class="r-val ${overdue.length?'r-warn':''}">${overdue.length}</span></div>
-    <div class="r-section">By Case Type</div>
-    ${typeData.map(({t,count,banners})=>`
-      <div class="r-row">
-        <span class="r-label">${t}</span>
-        <span class="r-val" style="display:flex;gap:16px;align-items:center">
-          <span style="font-size:11px;color:var(--text3)">${count} case${count!==1?'s':''}</span>
-          <span style="font-family:var(--mono);color:var(--accent)">${banners} ban.</span>
-        </span>
-      </div>`).join('')}
-    ${overdue.length?`<div class="r-section">Overdue Cases</div>${overdue.map(c=>`<div class="r-row"><span class="r-label">${c.number||'—'} — ${c.name}</span><span class="r-val r-warn">${daysSince(c.start)}d old</span></div>`).join('')}`:''}
-  `;
+  // Totals
+  const totalBanners=periodCases.reduce((s,c)=>s+bInP(c),0);
+  const totalBlogs=periodCases.filter(c=>c.type==='Automotive Blog Migration'||c.type==='LeadScience Blog Migration').reduce((s,c)=>s+bInP(c),0);
+  const totalPages=periodCases.filter(c=>c.type==='Automotive Content Migration'||c.type==='LeadScience Content Migration').reduce((s,c)=>s+bInP(c),0);
+
+  // Build case number cell (clickable if URL exists)
+  const numCell=c=>{
+    if(c.url&&c.number)return`<a href="${c.url}" target="_blank" style="font-family:var(--mono);font-size:11px">${c.number}</a>`;
+    return`<span style="font-family:var(--mono);font-size:11px;color:var(--text3)">${c.number||'—'}</span>`;
+  };
+
+  let html=`<div class="rpt-period">${periodLabel} · Generated ${new Date().toLocaleString('en-IN',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>`;
+
+  if(range==='daily'){
+    // ── DAILY: grouped by type ──
+    html+=`<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--border)">Daily Productivity Report</div>`;
+    let any=false;
+    TYPES.forEach(type=>{
+      const tc=periodCases.filter(c=>c.type===type);
+      if(!tc.length)return;
+      any=true;
+      const typeBanners=tc.reduce((s,c)=>s+bInP(c),0);
+      html+=`<div class="rpt-section-title">${type} <span style="font-weight:400;font-size:9px;color:var(--text3);margin-left:6px">${tc.length} case${tc.length!==1?'s':''} · ${typeBanners} banners</span></div>
+        <div class="rpt-tbl-wrap"><table class="rpt-tbl">
+          <thead><tr>
+            <th style="width:100px">Case #</th>
+            <th>Case Name</th>
+            <th style="width:130px">Status</th>
+            <th style="width:80px;text-align:center">Banners</th>
+            <th style="width:78px">Work Date</th>
+          </tr></thead>
+          <tbody>
+            ${tc.map(c=>`<tr>
+              <td>${numCell(c)}</td>
+              <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name||'—'}</td>
+              <td>${bS(c.status)}</td>
+              <td style="text-align:center;font-family:var(--mono);font-weight:700">${bInP(c)||0}</td>
+              <td style="font-size:11px;color:var(--text3)">${fmtD(c.start)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table></div>`;
+    });
+    if(!any)html+=`<div style="font-size:13px;color:var(--text3);padding:24px 0;text-align:center">No cases for today.</div>`;
+
+  } else {
+    // ── WEEKLY / MONTHLY: single table + totals ──
+    const title=range==='weekly'?'Weekly Productivity Report':'Monthly Productivity Report';
+    html+=`<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--border)">${title}</div>`;
+
+    if(periodCases.length){
+      html+=`<div class="rpt-tbl-wrap"><table class="rpt-tbl">
+        <thead><tr>
+          <th style="width:100px">Case #</th>
+          <th>Case Name</th>
+          <th style="width:110px">Type</th>
+          <th style="width:130px">Status</th>
+          <th style="width:90px;text-align:center">Work Done</th>
+          <th style="width:78px">Start Date</th>
+        </tr></thead>
+        <tbody>
+          ${periodCases.map(c=>`<tr>
+            <td>${numCell(c)}</td>
+            <td style="max-width:165px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name||'—'}</td>
+            <td>${bT(c.type)}</td>
+            <td>${bS(c.status)}</td>
+            <td style="text-align:center;font-family:var(--mono);font-weight:700">${bInP(c)||0}</td>
+            <td style="font-size:11px;color:var(--text3)">${fmtD(c.start)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>`;
+    } else {
+      html+=`<div style="font-size:13px;color:var(--text3);padding:24px 0;text-align:center">No cases for this period.</div>`;
+    }
+
+    // Totals block
+    html+=`<div class="rpt-totals">
+      <div class="rpt-totals-title">Summary</div>
+      <div class="rpt-total-row"><span class="rpt-total-k">Total Cases Worked On <span style="font-size:10px;color:var(--text3)">(Pending Your Confirmation + Closed only)</span></span><span class="rpt-total-v">${workedCases.length}</span></div>
+      <div class="rpt-total-row"><span class="rpt-total-k">Total Banners Logged in Period</span><span class="rpt-total-v">${totalBanners}</span></div>
+      <div class="rpt-total-row"><span class="rpt-total-k">Total Blogs Migrated (Blog types)</span><span class="rpt-total-v">${totalBlogs}</span></div>
+      <div class="rpt-total-row"><span class="rpt-total-k">Total Pages Migrated (Content types)</span><span class="rpt-total-v">${totalPages}</span></div>
+      ${TYPES.map(t=>{
+        const tc=periodCases.filter(c=>c.type===t);
+        const tb=tc.reduce((s,c)=>s+bInP(c),0);
+        return`<div class="rpt-total-row"><span class="rpt-total-k">${TSHORT[t]} — ${t}</span><span class="rpt-total-v" style="display:flex;gap:14px;align-items:center"><span style="color:var(--text2);font-size:11px">${tc.length} case${tc.length!==1?'s':''}</span>${tb}</span></div>`;
+      }).join('')}
+    </div>
+    <div class="rpt-note">* "Total Cases Worked On" counts only Pending Your Confirmation and Closed cases. New, In Progress, and Pending Your Input are excluded from this count.</div>`;
+  }
+
+  document.getElementById('report-body').innerHTML=html;
 }
 
 // ── EXPORT ──
-function exportCSV() {
+function exportCSV(){
   if(!cases.length){toast('No cases to export');return;}
-  const h=['Case Number','Case Name','Type','Status','Priority','Assignee','Start Date','Completion Date','Due Date','Total Banners','URL','Notes'];
-  const rows=cases.map(c=>[c.number,c.name,c.type,c.status,c.priority,c.assignee,c.start,c.end,c.dueDate||'',totalBanners(c),c.url,c.notes].map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`));
+  const h=['Case Number','Case Name','Type','Status','Priority','Start Date','Completion Date','Due Date','Total Banners','URL','Notes'];
+  const rows=cases.map(c=>[c.number,c.name,c.type,c.status,c.priority,c.start,c.end,c.dueDate||'',sumB(c),c.url,c.notes].map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`));
   const csv=[h,...rows].map(r=>r.join(',')).join('\n');
-  const a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
-  a.download='sf_cases_'+new Date().toISOString().slice(0,10)+'.csv';
-  a.click();
-  toast('CSV exported!');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='sf_cases_'+today()+'.csv';a.click();toast('CSV exported!');
 }
 
 // ── IMPORT ──
@@ -1505,38 +1371,36 @@ function processFile(file){
     const rows=lines.slice(1).map(l=>parseRow(l));
     const hi=name=>headers.findIndex(h=>h.toLowerCase().replace(/\s+/g,'')===name.toLowerCase().replace(/\s+/g,''));
     pendingImport=rows.filter(r=>r.some(c=>c.trim())).map(r=>({
-      id:Date.now().toString()+Math.random().toString(36).slice(2,6),
+      id:Date.now().toString()+Math.random().toString(36).slice(2,5),
       number:r[hi('CaseNumber')]||'',name:r[hi('CaseName')]||'',
-      type:r[hi('Type')]||'Automotive Content Migration',
-      status:r[hi('Status')]||'Open',priority:r[hi('Priority')]||'Medium',
-      assignee:r[hi('Assignee')]||'',start:r[hi('StartDate')]||'',end:r[hi('CompletionDate')]||'',
-      dueDate:r[hi('DueDate')]||'',url:r[hi('URL')]||'',notes:r[hi('Notes')]||'',
+      type:r[hi('Type')]||TYPES[0],status:r[hi('Status')]||'New',priority:r[hi('Priority')]||'Medium',
+      start:r[hi('StartDate')]||'',end:r[hi('CompletionDate')]||'',dueDate:r[hi('DueDate')]||'',
+      url:r[hi('URL')]||'',notes:r[hi('Notes')]||'',
       bannerLog:[],comments:[],statusHistory:[],
-      totalBanners:parseInt(r[hi('TotalBanners')])||parseInt(r[hi('Banners')])||0,
-      banners:parseInt(r[hi('TotalBanners')])||parseInt(r[hi('Banners')])||0
+      totalBanners:parseInt(r[hi('TotalBanners')])||parseInt(r[hi('Banners')])||0
     }));
     document.getElementById('import-preview').style.display='';
-    document.getElementById('import-preview').innerHTML=`<strong>${pendingImport.length} cases</strong> ready to import from <em>${file.name}</em>. Will be added to existing cases.`;
+    document.getElementById('import-preview').innerHTML=`<strong>${pendingImport.length} cases</strong> ready to import from <em>${file.name}</em>`;
     document.getElementById('import-confirm').style.display='';
   };
   r.readAsText(file);
 }
-function confirmImport(){if(!pendingImport)return;cases.push(...pendingImport);save();updateAssigneeFilter();renderAll();toast(`Imported ${pendingImport.length} cases!`);closeImportModal();}
+function confirmImport(){if(!pendingImport)return;cases.push(...pendingImport);save();renderAll();toast(`Imported ${pendingImport.length} cases!`);closeImportModal();}
 
-// ── SORT ──
+// ── SORT / BULK ──
 function sortBy(key){if(sortKey===key)sortDir*=-1;else{sortKey=key;sortDir=1;}renderTable();}
-function updateSortArrows(){['number','name','type','status','priority','assignee','start','dueDate','totalBanners'].forEach(k=>{const el=document.getElementById('s-'+k);if(el)el.textContent=sortKey===k?(sortDir===1?'▲':'▼'):'';})}
-
-// ── BULK ──
+function updateSortArrows(){['number','name','type','status','priority','start','dueDate','totalBanners'].forEach(k=>{const el=document.getElementById('s-'+k);if(el)el.textContent=sortKey===k?(sortDir===1?'▲':'▼'):''});}
 function toggleAll(chk){document.querySelectorAll('.row-chk').forEach(b=>{chk.checked?selected.add(b.dataset.id):selected.delete(b.dataset.id);b.checked=chk.checked;});updateBulkBar();}
 function toggleRow(id,chk){chk.checked?selected.add(id):selected.delete(id);updateBulkBar();}
-function updateBulkBar(){const bar=document.getElementById('bulk-bar');bar.classList.toggle('show',selected.size>0);document.getElementById('bulk-label').textContent=`${selected.size} selected`;}
-function clearSelection(){selected.clear();document.querySelectorAll('.row-chk').forEach(b=>b.checked=false);const ca=document.getElementById('chk-all');if(ca)ca.checked=false;updateBulkBar();}
-function applyBulk(){const ns=document.getElementById('bulk-status').value;if(!ns){toast('Select a status');return;}const count=selected.size;selected.forEach(id=>{const c=cases.find(x=>x.id===id);if(c){const prev=c.status;c.status=ns;if(!c.statusHistory)c.statusHistory=[];c.statusHistory.push({from:prev,to:ns,ts:Date.now()});if(ns==='Closed'&&!c.end)c.end=new Date().toISOString().slice(0,10);}});save();clearSelection();renderAll();toast(`Updated ${count} case${count>1?'s':''} to "${ns}"`);}
-function bulkDelete(){const count=selected.size;if(!confirm(`Delete ${count} selected case${count>1?'s':''}?`))return;cases=cases.filter(c=>!selected.has(c.id));selected.clear();save();updateAssigneeFilter();renderAll();toast(`Deleted ${count} case${count>1?'s':''}`);}
-
-// ── ASSIGNEE FILTER ──
-function updateAssigneeFilter(){const sel=document.getElementById('f-assignee');if(!sel)return;const a=[...new Set(cases.map(c=>c.assignee).filter(Boolean))].sort();sel.innerHTML='<option value="">All assignees</option>'+a.map(a=>`<option>${a}</option>`).join('');}
+function updateBulkBar(){const bar=document.getElementById('bulk-bar');bar.classList.toggle('show',selected.size>0);document.getElementById('bulk-lbl').textContent=`${selected.size} selected`;}
+function clearSel(){selected.clear();document.querySelectorAll('.row-chk').forEach(b=>b.checked=false);const ca=document.getElementById('chk-all');if(ca)ca.checked=false;updateBulkBar();}
+function applyBulk(){
+  const ns=document.getElementById('bulk-status').value;if(!ns){toast('Select a status');return;}
+  const count=selected.size;
+  selected.forEach(id=>{const c=cases.find(x=>x.id===id);if(c){const prev=c.status;c.status=ns;if(!c.statusHistory)c.statusHistory=[];c.statusHistory.push({from:prev,to:ns,ts:Date.now()});if(ns==='Closed'&&!c.end)c.end=today();}});
+  save();clearSel();renderAll();toast(`Updated ${count} case${count>1?'s':''} to "${ns}"`);
+}
+function bulkDelete(){const count=selected.size;if(!confirm(`Delete ${count} case${count>1?'s':''}?`))return;cases=cases.filter(c=>!selected.has(c.id));selected.clear();save();renderAll();toast(`Deleted ${count} case${count>1?'s':''}`);} 
 
 // ── MODAL ──
 function openModal(id){
@@ -1547,20 +1411,21 @@ function openModal(id){
     document.getElementById('f-number').value=c.number||'';
     document.getElementById('f-name').value=c.name||'';
     document.getElementById('f-url').value=c.url||'';
-    document.getElementById('f-type-modal').value=c.type||'Automotive Content Migration';
-    document.getElementById('f-status-modal').value=c.status||'Open';
-    document.getElementById('f-priority-modal').value=c.priority||'Medium';
-    document.getElementById('f-assignee-modal').value=c.assignee||'';
+    document.getElementById('f-type-m').value=c.type||TYPES[0];
+    document.getElementById('f-status-m').value=c.status||'New';
+    document.getElementById('f-priority-m').value=c.priority||'Medium';
     document.getElementById('f-start').value=c.start||'';
     document.getElementById('f-end').value=c.end||'';
     document.getElementById('f-due').value=c.dueDate||'';
+    document.getElementById('f-banners-init').value=sumB(c)||'';
     document.getElementById('f-notes').value=c.notes||'';
   } else {
-    ['f-number','f-name','f-url','f-assignee-modal','f-notes','f-end','f-due'].forEach(i=>document.getElementById(i).value='');
-    document.getElementById('f-type-modal').value='Automotive Content Migration';
-    document.getElementById('f-status-modal').value='Open';
-    document.getElementById('f-priority-modal').value='Medium';
-    document.getElementById('f-start').value=new Date().toISOString().slice(0,10);
+    ['f-number','f-name','f-url','f-notes','f-end','f-due'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+    document.getElementById('f-type-m').value=TYPES[0];
+    document.getElementById('f-status-m').value='New';
+    document.getElementById('f-priority-m').value='Medium';
+    document.getElementById('f-banners-init').value='';
+    document.getElementById('f-start').value=today();
   }
   document.getElementById('modal-bg').classList.add('open');
   setTimeout(()=>document.getElementById('f-name').focus(),60);
@@ -1568,7 +1433,7 @@ function openModal(id){
 function closeModal(){document.getElementById('modal-bg').classList.remove('open');editId=null;}
 
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeModal();closeDetail();document.getElementById('status-modal').classList.remove('open');document.getElementById('banner-modal').classList.remove('open');closeImportModal();}
+  if(e.key==='Escape'){closeModal();closeDetail();['status-modal','banner-modal'].forEach(id=>document.getElementById(id).classList.remove('open'));closeImportModal();}
   if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();const s=document.getElementById('search');if(s){s.focus();switchTab('cases',document.querySelector('[data-tab=cases]'));}}
 });
 
@@ -1577,43 +1442,51 @@ function saveCase(){
   if(!name){toast('Case name is required');return;}
   const isEdit=!!editId;
   const prev=isEdit?cases.find(x=>x.id===editId):null;
+  const newStatus=document.getElementById('f-status-m').value;
+  const initBanners=parseInt(document.getElementById('f-banners-init').value)||0;
+
+  // Banner log handling
+  let bannerLog=prev?.bannerLog||[];
+  if(!isEdit&&initBanners>0){
+    bannerLog=[{count:initBanners,date:document.getElementById('f-start').value||today(),note:'Initial count',ts:Date.now()}];
+  } else if(isEdit&&prev){
+    const prevTotal=sumB(prev);
+    if(initBanners>prevTotal){
+      bannerLog=[...bannerLog,{count:initBanners-prevTotal,date:today(),note:'Count adjusted',ts:Date.now()}];
+    }
+  }
+
+  // Status history
+  let statusHistory=prev?.statusHistory||[];
+  if(!isEdit) statusHistory=[{from:'',to:newStatus,ts:Date.now()}];
+  else if(prev&&prev.status!==newStatus) statusHistory=[...statusHistory,{from:prev.status,to:newStatus,ts:Date.now()}];
+
   const c={
     id:editId||Date.now().toString(),
     number:document.getElementById('f-number').value.trim(),
-    name,
-    url:document.getElementById('f-url').value.trim(),
-    type:document.getElementById('f-type-modal').value,
-    status:document.getElementById('f-status-modal').value,
-    priority:document.getElementById('f-priority-modal').value,
-    assignee:document.getElementById('f-assignee-modal').value.trim(),
+    name,url:document.getElementById('f-url').value.trim(),
+    type:document.getElementById('f-type-m').value,
+    status:newStatus,
+    priority:document.getElementById('f-priority-m').value,
     start:document.getElementById('f-start').value,
     end:document.getElementById('f-end').value,
     dueDate:document.getElementById('f-due').value,
     notes:document.getElementById('f-notes').value.trim(),
-    bannerLog:prev?.bannerLog||[],
-    comments:prev?.comments||[],
-    statusHistory:prev?.statusHistory||[],
-    totalBanners:0,banners:0
+    assignee:prev?.assignee||'',
+    bannerLog,comments:prev?.comments||[],statusHistory,
+    totalBanners:0
   };
-  c.totalBanners=totalBanners(c);c.banners=c.totalBanners;
-  // Track status change
-  if(isEdit&&prev&&prev.status!==c.status){
-    c.statusHistory.push({from:prev.status,to:c.status,ts:Date.now()});
-  } else if(!isEdit){
-    c.statusHistory=[{from:'',to:c.status,ts:Date.now()}];
-  }
+  c.totalBanners=sumB(c);
   if(isEdit){const idx=cases.findIndex(x=>x.id===editId);cases[idx]=c;}else cases.push(c);
-  save();updateAssigneeFilter();closeModal();renderAll();
+  save();closeModal();renderAll();
   if(isEdit&&openDetailId===c.id)openDetail(c.id);
   toast(isEdit?'Case updated!':'Case added!');
 }
 
 function deleteCase(id){
   if(!confirm('Delete this case?'))return;
-  cases=cases.filter(c=>c.id!==id);
-  selected.delete(id);
-  save();updateAssigneeFilter();renderAll();
-  toast('Case deleted');
+  cases=cases.filter(c=>c.id!==id);selected.delete(id);
+  save();renderAll();toast('Case deleted');
 }
 
 load();
