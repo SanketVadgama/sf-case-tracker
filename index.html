@@ -728,6 +728,7 @@ a:hover{opacity:.65}
 .bento{display:grid;grid-template-columns:repeat(12,1fr);gap:10px;padding:20px 22px}
 .b{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:visible;position:relative;transition:box-shadow .13s}
 .b:hover{box-shadow:var(--sh-lg)}
+.b[style*="background:transparent"]:hover,.b[style*="border:none"]:hover{box-shadow:none}
 .bp{padding:15px 17px}
 .b-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:7px}
 .b-num{font-size:30px;font-weight:700;line-height:1;color:var(--text);font-family:var(--mono)}
@@ -1018,6 +1019,7 @@ tbody td{padding:7px 10px;color:var(--text);vertical-align:middle;overflow:hidde
 .m-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:7px;justify-content:flex-end;margin-top:13px}
 .fg.invalid input,.fg.invalid select,.fg.invalid textarea{border-color:var(--p-critical)!important;box-shadow:0 0 0 3px rgba(220,38,38,.12)!important}
 .fg.invalid label{color:var(--p-critical)}
+.fg{display:flex;flex-direction:column;gap:4px}
 .fg.full{grid-column:1/-1}
 .fg label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2)}
 .fg textarea{resize:vertical;min-height:68px;padding:8px 10px;line-height:1.5}
@@ -1208,13 +1210,12 @@ tbody td{padding:7px 10px;color:var(--text);vertical-align:middle;overflow:hidde
 .type-chip.builtin .type-chip-del{display:none}
 .type-add-row{display:flex;gap:7px;margin-top:10px}
 .bento-widget{cursor:default}
-.bento-widget.dragging{opacity:.45;cursor:grabbing}
-.bento-widget.drag-over{outline:2px dashed var(--accent);outline-offset:3px;border-radius:var(--r-lg)}
-.bento-drag-handle{display:none;position:absolute;top:6px;right:6px;width:18px;height:18px;cursor:grab;color:var(--text3);align-items:center;justify-content:center;border-radius:4px;transition:color .12s,background .12s;z-index:2}
-.bento-drag-handle:hover{color:var(--text2);background:var(--surface3)}
-.bento-drag-handle svg{width:12px;height:12px;fill:currentColor}
-.b:hover .bento-drag-handle{display:flex}
-.bento-drag-handle.dragging-active{cursor:grabbing}
+.b.c12.dragging{opacity:.5}
+.b.c12.drag-over{outline:2px dashed var(--accent);outline-offset:2px;border-radius:var(--r-lg)}
+.bento-drag-handle{display:none;position:absolute;top:6px;right:6px;width:22px;height:22px;cursor:grab;color:var(--text3);align-items:center;justify-content:center;border-radius:4px;transition:color .12s,background .12s;z-index:10;background:var(--surface);border:1px solid var(--border);padding:2px;box-shadow:var(--sh)}
+.bento-drag-handle:hover{color:var(--text);background:var(--surface2)}
+.bento-drag-handle svg{width:14px;height:14px}
+.b.c12:hover > .bento-drag-handle{display:flex}
 .active-cases-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:14px;overflow:hidden}
 .acp-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;background:var(--surface2)}
 .acp-header:hover{background:var(--surface3)}
@@ -1484,8 +1485,6 @@ body.compact .k-card{padding:6px 8px}
           <select id="f-priority" onchange="renderTable()"><option value="">All priorities</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
           <select id="f-type" onchange="renderTable()">
             <option value="">All types</option>
-            <option>Automotive Content Migration</option><option>Automotive Blog Migration</option>
-            <option>LeadScience Content Migration</option><option>LeadScience Blog Migration</option>
           </select>
           <button class="btn btn-sm btn-ghost" onclick="clearFilters()">Clear</button>
           <button class="btn btn-sm" onclick="openSaveFilterModal()" title="Save current filter" style="gap:4px">
@@ -1803,6 +1802,21 @@ body.compact .k-card{padding:6px 8px}
             <div class="settings-section-title">Custom Case Types</div>
             <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Add custom migration types beyond the built-in four. They appear in all dropdowns, reports, and filters.</div>
             <div id="custom-types-wrap"></div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-section-title">Dashboard View</div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-label">Data Period</div>
+                <div class="settings-sub">Filter dashboard stats and banners by time window</div>
+              </div>
+              <div style="display:flex;gap:0;border:1px solid var(--border2);border-radius:var(--r);overflow:hidden" id="dash-period-toggle">
+                <button onclick="setDashPeriod('daily')"   class="dash-period-btn" data-period="daily"   style="padding:5px 11px;font-size:11px;font-weight:600;border:none;background:var(--surface);color:var(--text2);cursor:pointer;font-family:var(--font);border-right:1px solid var(--border2);transition:all .12s">Day</button>
+                <button onclick="setDashPeriod('weekly')"  class="dash-period-btn" data-period="weekly"  style="padding:5px 11px;font-size:11px;font-weight:600;border:none;background:var(--surface);color:var(--text2);cursor:pointer;font-family:var(--font);border-right:1px solid var(--border2);transition:all .12s">Week</button>
+                <button onclick="setDashPeriod('monthly')" class="dash-period-btn" data-period="monthly" style="padding:5px 11px;font-size:11px;font-weight:600;border:none;background:var(--surface);color:var(--text2);cursor:pointer;font-family:var(--font);border-right:1px solid var(--border2);transition:all .12s">Month</button>
+                <button onclick="setDashPeriod('overall')" class="dash-period-btn" data-period="overall" style="padding:5px 11px;font-size:11px;font-weight:600;border:none;background:var(--surface);color:var(--text2);cursor:pointer;font-family:var(--font);transition:all .12s">All Time</button>
+              </div>
+            </div>
           </div>
           <div class="settings-section">
             <div class="settings-section-title">Dashboard Widgets</div>
@@ -2233,37 +2247,93 @@ function renderAll(){
   renderPinnedCases();
   renderNotifications();
   refreshFocusMode();
+  if(document.getElementById('tab-cases').classList.contains('active')) renderActiveCasesPanel();
 }
 
 // ── BENTO DASHBOARD ──
 function renderBento(){
-  const total=cases.length;
-  const bySt=s=>cases.filter(c=>c.status===s).length;
-  const overdue=cases.filter(isOD);
-  const pastDue=cases.filter(isPD);
-  const dueSoon=cases.filter(c=>isDS(c)&&!isPD(c));
-  const allB=cases.reduce((s,c)=>s+sumB(c),0);
-  const resolved=cases.filter(c=>c.status==='Closed'&&c.start&&c.end);
+  const now=new Date();
+
+  // ── Period window ──
+  let periodFrom=null;
+  const pLabels={daily:'Today',weekly:'This Week',monthly:'This Month',overall:'All Time'};
+  const pLabel=pLabels[dashPeriod]||'All Time';
+  const pSub={daily:'today',weekly:'last 7 days',monthly:'last 30 days',overall:'all time'};
+  if(dashPeriod==='daily'){
+    periodFrom=new Date(now.toLocaleDateString('en-CA',{timeZone:US_TZ})+'T00:00:00');
+  } else if(dashPeriod==='weekly'){
+    periodFrom=new Date(now-7*864e5);
+  } else if(dashPeriod==='monthly'){
+    periodFrom=new Date(now-30*864e5);
+  }
+
+  // ── Filtered case sets ──
+  const inPeriod=c=>{
+    if(!periodFrom) return true;
+    return (c.start&&new Date(c.start+'T12:00:00')>=periodFrom)||
+           (c.end&&new Date(c.end+'T12:00:00')>=periodFrom)||
+           sumBInPeriod(c,periodFrom,now)>0;
+  };
+  const allCases=cases.filter(c=>!c.archived);
+  const pCases=periodFrom?allCases.filter(inPeriod):allCases;
+
+  // Status counts — for daily/weekly/monthly show cases active in period; overall = all
+  const bySt=s=>periodFrom
+    ? pCases.filter(c=>c.status===s).length
+    : allCases.filter(c=>c.status===s).length;
+  const total=periodFrom?pCases.length:allCases.length;
+
+  // Banners
+  const allB=periodFrom
+    ? cases.reduce((s,c)=>s+sumBInPeriod(c,periodFrom,now),0)
+    : cases.reduce((s,c)=>s+sumB(c),0);
+
+  // Avg resolution — closed cases in period
+  const resolved=periodFrom
+    ? cases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=periodFrom)
+    : cases.filter(c=>c.status==='Closed'&&c.start&&c.end);
   const avgRes=resolved.length?Math.round(resolved.reduce((s,c)=>s+(new Date(c.end+'T12:00:00')-new Date(c.start+'T12:00:00'))/86400000,0)/resolved.length):null;
-  const now=new Date(),wa=new Date(now-7*864e5);
+
+  // Alerts always use all cases regardless of period
+  const overdue=allCases.filter(isOD);
+  const pastDue=allCases.filter(isPD);
+  const dueSoon=allCases.filter(c=>isDS(c)&&!isPD(c));
+
+  // Weekly digest — always last 7 days
+  const wa=new Date(now-7*864e5);
   const wOpened=cases.filter(c=>c.start&&new Date(c.start+'T12:00:00')>=wa).length;
   const wClosed=cases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=wa).length;
   const wB=cases.reduce((s,c)=>s+sumBInPeriod(c,wa),0);
-  const recent=[...cases].filter(c=>!c.archived).sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6);
+
+  // Recent cases — in period if period set, else most recent
+  const recent=periodFrom
+    ? [...allCases].filter(c=>c.start&&new Date(c.start+'T12:00:00')>=periodFrom).sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6)
+    : [...allCases].sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6);
 
   const w=dashWidgets;
   let html='';
 
-  // ── Alerts ──
+  // ── Period pill (shown in bento) ──
+  html+=`<div class="b c12" style="padding:8px 14px;display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-color:var(--border);position:relative" data-widget="period-bar">
+    <div style="font-size:11px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:8px">
+      <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Dashboard — <span style="color:var(--accent)">${pLabel}</span>
+    </div>
+    <div style="display:flex;gap:0;border:1px solid var(--border2);border-radius:var(--r);overflow:hidden">
+      ${['daily','weekly','monthly','overall'].map(p=>`<button onclick="setDashPeriod('${p}')" style="padding:4px 10px;font-size:10px;font-weight:700;border:none;border-right:${p!=='overall'?'1px solid var(--border2)':'none'};background:${dashPeriod===p?'var(--accent)':'var(--surface)'};color:${dashPeriod===p?'var(--accent-inv)':'var(--text2)'};cursor:pointer;font-family:var(--font);transition:all .12s">${p==='daily'?'Day':p==='weekly'?'Week':p==='monthly'?'Month':'All Time'}</button>`).join('')}
+    </div>
+  </div>`;
+
+  // ── Alerts (always all-time) ──
   if(w.alerts){
-    if(overdue.length) html+=`<div class="b c12 b-alert danger" style="min-height:auto"><div class="b-alert-dot"></div><div class="b-alert-text"><strong>${overdue.length} case${overdue.length>1?'s':''} overdue</strong> (${slaGlobalDays||7}+ days open): ${overdue.map(c=>c.number||c.name).slice(0,5).join(', ')}${overdue.length>5?` +${overdue.length-5} more`:''}</div></div>`;
-    if(pastDue.length) html+=`<div class="b c12 b-alert warn" style="min-height:auto"><div class="b-alert-dot"></div><div class="b-alert-text"><strong>${pastDue.length} case${pastDue.length>1?'s':''} past due date</strong>: ${pastDue.map(c=>c.number||c.name).slice(0,4).join(', ')}</div></div>`;
+    if(overdue.length) html+=`<div class="b c12 b-alert danger" style="min-height:auto;position:relative" data-widget="alert-overdue"><div class="b-alert-dot"></div><div class="b-alert-text"><strong>${overdue.length} case${overdue.length>1?'s':''} overdue</strong> (${slaGlobalDays||7}+ days open): ${overdue.map(c=>c.number||c.name).slice(0,5).join(', ')}${overdue.length>5?` +${overdue.length-5} more`:''}</div></div>`;
+    if(pastDue.length) html+=`<div class="b c12 b-alert warn" style="min-height:auto;position:relative" data-widget="alert-pastdue"><div class="b-alert-dot"></div><div class="b-alert-text"><strong>${pastDue.length} case${pastDue.length>1?'s':''} past due date</strong>: ${pastDue.map(c=>c.number||c.name).slice(0,4).join(', ')}</div></div>`;
   }
 
   // ── Status stat cards ──
   if(w.stats) html+=`
-    <div class="b c12" style="padding:0;display:grid;grid-template-columns:repeat(6,1fr);gap:0;border:none;background:transparent;box-shadow:none" data-widget="stats">
-      <div class="b bp b-dark"><div class="b-lbl">Total</div><div class="b-num">${total}</div><div class="b-sub">all cases</div></div>
+    <div class="b c12" style="padding:0;display:grid;grid-template-columns:repeat(6,1fr);gap:0;border:none;background:transparent;box-shadow:none;position:relative" data-widget="stats">
+      <div class="b bp b-dark"><div class="b-lbl">${pLabel} — Cases</div><div class="b-num">${total}</div><div class="b-sub">${pSub[dashPeriod]}</div></div>
       <div class="b bp"><div class="b-lbl">New</div><div class="b-num" style="color:var(--s-new)">${bySt('New')}</div><div class="b-sub">awaiting</div></div>
       <div class="b bp"><div class="b-lbl">In Progress</div><div class="b-num" style="color:var(--s-inp)">${bySt('In Progress')}</div><div class="b-sub">active</div></div>
       <div class="b bp"><div class="b-lbl">Pend. Input</div><div class="b-num" style="color:var(--s-pyi)">${bySt('Pending Your Input')}</div><div class="b-sub">needs info</div></div>
@@ -2273,9 +2343,9 @@ function renderBento(){
 
   // ── Metrics row ──
   if(w.metrics) html+=`
-    <div class="b c12" style="padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:none;background:transparent;box-shadow:none" data-widget="metrics">
-      <div class="b bp"><div class="b-lbl">Total Banners</div><div class="b-num">${allB}</div><div class="b-sub">all time</div></div>
-      <div class="b bp"><div class="b-lbl">Avg Resolution</div><div class="b-num" style="font-size:${avgRes!==null?'26':'18'}px">${avgRes!==null?avgRes+'d':'—'}</div><div class="b-sub">days to close</div></div>
+    <div class="b c12" style="padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:none;background:transparent;box-shadow:none;position:relative" data-widget="metrics">
+      <div class="b bp"><div class="b-lbl">Banners — ${pLabel}</div><div class="b-num">${allB}</div><div class="b-sub">${pSub[dashPeriod]}</div></div>
+      <div class="b bp"><div class="b-lbl">Avg Resolution</div><div class="b-num" style="font-size:${avgRes!==null?'26':'18'}px">${avgRes!==null?avgRes+'d':'—'}</div><div class="b-sub">${pSub[dashPeriod]}</div></div>
       <div class="b bp"><div class="b-lbl">Due Soon</div><div class="b-num" style="color:${dueSoon.length?'var(--s-pyi)':'var(--text)'}">${dueSoon.length}</div><div class="b-sub">within 2 days</div></div>
       <div class="b bp"><div class="b-lbl">Past Due</div><div class="b-num" style="color:${pastDue.length?'var(--p-critical)':'var(--text)'}">${pastDue.length}</div><div class="b-sub">missed deadline</div></div>
     </div>`;
@@ -2301,7 +2371,7 @@ function renderBento(){
       });
       return s||'<div class="acp-empty">No active cases</div>';
     };
-    html+=`<div class="b c12" style="padding:0;overflow:visible">
+    html+=`<div class="b c12" style="padding:0;overflow:visible;position:relative" data-widget="activecases">
       <div class="acp-header" onclick="toggleACP('acp-dash')">
         <div class="acp-title">
           <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -2323,7 +2393,7 @@ function renderBento(){
   // ── Row 3: Recent / Quick Add / Digest ──
   let row3='';
   if(w.recent||w.quickadd||w.digest){
-    row3+=`<div class="b c12" style="padding:0;display:grid;grid-template-columns:${w.recent&&w.quickadd&&w.digest?'5fr 4fr 3fr':w.recent&&w.quickadd?'5fr 7fr':w.recent&&w.digest?'9fr 3fr':w.quickadd&&w.digest?'8fr 4fr':w.recent?'1fr':w.quickadd?'1fr':'1fr'};gap:0;border:none;background:transparent;box-shadow:none" data-widget="row3">`;
+    row3+=`<div class="b c12" style="padding:0;display:grid;grid-template-columns:${w.recent&&w.quickadd&&w.digest?'5fr 4fr 3fr':w.recent&&w.quickadd?'5fr 7fr':w.recent&&w.digest?'9fr 3fr':w.quickadd&&w.digest?'8fr 4fr':w.recent?'1fr':w.quickadd?'1fr':'1fr'};gap:0;border:none;background:transparent;box-shadow:none;position:relative" data-widget="row3">`;
     if(w.recent) row3+=`
       <div class="b bp" style="border-radius:var(--r-lg) 0 0 var(--r-lg)">
         <div class="b-lbl">Recent Cases</div>
@@ -2347,8 +2417,8 @@ function renderBento(){
       </div>`;
     if(w.digest) row3+=`
       <div class="b b-digest" style="${!w.recent&&!w.quickadd?'border-radius:var(--r-lg)':'border-radius:0 var(--r-lg) var(--r-lg) 0'}">
-        <div class="b-lbl">Weekly Digest</div>
-        <div style="font-size:9.5px;color:rgba(255,255,255,.25);font-family:var(--mono);margin-bottom:8px">Last 7 days</div>
+        <div class="b-lbl">${pLabel} Digest</div>
+        <div style="font-size:9.5px;color:rgba(255,255,255,.25);font-family:var(--mono);margin-bottom:8px">${pSub[dashPeriod]}</div>
         <div class="drow"><span class="drow-k">Opened</span><span class="drow-v ${wOpened>wClosed?'warn':''}">${wOpened}</span></div>
         <div class="drow"><span class="drow-k">Closed</span><span class="drow-v ok">${wClosed}</span></div>
         <div class="drow"><span class="drow-k">Banners</span><span class="drow-v">${wB}</span></div>
@@ -2363,7 +2433,7 @@ function renderBento(){
   let row4='';
   if(w.focus||w.goal||w.streak){
     const cols=[w.focus,w.goal,w.streak].filter(Boolean).length;
-    row4+=`<div class="b c12" style="padding:0;display:grid;grid-template-columns:repeat(${cols},1fr);gap:0;border:none;background:transparent;box-shadow:none" data-widget="row4">`;
+    row4+=`<div class="b c12" style="padding:0;display:grid;grid-template-columns:repeat(${cols},1fr);gap:0;border:none;background:transparent;box-shadow:none;position:relative" data-widget="row4">`;
     if(w.focus) row4+=`
       <div class="b bp">
         <div class="b-lbl">⭐ Today's Focus</div>
@@ -2396,52 +2466,58 @@ let _dragSrc = null;
 function initBentoDrag() {
   const grid = document.getElementById('bento-grid');
   if (!grid) return;
-  // Add drag handles to each direct .b child that spans c12
+
   grid.querySelectorAll('.b.c12').forEach(el => {
+    // Skip if it has no data-widget (shouldn't happen but safety)
+    // Add drag handle if not already there
     if (!el.querySelector('.bento-drag-handle')) {
       const h = document.createElement('button');
       h.className = 'bento-drag-handle';
       h.title = 'Drag to reorder';
-      h.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 6a1 1 0 100-2 1 1 0 000 2zm0 4a1 1 0 100-2 1 1 0 000 2zm0 4a1 1 0 100-2 1 1 0 000 2zm8-8a1 1 0 100-2 1 1 0 000 2zm0 4a1 1 0 100-2 1 1 0 000 2zm0 4a1 1 0 100-2 1 1 0 000 2z"/></svg>`;
+      h.setAttribute('type', 'button');
+      h.innerHTML = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="9" cy="5" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="9" cy="19" r="1.2" fill="currentColor"/><circle cx="15" cy="5" r="1.2" fill="currentColor"/><circle cx="15" cy="12" r="1.2" fill="currentColor"/><circle cx="15" cy="19" r="1.2" fill="currentColor"/></svg>`;
       h.addEventListener('mousedown', e => {
         e.preventDefault();
         el.setAttribute('draggable', 'true');
+        el.classList.add('dragging');
       });
+      el.style.position = 'relative';
       el.appendChild(h);
     }
+
     el.addEventListener('dragstart', e => {
       _dragSrc = el;
-      el.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', el.dataset.widget || '');
     });
     el.addEventListener('dragend', () => {
       el.classList.remove('dragging');
       el.setAttribute('draggable', 'false');
-      grid.querySelectorAll('.drag-over').forEach(x=>x.classList.remove('drag-over'));
+      grid.querySelectorAll('.drag-over').forEach(x => x.classList.remove('drag-over'));
+      _dragSrc = null;
     });
     el.addEventListener('dragover', e => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
       if (_dragSrc && el !== _dragSrc) {
-        grid.querySelectorAll('.drag-over').forEach(x=>x.classList.remove('drag-over'));
+        grid.querySelectorAll('.drag-over').forEach(x => x.classList.remove('drag-over'));
         el.classList.add('drag-over');
       }
     });
-    el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+    el.addEventListener('dragleave', e => {
+      if (!el.contains(e.relatedTarget)) el.classList.remove('drag-over');
+    });
     el.addEventListener('drop', e => {
       e.preventDefault();
       el.classList.remove('drag-over');
-      if (_dragSrc && _dragSrc !== el) {
-        // Get all c12 items and reorder
-        const items = [...grid.querySelectorAll('.b.c12')];
-        const srcIdx = items.indexOf(_dragSrc);
-        const tgtIdx = items.indexOf(el);
-        if (srcIdx !== -1 && tgtIdx !== -1) {
-          if (srcIdx < tgtIdx) grid.insertBefore(_dragSrc, el.nextSibling);
-          else grid.insertBefore(_dragSrc, el);
-        }
-        _dragSrc = null;
-      }
+      if (!_dragSrc || _dragSrc === el) return;
+      // Reorder in DOM
+      const items = [...grid.querySelectorAll('.b.c12')];
+      const srcIdx = items.indexOf(_dragSrc);
+      const tgtIdx = items.indexOf(el);
+      if (srcIdx === -1 || tgtIdx === -1) return;
+      if (srcIdx < tgtIdx) grid.insertBefore(_dragSrc, el.nextSibling);
+      else grid.insertBefore(_dragSrc, el);
     });
   });
 }
@@ -3167,6 +3243,7 @@ function openModal(id){
     document.getElementById('f-banners-init').value='';
   }
   document.getElementById('modal-bg').classList.add('open');
+  populateTypeSelects();
   setTimeout(()=>document.getElementById('f-name').focus(),60);
 }
 function closeModal(){document.getElementById('modal-bg').classList.remove('open');editId=null;document.querySelectorAll('#modal-bg .fg.invalid').forEach(el=>el.classList.remove('invalid'));}
@@ -3572,6 +3649,7 @@ let lastExportDate = null;
 let autosaveTimer = null;
 let dashWidgets = {alerts:true,stats:true,metrics:true,activecases:true,recent:true,quickadd:true,digest:true,focus:true,goal:true,streak:true};
 let dashWidgetOrder = ['alerts','stats','metrics','activecases','recent+quickadd+digest','focus+goal+streak'];
+let dashPeriod = 'overall'; // 'daily' | 'weekly' | 'monthly' | 'overall'
 const SETTINGS_STORE = 'sf_settings_v1';
 
 // loadSettings and saveSettings defined in Phase 2-4 section below
@@ -3993,7 +4071,7 @@ function wowArrow(curr, prev) { return curr > prev ? '↑' : curr < prev ? '↓'
 // ── REPORT: AUTO SUMMARY ──
 function buildAutoSummary(range, periodCases, workedCases, totalBanners, from) {
   const now = new Date();
-  const period = range === 'daily' ? 'today' : range === 'weekly' ? 'this week' : range === 'monthly' ? 'this month' : range === 'pick-month' ? (() => { const ms=parseInt(document.getElementById('rpt-month-sel')?.value||0); const ys=parseInt(document.getElementById('rpt-year-sel')?.value||new Date().getFullYear()); return new Date(ys,ms,1).toLocaleDateString('en-US',{month:'long',year:'numeric'}); })() : 'this period';
+  const period = range === 'daily' ? 'today' : range === 'weekly' ? 'this week' : range === 'monthly' ? 'this month' : range === 'pick-month' ? (() => { try { const ms=parseInt(document.getElementById('rpt-month-sel')?.value||0); const ys=parseInt(document.getElementById('rpt-year-sel')?.value||new Date().getFullYear()); return new Date(ys,ms,1).toLocaleDateString('en-US',{month:'long',year:'numeric'}); } catch(e){ return 'selected month'; } })() : 'this period';
   const opened = periodCases.filter(c => c.start && new Date(c.start+'T12:00:00') >= from).length;
   const closed = workedCases.filter(c => c.status === 'Closed').length;
   const pendConf = workedCases.filter(c => c.status === 'Pending Your Confirmation').length;
@@ -4397,6 +4475,7 @@ function loadSettings() {
     if (s.defaultSort) { sortKey = s.defaultSort; }
     if (s.dashWidgets) { dashWidgets = {...dashWidgets, ...s.dashWidgets}; }
     if (s.dashWidgetOrder) { dashWidgetOrder = s.dashWidgetOrder; }
+    if (s.dashPeriod) { dashPeriod = s.dashPeriod; }
     if (s.customTypes) { customTypes = s.customTypes; rebuildTypes(); }
   } catch(e){}
 }
@@ -4405,7 +4484,7 @@ function saveSettings() {
     localStorage.setItem(SETTINGS_STORE, JSON.stringify({
       pinned: [...pinnedCases], savedFilters, lastExportDate,
       dailyGoal, slaDays: slaGlobalDays, densityCompact, reminderEnabled,
-      defaultSort: sortKey, dashWidgets, dashWidgetOrder, customTypes
+      defaultSort: sortKey, dashWidgets, dashWidgetOrder, dashPeriod, customTypes
     }));
   } catch(e){}
 }
@@ -4426,6 +4505,12 @@ function renderSettingsUI() {
   if (densityCompact) document.body.classList.add('compact'); else document.body.classList.remove('compact');
   const ts = document.getElementById('theme-selector');
   if (ts) ts.value = cur;
+  // Sync period buttons
+  document.querySelectorAll('.dash-period-btn').forEach(btn => {
+    const isActive = btn.dataset.period === dashPeriod;
+    btn.style.background = isActive ? 'var(--accent)' : 'var(--surface)';
+    btn.style.color = isActive ? 'var(--accent-inv)' : 'var(--text2)';
+  });
   renderDashWidgetsSettings();
   renderCustomTypesUI();
 }
@@ -4506,6 +4591,9 @@ function clearAllData() {
   localStorage.removeItem(AUDIT_STORE);
   cases=[]; auditLog=[];
   pinnedCases=new Set(); savedFilters=[]; lastExportDate=null;
+  dashWidgets={alerts:true,stats:true,metrics:true,activecases:true,recent:true,quickadd:true,digest:true,focus:true,goal:true,streak:true};
+  dashPeriod='overall';
+  customTypes=[]; rebuildTypes();
   renderAll(); renderSavedFilters(); renderPinnedCases(); renderNotifications();
   toast('All data cleared');
 }
@@ -4676,6 +4764,27 @@ function toggleDashWidget(key) {
   if (document.getElementById('tab-dashboard').classList.contains('active')) {
     renderBento();
   }
+}
+
+// ── DASHBOARD PERIOD ──
+function setDashPeriod(period) {
+  dashPeriod = period;
+  saveSettings();
+  // Update period buttons in settings if visible
+  document.querySelectorAll('.dash-period-btn').forEach(btn => {
+    const isActive = btn.dataset.period === period;
+    btn.style.background = isActive ? 'var(--accent)' : 'var(--surface)';
+    btn.style.color = isActive ? 'var(--accent-inv)' : 'var(--text2)';
+  });
+  // Re-render dashboard immediately
+  if (document.getElementById('tab-dashboard').classList.contains('active')) {
+    renderBento();
+  } else {
+    // Re-render even if not on dashboard so next visit shows correct period
+    // (no re-render needed, renderBento reads dashPeriod fresh each time)
+  }
+  const labels = {daily:'Day',weekly:'Week',monthly:'Month',overall:'All Time'};
+  toast(`Dashboard: ${labels[period] || period}`);
 }
 
 // ── REPORT: CUSTOM DATE RANGE ──
