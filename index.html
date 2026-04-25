@@ -399,6 +399,60 @@ tbody td{padding:7px 10px;color:var(--text);vertical-align:middle;overflow:hidde
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--text);color:var(--accent-inv);font-size:12px;font-weight:600;padding:8px 18px;border-radius:40px;opacity:0;transition:opacity .18s,transform .18s;pointer-events:none;z-index:999;font-family:var(--font);white-space:nowrap;box-shadow:var(--sh-lg)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ── CALENDAR ── */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px}
+.cal-month-label{font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.01em}
+.cal-nav{display:flex;gap:6px;align-items:center}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-day-hdr{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);text-align:center;padding:0 0 6px}
+.cal-cell{min-height:72px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:7px 8px;cursor:pointer;transition:all .12s;position:relative}
+.cal-cell:hover{border-color:var(--border2);box-shadow:var(--sh)}
+.cal-cell.today{border-color:var(--text);border-width:2px}
+.cal-cell.other-month{background:var(--surface2);opacity:.5}
+.cal-cell.selected{background:var(--text);border-color:var(--text)}
+.cal-cell.selected .cal-date{color:#fff}
+.cal-cell.selected .cal-dot{background:rgba(255,255,255,.6)}
+.cal-cell.has-work{background:var(--surface)}
+.cal-date{font-size:12px;font-weight:700;color:var(--text);line-height:1;margin-bottom:4px;font-family:var(--mono)}
+.cal-cell.selected .cal-banner-count{color:rgba(255,255,255,.8)}
+.cal-banner-count{font-size:10px;color:var(--text3);font-family:var(--mono);font-weight:600}
+.cal-dots{display:flex;gap:2px;flex-wrap:wrap;margin-top:3px}
+.cal-dot{width:5px;height:5px;border-radius:50%;background:var(--text3);flex-shrink:0}
+.cal-dot.acm{background:var(--t-acm)}
+.cal-dot.abm{background:var(--t-abm)}
+.cal-dot.lcm{background:var(--t-lcm)}
+.cal-dot.lbm{background:var(--t-lbm)}
+
+/* Day detail panel */
+.day-detail{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px}
+.day-detail-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px}
+.day-detail-title{font-size:14px;font-weight:700;color:var(--text)}
+.day-entry-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.day-entry-row:last-child{border-bottom:none}
+.day-entry-num{font-family:var(--mono);font-size:10px;color:var(--text3);width:80px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}
+.day-entry-name{font-size:12px;font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.day-entry-banners{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);flex-shrink:0}
+.day-entry-note{font-size:11px;color:var(--text3);margin-top:2px}
+.day-totals{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;margin-top:12px;display:flex;gap:20px;flex-wrap:wrap}
+.day-total-item{display:flex;flex-direction:column;gap:2px}
+.day-total-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3)}
+.day-total-val{font-size:18px;font-weight:700;color:var(--text);font-family:var(--mono)}
+
+/* Work log in detail panel */
+.wl-item{display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--border);gap:8px}
+.wl-item:last-child{border-bottom:none}
+.wl-date{font-family:var(--mono);font-size:10px;color:var(--text3);flex-shrink:0;width:70px}
+.wl-banners{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);flex-shrink:0}
+.wl-note{font-size:12px;color:var(--text2);flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wl-delete{background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:0 2px;flex-shrink:0;line-height:1}
+.wl-delete:hover{color:var(--p-critical)}
+
+/* Today work strip in banner modal */
+.today-strip{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:12px}
+.today-strip-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);margin-bottom:6px}
+.today-strip-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text);line-height:1}
+.today-strip-sub{font-size:10.5px;color:var(--text3);margin-top:3px}
+
 @media(max-width:900px){
   .sidebar{width:50px}
   .sb-title,.sb-item span,.sb-badge,.sb-date,.sb-grp,.sb-sep{display:none}
@@ -459,6 +513,10 @@ tbody td{padding:7px 10px;color:var(--text);vertical-align:middle;overflow:hidde
     <button class="sb-item" onclick="switchTab('reports',this)" data-tab="reports">
       <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
       <span>Reports</span>
+    </button>
+    <button class="sb-item" onclick="switchTab('calendar',this)" data-tab="calendar">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>Calendar</span>
     </button>
     <div class="sb-sep"></div>
     <div class="sb-grp">Data</div>
@@ -642,6 +700,48 @@ tbody td{padding:7px 10px;color:var(--text);vertical-align:middle;overflow:hidde
       </div>
     </div>
   </div>
+  <!-- CALENDAR -->
+  <div id="tab-calendar" class="section">
+    <div class="tab-scroll">
+      <div class="pad">
+        <div class="ph">
+          <h2>Work Calendar</h2>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn btn-sm btn-ghost" onclick="calGoToday()">Today</button>
+            <button class="btn btn-primary btn-sm" id="cal-download-btn" onclick="downloadDayReport()" style="display:none">
+              <svg viewBox="0 0 24 24" style="stroke-width:2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download Report
+            </button>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start">
+          <div>
+            <div class="cal-header">
+              <div class="cal-month-label" id="cal-month-lbl"></div>
+              <div class="cal-nav">
+                <button class="btn btn-sm btn-ghost" onclick="calPrev()">
+                  <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+                <button class="btn btn-sm btn-ghost" onclick="calNext()">
+                  <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="cal-grid" id="cal-grid"></div>
+          </div>
+          <div id="cal-day-panel">
+            <div class="day-detail" style="border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px">
+              <div style="text-align:center;padding:24px 0;color:var(--text3);font-size:12px">
+                <div style="font-size:28px;margin-bottom:8px;opacity:.3">📅</div>
+                Select a day to see work details
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /main -->
 </div><!-- /shell -->
 
@@ -705,24 +805,33 @@ tbody td{padding:7px 10px;color:var(--text);vertical-align:middle;overflow:hidde
 
 <!-- BANNER LOG MODAL -->
 <div class="modal-bg" id="banner-modal" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="modal modal-sm">
+  <div class="modal" style="max-width:420px">
     <div class="m-head">
-      <h3>Log Banners</h3>
+      <h3 id="banner-modal-title">Daily Work Log</h3>
       <button class="btn btn-icon btn-ghost" onclick="document.getElementById('banner-modal').classList.remove('open')"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--text3);fill:none;stroke-width:2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="m-body">
+      <!-- Today's summary strip -->
+      <div class="today-strip" id="banner-today-strip">
+        <div class="today-strip-lbl">Today (US Eastern) — Banners logged</div>
+        <div class="today-strip-val" id="banner-today-val">0</div>
+        <div class="today-strip-sub" id="banner-today-sub"></div>
+      </div>
+      <!-- Log history -->
       <div class="bl-list" id="bl-list"></div>
+      <!-- Add entry -->
       <div style="border-top:1px solid var(--border);padding-top:11px">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);margin-bottom:8px">Log Work</div>
         <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0">
-          <div class="fg"><label>Count</label><input type="number" id="bl-count" placeholder="0" min="1"></div>
-          <div class="fg"><label>Date</label><input type="date" id="bl-date"></div>
-          <div class="fg full"><label>Note (optional)</label><input type="text" id="bl-note" placeholder="e.g. Sprint 12 banners"></div>
+          <div class="fg"><label>Banners Done</label><input type="number" id="bl-count" placeholder="0" min="1"></div>
+          <div class="fg"><label>Work Date</label><input type="date" id="bl-date"></div>
+          <div class="fg full"><label>Note (optional)</label><input type="text" id="bl-note" placeholder="e.g. completed hero banners"></div>
         </div>
       </div>
     </div>
     <div class="m-foot">
       <button class="btn btn-ghost" onclick="document.getElementById('banner-modal').classList.remove('open')">Close</button>
-      <button class="btn btn-primary" onclick="saveBannerEntry()">Add Entry</button>
+      <button class="btn btn-primary" onclick="saveBannerEntry()">Log Work</button>
     </div>
   </div>
 </div>
@@ -800,20 +909,66 @@ function load() {
   renderAll();
 }
 function save(){try{localStorage.setItem(STORE,JSON.stringify(cases));}catch(e){}}
-function today(){return new Date().toISOString().slice(0,10);}
+
+// ── US EASTERN TIME HELPERS ──
+const US_TZ = 'America/New_York';
+function todayUS(){
+  // Returns YYYY-MM-DD in US Eastern time
+  return new Date().toLocaleDateString('en-CA',{timeZone:US_TZ}); // en-CA gives ISO format
+}
+function today(){return todayUS();}
+function nowUS(){return new Date(new Date().toLocaleString('en-US',{timeZone:US_TZ}));}
+function fmtDateUS(d){
+  // Format YYYY-MM-DD as MM/DD/YYYY (US style)
+  if(!d)return'—';const p=d.split('-');return p[1]+'/'+p[2]+'/'+p[0];
+}
+function fmtDateUSFull(d){
+  if(!d)return'—';
+  return new Date(d+'T12:00:00').toLocaleDateString('en-US',{timeZone:US_TZ,weekday:'short',month:'long',day:'numeric',year:'numeric'});
+}
+function fmtDateUSShort(d){
+  if(!d)return'—';
+  return new Date(d+'T12:00:00').toLocaleDateString('en-US',{timeZone:US_TZ,month:'short',day:'numeric'});
+}
+function isoToDate(d){return new Date(d+'T12:00:00');}
+
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
 
 // ── HELPERS ──
-function fmtD(d){if(!d)return'—';const p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0].slice(2);}
-function fmtDF(d){if(!d)return'—';return new Date(d+'T12:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});}
-function fmtTs(ts){const d=new Date(ts),now=new Date(),diff=Math.floor((now-d)/6e4);if(diff<1)return'just now';if(diff<60)return diff+'m ago';if(diff<1440)return Math.floor(diff/60)+'h ago';return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});}
+function fmtD(d){return fmtDateUS(d);}
+function fmtDF(d){return fmtDateUSFull(d);}
+function fmtTs(ts){const d=new Date(ts),now=new Date(),diff=Math.floor((now-d)/6e4);if(diff<1)return'just now';if(diff<60)return diff+'m ago';if(diff<1440)return Math.floor(diff/60)+'h ago';return d.toLocaleDateString('en-US',{timeZone:US_TZ,month:'short',day:'numeric'});}
 function dSince(d){if(!d)return null;return Math.floor((new Date()-(new Date(d+'T12:00:00')))/86400000);}
 function isOD(c){return c.status!=='Closed'&&c.start&&dSince(c.start)>7;}
 function isPD(c){if(!c.dueDate||c.status==='Closed')return false;return new Date(c.dueDate+'T12:00:00')<new Date();}
 function isDS(c){if(!c.dueDate||c.status==='Closed')return false;const d=Math.floor((new Date(c.dueDate+'T12:00:00')-new Date())/86400000);return d<=2&&d>=0;}
 function sumB(c){return(c.bannerLog||[]).reduce((s,b)=>s+(parseInt(b.count)||0),0);}
-// Banners logged in a period
-function sumBInPeriod(c,from){return(c.bannerLog||[]).filter(b=>!from||new Date(b.date+'T12:00:00')>=from).reduce((s,b)=>s+(parseInt(b.count)||0),0);}
+// Banners logged from a date onwards
+function sumBInPeriod(c,from,to){
+  return(c.bannerLog||[]).filter(b=>{
+    if(!b.date)return false;
+    const bd=isoToDate(b.date);
+    if(from&&bd<from)return false;
+    if(to&&bd>to)return false;
+    return true;
+  }).reduce((s,b)=>s+(parseInt(b.count)||0),0);
+}
+// Banners logged on a specific date
+function sumBOnDate(c,dateStr){
+  return(c.bannerLog||[]).filter(b=>b.date===dateStr).reduce((s,b)=>s+(parseInt(b.count)||0),0);
+}
+// All work log entries on a date across all cases
+function workOnDate(dateStr){
+  const entries=[];
+  cases.forEach(c=>{
+    const logs=(c.bannerLog||[]).filter(b=>b.date===dateStr);
+    if(logs.length){
+      const total=logs.reduce((s,b)=>s+(parseInt(b.count)||0),0);
+      entries.push({c,logs,total});
+    }
+  });
+  return entries;
+}
 
 // ── BADGES ──
 function bS(s){const m={'New':'s-new','In Progress':'s-inp','Pending Your Input':'s-pyi','Pending Your Confirmation':'s-pyc','Closed':'s-closed'};return`<span class="badge ${m[s]||'s-new'}">${s}</span>`;}
@@ -843,7 +998,7 @@ function toggleTheme(){
 function updateThemeBtn(isDark){const l=document.getElementById('theme-lbl');if(l)l.textContent=isDark?'Dark mode':'Light mode';}
 
 // ── TABS ──
-const TAB_TITLES={dashboard:'Dashboard',cases:'All Cases',kanban:'Kanban',analytics:'Analytics',reports:'Reports'};
+const TAB_TITLES={dashboard:'Dashboard',cases:'All Cases',kanban:'Kanban',analytics:'Analytics',reports:'Reports',calendar:'Work Calendar'};
 function switchTab(name,el){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(t=>t.classList.remove('active'));
@@ -855,6 +1010,7 @@ function switchTab(name,el){
   if(name==='reports')renderReport();
   if(name==='kanban')renderKanban();
   if(name==='cases')renderTable();
+  if(name==='calendar')renderCalendar();
 }
 
 // ── RENDER ALL ──
@@ -1159,21 +1315,34 @@ function applyQStatus(){
 // ── BANNER LOG ──
 function openBannerModal(){
   if(!openDetailId)return;
+  const c=cases.find(x=>x.id===openDetailId);if(!c)return;
+  document.getElementById('banner-modal-title').textContent=c.number?`Work Log — #${c.number}`:'Daily Work Log';
   document.getElementById('bl-count').value='';
-  document.getElementById('bl-date').value=today();
+  document.getElementById('bl-date').value=todayUS();
   document.getElementById('bl-note').value='';
   renderBannerList();
   document.getElementById('banner-modal').classList.add('open');
 }
 function renderBannerList(){
   const c=cases.find(x=>x.id===openDetailId);if(!c)return;
-  const log=[...(c.bannerLog||[])].reverse(),tb=sumB(c);
+  const log=[...(c.bannerLog||[])].sort((a,b)=>b.date.localeCompare(a.date));
+  const tb=sumB(c);
+  const todayStr=todayUS();
+  const todayTotal=(c.bannerLog||[]).filter(b=>b.date===todayStr).reduce((s,b)=>s+(parseInt(b.count)||0),0);
+  const remaining=Math.max(0,tb-(c.bannerLog||[]).reduce((s,b)=>s+(b.date<todayStr?parseInt(b.count)||0:0),0));
+  // Update today strip
+  document.getElementById('banner-today-val').textContent=todayTotal;
+  document.getElementById('banner-today-sub').textContent=`${tb} total logged · ${sumB(c)} banners across all dates`;
   document.getElementById('bl-list').innerHTML=`
     <div style="display:flex;justify-content:space-between;margin-bottom:8px;align-items:center">
-      <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3)">Log history</span>
+      <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3)">Work history (US Eastern)</span>
       <span style="font-family:var(--mono);font-size:16px;font-weight:700">${tb} total</span>
     </div>
-    ${log.length?log.map(b=>`<div class="bl-item"><div class="bl-cnt">+${b.count}</div><div class="bl-note">${b.note||'—'}</div><div class="bl-date">${b.date||'—'}</div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:4px 0">No entries.</div>'}`;
+    ${log.length?log.map(b=>`<div class="bl-item">
+      <div class="bl-date">${fmtDateUS(b.date)}</div>
+      <div class="wl-note">${b.note||'—'}</div>
+      <div class="bl-banners" style="font-family:var(--mono);font-weight:700;font-size:13px;flex-shrink:0">+${b.count}</div>
+    </div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:4px 0">No entries yet.</div>'}`;
 }
 function saveBannerEntry(){
   const c=cases.find(x=>x.id===openDetailId);if(!c)return;
