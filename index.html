@@ -516,7 +516,7 @@ tbody td{padding:7px 10px;color:var(--text);vertical-align:middle;overflow:hidde
     </button>
     <button class="sb-item" onclick="switchTab('calendar',this)" data-tab="calendar">
       <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      <span>Calendar</span>
+      <span>Work Calendar</span>
     </button>
     <div class="sb-sep"></div>
     <div class="sb-grp">Data</div>
@@ -1471,35 +1471,45 @@ function renderReport(){
   let html=`<div class="rpt-period">${periodLabel} · Generated ${new Date().toLocaleString('en-IN',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>`;
 
   if(range==='daily'){
-    // ── DAILY: grouped by type ──
+    // ── DAILY: grouped by type, using today's banner log entries ──
     html+=`<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--border)">Daily Productivity Report</div>`;
+    const todayStr=todayUS();
+    // Collect all banner log entries for today
+    const todayEntries=[];
+    cases.forEach(c=>{
+      (c.bannerLog||[]).filter(b=>b.date===todayStr).forEach(entry=>{
+        todayEntries.push({c,entry});
+      });
+    });
+    const totalToday=todayEntries.reduce((s,{entry})=>s+(parseInt(entry.count)||0),0);
     let any=false;
     TYPES.forEach(type=>{
-      const tc=periodCases.filter(c=>c.type===type);
-      if(!tc.length)return;
+      const typeEntries=todayEntries.filter(({c})=>c.type===type);
+      if(!typeEntries.length)return;
       any=true;
-      const typeBanners=tc.reduce((s,c)=>s+bInP(c),0);
-      html+=`<div class="rpt-section-title">${type} <span style="font-weight:400;font-size:9px;color:var(--text3);margin-left:6px">${tc.length} case${tc.length!==1?'s':''} · ${typeBanners} banners</span></div>
+      const typeBanners=typeEntries.reduce((s,{entry})=>s+(parseInt(entry.count)||0),0);
+      html+=`<div class="rpt-section-title">${type} <span style="font-weight:400;font-size:9px;color:var(--text3);margin-left:6px">${typeEntries.length} entr${typeEntries.length!==1?'ies':'y'} · ${typeBanners} banners</span></div>
         <div class="rpt-tbl-wrap"><table class="rpt-tbl">
           <thead><tr>
             <th style="width:100px">Case #</th>
             <th>Case Name</th>
             <th style="width:130px">Status</th>
             <th style="width:80px;text-align:center">Banners</th>
-            <th style="width:78px">Work Date</th>
+            <th>Note</th>
           </tr></thead>
           <tbody>
-            ${tc.map(c=>`<tr>
+            ${typeEntries.map(({c,entry})=>`<tr>
               <td>${numCell(c)}</td>
-              <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name||'—'}</td>
+              <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name||'—'}</td>
               <td>${bS(c.status)}</td>
-              <td style="text-align:center;font-family:var(--mono);font-weight:700">${bInP(c)||0}</td>
-              <td style="font-size:11px;color:var(--text3)">${fmtD(c.start)}</td>
+              <td style="text-align:center;font-family:var(--mono);font-weight:700">${entry.count}</td>
+              <td style="font-size:11px;color:var(--text3);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${entry.note||'—'}</td>
             </tr>`).join('')}
           </tbody>
         </table></div>`;
     });
-    if(!any)html+=`<div style="font-size:13px;color:var(--text3);padding:24px 0;text-align:center">No cases for today.</div>`;
+    if(!any)html+=`<div style="font-size:13px;color:var(--text3);padding:24px 0;text-align:center">No banner work logged for today.<br><span style="font-size:11px">Use the Banners button on a case to log today's work.</span></div>`;
+    else html+=`<div class="rpt-totals" style="margin-top:14px"><div class="rpt-totals-title">Today's Total</div><div class="rpt-total-row"><span class="rpt-total-k">Total Banners Logged Today</span><span class="rpt-total-v">${totalToday}</span></div><div class="rpt-total-row"><span class="rpt-total-k">Work Entries</span><span class="rpt-total-v">${todayEntries.length}</span></div></div>`;
 
   } else {
     // ── WEEKLY / MONTHLY: single table + totals ──
@@ -1691,6 +1701,300 @@ function deleteCase(id){
   if(!confirm('Delete this case?'))return;
   cases=cases.filter(c=>c.id!==id);selected.delete(id);
   save();renderAll();toast('Case deleted');
+}
+
+// ── CALENDAR STATE ──
+let calYear = 0, calMonth = 0, calSelectedDate = null;
+
+function fmtUSDate(ds) {
+  if (!ds) return '—';
+  const [y,m,d] = ds.split('-');
+  return new Date(+y,+m-1,+d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function fmtUSDateShort(ds) {
+  if (!ds) return '—';
+  const [y,m,d] = ds.split('-');
+  return new Date(+y,+m-1,+d).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+function dayOfWeekUS(ds) {
+  const [y,m,d] = ds.split('-');
+  return new Date(+y,+m-1,+d).toLocaleDateString('en-US',{weekday:'long'});
+}
+
+// ── CALENDAR RENDER ──
+function renderCalendar() {
+  const t = todayUS();
+  const [ty,tm] = t.split('-').map(Number);
+  if (!calYear) { calYear = ty; calMonth = tm; }
+  if (!calSelectedDate) calSelectedDate = t;
+  _drawCalendar();
+  renderDayPanel(calSelectedDate);
+}
+
+function _drawCalendar() {
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-month-lbl').textContent = `${monthNames[calMonth-1]} ${calYear}`;
+
+  // Build a map: date → {banners, cases[], dots[]}
+  const dayMap = {};
+  cases.forEach(c => {
+    (c.bannerLog||[]).forEach(entry => {
+      if (!entry.date) return;
+      if (!dayMap[entry.date]) dayMap[entry.date] = {banners:0, caseIds:new Set(), types:[]};
+      dayMap[entry.date].banners += (parseInt(entry.count)||0);
+      dayMap[entry.date].caseIds.add(c.id);
+      if (!dayMap[entry.date].types.includes(c.type)) dayMap[entry.date].types.push(c.type);
+    });
+    // Also mark start date
+    if (c.start) {
+      if (!dayMap[c.start]) dayMap[c.start] = {banners:0, caseIds:new Set(), types:[]};
+      dayMap[c.start].caseIds.add(c.id);
+      if (!dayMap[c.start].types.includes(c.type)) dayMap[c.start].types.push(c.type);
+    }
+  });
+
+  const todayStr = todayUS();
+  const typeShortClass = {'Automotive Content Migration':'acm','Automotive Blog Migration':'abm','LeadScience Content Migration':'lcm','LeadScience Blog Migration':'lbm'};
+
+  // First day of month (0=Sun in US locale)
+  const firstDay = new Date(calYear, calMonth-1, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth, 0).getDate();
+  const daysInPrev = new Date(calYear, calMonth-1, 0).getDate();
+
+  const DAY_HDRS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html = DAY_HDRS.map(d=>`<div class="cal-day-hdr">${d}</div>`).join('');
+
+  // Prev month padding
+  for (let i = firstDay-1; i >= 0; i--) {
+    html += `<div class="cal-cell other-month"><div class="cal-date">${daysInPrev-i}</div></div>`;
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${calYear}-${String(calMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = ds === todayStr;
+    const isSel = ds === calSelectedDate;
+    const dm = dayMap[ds];
+    const hasWork = dm && (dm.banners > 0 || dm.caseIds.size > 0);
+    const cls = [
+      'cal-cell',
+      isToday ? 'today' : '',
+      isSel ? 'selected' : '',
+      hasWork ? 'has-work' : ''
+    ].filter(Boolean).join(' ');
+
+    const dots = dm ? dm.types.slice(0,4).map(t=>`<div class="cal-dot ${typeShortClass[t]||''}"></div>`).join('') : '';
+    const bannerNum = dm && dm.banners > 0 ? `<div class="cal-banner-count">${dm.banners} ban.</div>` : '';
+
+    html += `<div class="${cls}" onclick="calSelectDay('${ds}')">
+      <div class="cal-date">${d}</div>
+      ${bannerNum}
+      <div class="cal-dots">${dots}</div>
+    </div>`;
+  }
+
+  // Next month padding to fill grid
+  const totalCells = firstDay + daysInMonth;
+  const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (let d = 1; d <= remaining; d++) {
+    html += `<div class="cal-cell other-month"><div class="cal-date">${d}</div></div>`;
+  }
+
+  document.getElementById('cal-grid').innerHTML = html;
+}
+
+function calSelectDay(ds) {
+  calSelectedDate = ds;
+  _drawCalendar();
+  renderDayPanel(ds);
+  const btn = document.getElementById('cal-download-btn');
+  if (btn) btn.style.display = '';
+}
+
+function calGoToday() {
+  const t = todayUS();
+  const [y,m] = t.split('-').map(Number);
+  calYear = y; calMonth = m;
+  calSelectDay(t);
+}
+
+function calPrev() {
+  calMonth--;
+  if (calMonth < 1) { calMonth = 12; calYear--; }
+  _drawCalendar();
+}
+
+function calNext() {
+  calMonth++;
+  if (calMonth > 12) { calMonth = 1; calYear++; }
+  _drawCalendar();
+}
+
+// ── DAY DETAIL PANEL ──
+function renderDayPanel(ds) {
+  const panel = document.getElementById('cal-day-panel');
+  if (!panel) return;
+
+  // Gather all banner log entries for this date
+  const entries = []; // {case, entry}
+  cases.forEach(c => {
+    (c.bannerLog||[]).forEach(entry => {
+      if (entry.date === ds) entries.push({c, entry});
+    });
+  });
+
+  // Also gather cases that started on this date (with 0 banners logged)
+  const startedCases = cases.filter(c => c.start === ds && !(c.bannerLog||[]).some(b => b.date === ds));
+
+  const totalBannersDay = entries.reduce((s,{entry})=>s+(parseInt(entry.count)||0), 0);
+  const isToday = ds === todayUS();
+  const isFuture = ds > todayUS();
+  const dateLabel = fmtUSDate(ds);
+  const dowLabel = dayOfWeekUS(ds);
+
+  let html = `
+    <div style="border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);background:${isToday?'var(--text)':'var(--surface2)'}">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${isToday?'rgba(255,255,255,.45)':'var(--text3)'};">${dowLabel}</div>
+        <div style="font-size:17px;font-weight:700;color:${isToday?'#fff':'var(--text)'};margin:2px 0 6px;letter-spacing:-.01em">${dateLabel}</div>
+        <div style="display:flex;gap:14px;align-items:center">
+          <div>
+            <div style="font-family:var(--mono);font-size:24px;font-weight:700;color:${isToday?'#fff':'var(--text)'};line-height:1">${totalBannersDay}</div>
+            <div style="font-size:10px;color:${isToday?'rgba(255,255,255,.45)':'var(--text3)'};margin-top:2px">banners logged</div>
+          </div>
+          <div>
+            <div style="font-family:var(--mono);font-size:24px;font-weight:700;color:${isToday?'#fff':'var(--text)'};line-height:1">${entries.length + startedCases.length}</div>
+            <div style="font-size:10px;color:${isToday?'rgba(255,255,255,.45)':'var(--text3)'};margin-top:2px">cases active</div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:12px 14px;background:var(--surface)">`;
+
+  if (entries.length === 0 && startedCases.length === 0) {
+    html += `<div style="text-align:center;padding:20px 0;color:var(--text3);font-size:12px">${isFuture ? 'Future date — no work logged yet.' : 'No work logged for this day.'}</div>`;
+  } else {
+    if (entries.length > 0) {
+      html += `<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);margin-bottom:8px">Banner Work</div>`;
+      entries.forEach(({c, entry}) => {
+        const numLink = c.url && c.number ? `<a href="${c.url}" target="_blank" style="font-family:var(--mono);font-size:10.5px">${c.number}</a>` : `<span style="font-family:var(--mono);font-size:10.5px;color:var(--text3)">${c.number||'—'}</span>`;
+        html += `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+          <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--text);width:38px;flex-shrink:0">+${entry.count}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name}</div>
+            <div style="display:flex;gap:6px;align-items:center;margin-top:2px">${numLink} <span style="font-size:10px;color:var(--text3)">${entry.note||''}</span></div>
+          </div>
+        </div>`;
+      });
+      html += `<div style="margin-top:2px"></div>`;
+    }
+    if (startedCases.length > 0) {
+      html += `<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);margin:10px 0 8px">Cases Started</div>`;
+      startedCases.forEach(c => {
+        html += `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px">
+          <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${c.name}</div>
+          ${bS(c.status)}
+        </div>`;
+      });
+    }
+  }
+
+  html += `
+        <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center;margin-top:12px" onclick="downloadDayReport('${ds}')">
+          <svg viewBox="0 0 24 24" style="stroke-width:2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download Day Report
+        </button>
+      </div>
+    </div>`;
+
+  panel.innerHTML = html;
+}
+
+// ── DOWNLOAD DAY REPORT ──
+function downloadDayReport(ds) {
+  const date = ds || calSelectedDate || todayUS();
+  const entries = [];
+  cases.forEach(c => {
+    (c.bannerLog||[]).forEach(entry => {
+      if (entry.date === date) entries.push({c, entry});
+    });
+  });
+  const startedCases = cases.filter(c => c.start === date && !(c.bannerLog||[]).some(b => b.date === date));
+  const totalBannersDay = entries.reduce((s,{entry})=>s+(parseInt(entry.count)||0), 0);
+  const dateLabel = fmtUSDate(date);
+  const dowLabel = dayOfWeekUS(date);
+
+  // Group entries by type for the report
+  const byType = {};
+  entries.forEach(({c, entry}) => {
+    if (!byType[c.type]) byType[c.type] = [];
+    byType[c.type].push({c, entry});
+  });
+
+  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Daily Report — ${dateLabel}</title>
+    <style>
+      body{font-family:'Inter',Arial,sans-serif;font-size:13px;color:#111;max-width:800px;margin:40px auto;padding:0 24px;background:#fff}
+      h1{font-size:20px;font-weight:700;margin-bottom:4px;letter-spacing:-.01em}
+      .meta{font-size:12px;color:#888;margin-bottom:24px}
+      h2{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#666;margin:20px 0 8px;padding-bottom:6px;border-bottom:2px solid #eee}
+      table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px}
+      th{background:#f8f8f8;padding:7px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#999;border-bottom:1px solid #e4e4e4}
+      td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+      tr:last-child td{border-bottom:none}
+      .num{font-family:monospace;font-weight:700}
+      .summary{background:#f8f8f8;border-radius:8px;padding:14px 16px;margin-top:20px;display:flex;gap:28px}
+      .s-item .s-val{font-size:24px;font-weight:700;font-family:monospace;line-height:1}
+      .s-item .s-lbl{font-size:10px;color:#888;margin-top:3px}
+      @media print{body{margin:20px auto}}
+    </style>
+  </head><body>
+    <h1>Daily Productivity Report</h1>
+    <div class="meta">${dowLabel}, ${dateLabel} &nbsp;·&nbsp; Generated ${new Date().toLocaleString('en-US',{timeZone:'America/New_York',month:'long',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>`;
+
+  if (entries.length === 0 && startedCases.length === 0) {
+    html += `<p style="color:#888">No work logged for this day.</p>`;
+  } else {
+    TYPES.forEach(type => {
+      const group = byType[type] || [];
+      if (!group.length) return;
+      const groupTotal = group.reduce((s,{entry})=>s+(parseInt(entry.count)||0),0);
+      html += `<h2>${type} &nbsp;<span style="font-weight:400;font-size:9px;color:#aaa">${group.length} case${group.length!==1?'s':''} · ${groupTotal} banners</span></h2>
+        <table>
+          <thead><tr><th>Case #</th><th>Case Name</th><th>Status</th><th style="text-align:center">Banners</th><th>Note</th></tr></thead>
+          <tbody>
+            ${group.map(({c,entry})=>{
+              const numDisplay = c.url && c.number ? `<a href="${c.url}" target="_blank">${c.number}</a>` : (c.number||'—');
+              return `<tr>
+                <td class="num">${numDisplay}</td>
+                <td>${c.name||'—'}</td>
+                <td>${c.status}</td>
+                <td style="text-align:center" class="num">${entry.count}</td>
+                <td style="color:#888">${entry.note||''}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>`;
+    });
+
+    if (startedCases.length > 0) {
+      html += `<h2>Cases Started</h2><table><thead><tr><th>Case #</th><th>Case Name</th><th>Type</th><th>Status</th></tr></thead><tbody>
+        ${startedCases.map(c=>`<tr><td class="num">${c.number||'—'}</td><td>${c.name}</td><td>${TSHORT[c.type]||c.type}</td><td>${c.status}</td></tr>`).join('')}
+      </tbody></table>`;
+    }
+  }
+
+  html += `<div class="summary">
+    <div class="s-item"><div class="s-val">${totalBannersDay}</div><div class="s-lbl">Total Banners</div></div>
+    <div class="s-item"><div class="s-val">${entries.length}</div><div class="s-lbl">Work Entries</div></div>
+    <div class="s-item"><div class="s-val">${entries.length + startedCases.length}</div><div class="s-lbl">Cases Active</div></div>
+  </div></body></html>`;
+
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `daily-report-${date}.html`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast(`Report downloaded for ${fmtUSDateShort(date)}`);
 }
 
 load();
