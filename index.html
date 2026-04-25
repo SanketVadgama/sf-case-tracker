@@ -59,6 +59,174 @@
   --p-critical-bg:#2C0A0A; --p-high-bg:#2C1400; --p-medium-bg:#0C1F4A; --p-low-bg:#082010;
   --t-acm-bg:#0C1F4A; --t-abm-bg:#2C1800; --t-lcm-bg:#082010; --t-lbm-bg:#1A0E40;
 }
+
+/* ── DEALERON BRANDED THEME ── */
+[data-theme="dealeron"] {
+  /* Surfaces — warm white, clean */
+  --bg: #F2F4F7;
+  --sidebar: #183358;
+  --surface: #FFFFFF;
+  --surface2: #F7F9FC;
+  --surface3: #EDF1F7;
+  --border: #DDE3EE;
+  --border2: #C3CEDD;
+  --text: #0F1F38;
+  --text2: #4A5A72;
+  --text3: #8C9BB0;
+  --accent: #FF7319;
+  --accent-inv: #FFFFFF;
+  /* Status badges */
+  --s-new:      #0F1F38; --s-new-bg:    #EDF1F7;
+  --s-inp:      #1D5BBF; --s-inp-bg:    #EBF2FF;
+  --s-pyi:      #C46010; --s-pyi-bg:    #FFF4E8;
+  --s-pyc:      #6D28D9; --s-pyc-bg:    #F3EEFF;
+  --s-closed:   #15803D; --s-closed-bg: #EDFAF3;
+  /* Priority */
+  --p-critical: #DC2626; --p-critical-bg: #FEF2F2;
+  --p-high:     #EA580C; --p-high-bg:     #FFF4E8;
+  --p-medium:   #1D5BBF; --p-medium-bg:   #EBF2FF;
+  --p-low:      #15803D; --p-low-bg:      #EDFAF3;
+  /* Type */
+  --t-acm:  #1D5BBF; --t-acm-bg:  #EBF2FF;
+  --t-abm:  #C46010; --t-abm-bg:  #FFF4E8;
+  --t-lcm:  #15803D; --t-lcm-bg:  #EDFAF3;
+  --t-lbm:  #6D28D9; --t-lbm-bg:  #F3EEFF;
+  --sh: 0 1px 4px rgba(24,51,88,.08), 0 0 0 1px rgba(24,51,88,.06);
+  --sh-lg: 0 6px 28px rgba(24,51,88,.13), 0 0 0 1px rgba(24,51,88,.07);
+}
+
+/* Sidebar — navy gradient */
+[data-theme="dealeron"] .sidebar {
+  background: linear-gradient(180deg, #183358 0%, #0f2240 100%);
+}
+[data-theme="dealeron"] .sb-logo {
+  border-bottom-color: rgba(255,255,255,.1);
+}
+[data-theme="dealeron"] .sb-mark {
+  background: #FF7319;
+  box-shadow: 0 2px 8px rgba(255,115,25,.35);
+}
+[data-theme="dealeron"] .sb-mark svg { fill: #fff; }
+[data-theme="dealeron"] .sb-sep { background: rgba(255,255,255,.09); }
+[data-theme="dealeron"] .sb-grp { color: rgba(255,255,255,.28); }
+[data-theme="dealeron"] .sb-item { color: rgba(255,255,255,.5); }
+[data-theme="dealeron"] .sb-item:hover {
+  color: #fff;
+  background: rgba(255,115,25,.15);
+}
+[data-theme="dealeron"] .sb-item.active {
+  color: #fff;
+  background: rgba(255,115,25,.22);
+  border-left: 3px solid #FF7319;
+  padding-left: 5px;
+}
+[data-theme="dealeron"] .sb-badge {
+  background: rgba(255,115,25,.3);
+  color: #FFB380;
+}
+[data-theme="dealeron"] .sb-footer { border-top-color: rgba(255,255,255,.09); }
+[data-theme="dealeron"] .sb-toggle { border-color: rgba(255,255,255,.15); }
+[data-theme="dealeron"] .sb-toggle:hover { background: rgba(255,115,25,.2); }
+
+/* Topbar — white with orange bottom accent */
+[data-theme="dealeron"] .topbar {
+  border-bottom: 2px solid #FF7319;
+  box-shadow: 0 1px 6px rgba(24,51,88,.07);
+}
+
+/* Buttons */
+[data-theme="dealeron"] .btn-primary {
+  background: #FF7319;
+  border-color: #FF7319;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(255,115,25,.28);
+}
+[data-theme="dealeron"] .btn-primary:hover {
+  background: #E0621A;
+  border-color: #E0621A;
+  opacity: 1;
+}
+[data-theme="dealeron"] .btn:hover { background: #EDF1F7; }
+[data-theme="dealeron"] .btn-ghost:hover { background: #EDF1F7; border-color: #DDE3EE; }
+
+/* Focus rings — orange */
+[data-theme="dealeron"] input:focus,
+[data-theme="dealeron"] select:focus,
+[data-theme="dealeron"] textarea:focus {
+  border-color: #FF7319;
+  box-shadow: 0 0 0 3px rgba(255,115,25,.15);
+}
+[data-theme="dealeron"] input[type=checkbox] { accent-color: #FF7319; }
+
+/* Table row hover — warm tint */
+[data-theme="dealeron"] tbody tr:hover { background: #FFF7F1; }
+[data-theme="dealeron"] tbody tr.sel-row { background: #FFF0E4; }
+[data-theme="dealeron"] thead th { background: #F2F4F7; color: #8C9BB0; }
+
+/* Notification badge — orange */
+[data-theme="dealeron"] .notif-badge { background: #FF7319; }
+[data-theme="dealeron"] .notif-btn:hover { background: #FFF4E8; }
+
+/* Bento — "Total" dark card uses navy */
+[data-theme="dealeron"] .b-dark { background: #183358; border-color: #183358; }
+[data-theme="dealeron"] .b-dark .b-lbl { color: rgba(255,255,255,.4); }
+[data-theme="dealeron"] .b-dark .b-num { color: #fff; }
+[data-theme="dealeron"] .b-dark .b-sub { color: rgba(255,255,255,.35); }
+
+/* Weekly digest card uses navy */
+[data-theme="dealeron"] .b-digest { background: #183358; border-color: #183358; }
+[data-theme="dealeron"] .b-digest .b-lbl { color: rgba(255,255,255,.35); }
+[data-theme="dealeron"] .drow { border-bottom-color: rgba(255,255,255,.08); }
+[data-theme="dealeron"] .drow-k { color: rgba(255,255,255,.5); }
+
+/* Calendar today — orange border */
+[data-theme="dealeron"] .cal-cell.today { border-color: #FF7319; }
+[data-theme="dealeron"] .cal-cell.selected { background: #183358; border-color: #183358; }
+[data-theme="dealeron"] .cal-cell.selected .cal-date { color: #fff; }
+[data-theme="dealeron"] .cal-cell.selected .cal-banner-count { color: rgba(255,255,255,.7); }
+
+/* Quick filter active */
+[data-theme="dealeron"] .qf-btn.active { background: #FF7319; border-color: #FF7319; color: #fff; }
+
+/* Detail panel selected row */
+[data-theme="dealeron"] .sb-item.active svg { color: #FFB380; }
+
+/* SLA bar */
+[data-theme="dealeron"] .sla-bar { background: #FF7319; }
+
+/* Ldr bar */
+[data-theme="dealeron"] .ldr-bar { background: #183358; }
+
+/* Focus mode bar */
+[data-theme="dealeron"] .focus-bar { background: #FF7319; }
+[data-theme="dealeron"] .focus-bar.done { background: #15803D; }
+
+/* Heatmap — navy tones */
+[data-theme="dealeron"] .hm-1 { background: rgba(24,51,88,.12); }
+[data-theme="dealeron"] .hm-2 { background: rgba(24,51,88,.3); }
+[data-theme="dealeron"] .hm-3 { background: rgba(24,51,88,.55); }
+[data-theme="dealeron"] .hm-4 { background: rgba(24,51,88,.85); }
+
+/* Settings toggles */
+[data-theme="dealeron"] .toggle.on { background: #FF7319; }
+
+/* Pin button */
+[data-theme="dealeron"] .pin-btn.pinned { color: #FF7319; }
+
+/* Overdue row left border */
+[data-theme="dealeron"] tbody tr.od-row { border-left-color: #FF7319; }
+
+/* Report summary box */
+[data-theme="dealeron"] .rpt-summary-box { background: #183358; }
+
+/* Due chip */
+[data-theme="dealeron"] .due-chip.overdue { background: #FEF2F2; color: #DC2626; }
+[data-theme="dealeron"] .due-chip.today { background: #FFF4E8; color: #C46010; }
+[data-theme="dealeron"] .due-chip.soon { background: #EBF2FF; color: #1D5BBF; }
+
+/* Scrollbar accent */
+[data-theme="dealeron"] ::-webkit-scrollbar-thumb { background: #C3CEDD; }
+
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px}
 a{color:inherit;text-decoration:underline;text-underline-offset:2px}
@@ -729,7 +897,7 @@ body.compact .k-card{padding:6px 8px}
   </nav>
   <div class="sb-footer">
     <div class="sb-date" id="sb-date"></div>
-    <button class="sb-item" onclick="toggleTheme()" id="theme-btn">
+    <button class="sb-item" onclick="cycleTheme()" id="theme-btn">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
       <span id="theme-lbl">Dark mode</span>
     </button>
@@ -1056,8 +1224,12 @@ body.compact .k-card{padding:6px 8px}
               <button class="toggle" id="density-toggle" onclick="toggleDensity()"></button>
             </div>
             <div class="settings-row">
-              <div><div class="settings-label">Dark Mode</div><div class="settings-sub">Switch between light and dark theme</div></div>
-              <button class="toggle" id="dark-toggle" onclick="toggleTheme()"></button>
+              <div><div class="settings-label">Theme</div><div class="settings-sub">Light · Dark · DealerOn branded</div></div>
+              <select id="theme-selector" onchange="applyThemeFromSelector(this.value)" style="height:30px;font-size:12px;width:140px">
+                <option value="light">☀️ Light</option>
+                <option value="dark">🌙 Dark</option>
+                <option value="dealeron">🟠 DealerOn</option>
+              </select>
             </div>
           </div>
           <div class="settings-section">
@@ -1365,8 +1537,8 @@ function load() {
     if(tm[c.type]) c.type=tm[c.type];
     if(!c.assignee) c.assignee='';
   });
-  const th=localStorage.getItem('sf_theme');
-  if(th==='dark'){document.documentElement.setAttribute('data-theme','dark');updateThemeBtn(true);}
+  const th=localStorage.getItem('sf_theme')||'light';
+  applyTheme(th);
   if(localStorage.getItem('sb_collapsed')==='1'){document.querySelector('.sidebar').classList.add('collapsed');}
   document.getElementById('sb-date').textContent=new Date().toLocaleDateString('en-US',{timeZone:US_TZ,weekday:'short',month:'short',day:'numeric'});
   if(reminderEnabled) setupReminder();
@@ -1450,19 +1622,33 @@ function toggleSidebar(){
 }
 
 // ── THEME ──
-function toggleTheme(){
-  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
-  document.documentElement.setAttribute('data-theme',isDark?'':'dark');
-  localStorage.setItem('sf_theme',isDark?'light':'dark');
-  updateThemeBtn(!isDark);
+const THEMES = ['light','dark','dealeron'];
+function cycleTheme(){
+  const cur = localStorage.getItem('sf_theme')||'light';
+  const next = THEMES[(THEMES.indexOf(cur)+1) % THEMES.length];
+  applyTheme(next);
+  localStorage.setItem('sf_theme', next);
   Object.values(charts).forEach(c=>{try{c.destroy();}catch(e){}});charts={};
   const active=document.querySelector('.section.active');
   if(!active)return;
   const tab=active.id.replace('tab-','');
-  if(tab==='dashboard')renderBento();
+  if(tab==='dashboard'){renderBento();setTimeout(renderDashCharts,60);}
   if(tab==='analytics')renderAnalytics();
 }
-function updateThemeBtn(isDark){const l=document.getElementById('theme-lbl');if(l)l.textContent=isDark?'Dark mode':'Light mode';}
+function toggleTheme(){cycleTheme();}
+function applyTheme(t){
+  const labels={'light':'Dark mode','dark':'DealerOn theme','dealeron':'Light mode'};
+  document.documentElement.setAttribute('data-theme', t==='light' ? '' : t);
+  updateThemeBtn(t);
+}
+function updateThemeBtn(t){
+  const labels={'light':'Dark mode','dark':'DealerOn theme','dealeron':'Light mode'};
+  const lbl=document.getElementById('theme-lbl');
+  if(lbl) lbl.textContent = labels[t] || 'Dark mode';
+  // Update settings toggle
+  const dt=document.getElementById('dark-toggle');
+  if(dt) dt.className='toggle'+(t==='dark'?' on':'');
+}
 
 // ── TABS ──
 const TAB_TITLES={dashboard:'Dashboard',cases:'All Cases',kanban:'Kanban',analytics:'Analytics',reports:'Reports',calendar:'Work Calendar',archive:'Archive',audit:'Audit Log',settings:'Settings'};
@@ -3361,6 +3547,7 @@ function saveSettings() {
   } catch(e){}
 }
 function renderSettingsUI() {
+  const cur = localStorage.getItem('sf_theme')||'light';
   const dt = document.getElementById('dark-toggle');
   const den = document.getElementById('density-toggle');
   const rem = document.getElementById('reminder-toggle');
@@ -3368,7 +3555,7 @@ function renderSettingsUI() {
   const dg = document.getElementById('daily-goal-input');
   const ds = document.getElementById('default-sort-sel');
   const le = document.getElementById('last-export-lbl');
-  if (dt) dt.className = 'toggle' + (document.documentElement.getAttribute('data-theme')==='dark'?' on':'');
+  if (dt) dt.className = 'toggle' + (cur==='dark'?' on':'');
   if (den) den.className = 'toggle' + (densityCompact?' on':'');
   if (rem) rem.className = 'toggle' + (reminderEnabled?' on':'');
   if (sla) sla.value = slaGlobalDays;
@@ -3376,11 +3563,24 @@ function renderSettingsUI() {
   if (ds) ds.value = sortKey;
   if (le) le.textContent = lastExportDate ? fmtD(lastExportDate) : 'Never';
   if (densityCompact) document.body.classList.add('compact'); else document.body.classList.remove('compact');
+  // Update theme selector if present
+  const ts = document.getElementById('theme-selector');
+  if (ts) ts.value = cur;
 }
 function toggleDensity() {
   densityCompact = !densityCompact;
   if (densityCompact) document.body.classList.add('compact'); else document.body.classList.remove('compact');
   saveSettings(); renderSettingsUI();
+}
+function applyThemeFromSelector(val) {
+  applyTheme(val);
+  localStorage.setItem('sf_theme', val);
+  Object.values(charts).forEach(c=>{try{c.destroy();}catch(e){}});charts={};
+  const active=document.querySelector('.section.active');
+  if(!active)return;
+  const tab=active.id.replace('tab-','');
+  if(tab==='dashboard'){renderBento();setTimeout(renderDashCharts,60);}
+  if(tab==='analytics')renderAnalytics();
 }
 function saveSLADays() {
   slaGlobalDays = parseInt(document.getElementById('sla-days-input').value)||7;
