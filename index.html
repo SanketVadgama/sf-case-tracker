@@ -355,7 +355,7 @@ a:hover{opacity:.65}
 .sb-toggle:hover{background:rgba(255,255,255,.1)}
 .sb-toggle svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;transition:transform .2s var(--ease)}
 /* Collapsed sidebar */
-.sidebar.collapsed{width:52px}
+.sidebar.collapsed{width:52px;min-width:52px}
 .sidebar.collapsed .sb-title,
 .sidebar.collapsed .sb-item span,
 .sidebar.collapsed .sb-badge,
@@ -363,11 +363,20 @@ a:hover{opacity:.65}
 .sidebar.collapsed .sb-grp,
 .sidebar.collapsed .sb-sep,
 .sidebar.collapsed .sb-toggle-label{display:none}
-.sidebar.collapsed .sb-logo{justify-content:center;padding:14px 10px;gap:0}
-.sidebar.collapsed .sb-toggle{margin-left:0}
-.sidebar.collapsed .sb-item{justify-content:center;padding:8px}
-.sidebar.collapsed .sb-nav{padding:8px 6px}
-.sidebar.collapsed .sb-footer{padding:6px 6px 10px}
+.sidebar.collapsed .sb-logo{justify-content:center;padding:12px 0;gap:0;flex-direction:column}
+.sidebar.collapsed .sb-mark{margin:0 auto}
+.sidebar.collapsed .sb-toggle{margin:8px auto 0;width:22px;height:22px}
+.sidebar.collapsed .sb-item{justify-content:center;padding:10px 0;border-radius:0;width:100%;position:relative;border-left:3px solid transparent}
+.sidebar.collapsed .sb-item.active{border-left-color:rgba(255,255,255,.5);background:rgba(255,255,255,.1)}
+.sidebar.collapsed .sb-nav{padding:6px 0;gap:0}
+.sidebar.collapsed .sb-footer{padding:6px 0 10px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.sidebar.collapsed .sb-item svg{width:16px;height:16px}
+
+/* ── SIDEBAR TOOLTIPS (collapsed only) ── */
+.sidebar.collapsed .sb-item{overflow:visible}
+.sb-tooltip{display:none;position:absolute;left:58px;top:50%;transform:translateY(-50%);background:rgba(20,20,20,.95);color:#fff;font-size:12px;font-weight:600;padding:5px 10px;border-radius:6px;white-space:nowrap;pointer-events:none;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.sb-tooltip::before{content:'';position:absolute;left:-5px;top:50%;transform:translateY(-50%);border:5px solid transparent;border-right-color:rgba(20,20,20,.95);border-left:none}
+.sidebar.collapsed .sb-item:hover .sb-tooltip{display:block}
 
 
 input,select,textarea{font-family:var(--font);font-size:13px;color:var(--text);background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:6px 10px;outline:none;transition:border .12s,box-shadow .12s;-webkit-appearance:none}
@@ -849,50 +858,51 @@ body.compact .k-card{padding:6px 8px}
     <div class="sb-grp">Workspace</div>
     <button class="sb-item active" onclick="switchTab('dashboard',this)" data-tab="dashboard">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      <span>Dashboard</span>
+      <span>Dashboard</span><span class="sb-tooltip">Dashboard</span>
     </button>
     <button class="sb-item" onclick="switchTab('cases',this)" data-tab="cases">
       <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
       <span>All Cases</span>
       <span class="sb-badge" id="open-badge" style="display:none">0</span>
+      <span class="sb-tooltip">All Cases</span>
     </button>
     <button class="sb-item" onclick="switchTab('kanban',this)" data-tab="kanban">
       <svg viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="10" rx="1"/><rect x="17" y="4" width="5" height="13" rx="1"/></svg>
-      <span>Kanban</span>
+      <span>Kanban</span><span class="sb-tooltip">Kanban</span>
     </button>
     <button class="sb-item" onclick="switchTab('analytics',this)" data-tab="analytics">
       <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
-      <span>Analytics</span>
+      <span>Analytics</span><span class="sb-tooltip">Analytics</span>
     </button>
     <button class="sb-item" onclick="switchTab('reports',this)" data-tab="reports">
       <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      <span>Reports</span>
+      <span>Reports</span><span class="sb-tooltip">Reports</span>
     </button>
     <button class="sb-item" onclick="switchTab('calendar',this)" data-tab="calendar">
       <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      <span>Work Calendar</span>
+      <span>Work Calendar</span><span class="sb-tooltip">Work Calendar</span>
     </button>
     <button class="sb-item" onclick="switchTab('archive',this)" data-tab="archive">
       <svg viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
-      <span>Archive</span>
+      <span>Archive</span><span class="sb-tooltip">Archive</span>
     </button>
     <button class="sb-item" onclick="switchTab('audit',this)" data-tab="audit">
       <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      <span>Audit Log</span>
+      <span>Audit Log</span><span class="sb-tooltip">Audit Log</span>
     </button>
     <button class="sb-item" onclick="switchTab('settings',this)" data-tab="settings">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-      <span>Settings</span>
+      <span>Settings</span><span class="sb-tooltip">Settings</span>
     </button>
     <div class="sb-sep"></div>
     <div class="sb-grp">Data</div>
     <button class="sb-item" onclick="exportCSV()">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      <span>Export CSV</span>
+      <span>Export CSV</span><span class="sb-tooltip">Export CSV</span>
     </button>
     <button class="sb-item" onclick="openImportModal()">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      <span>Import CSV</span>
+      <span>Import CSV</span><span class="sb-tooltip">Import CSV</span>
     </button>
   </nav>
   <div class="sb-footer">
@@ -900,6 +910,7 @@ body.compact .k-card{padding:6px 8px}
     <button class="sb-item" onclick="cycleTheme()" id="theme-btn">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
       <span id="theme-lbl">Dark mode</span>
+      <span class="sb-tooltip">Toggle Theme</span>
     </button>
   </div>
 </aside>
@@ -2276,28 +2287,44 @@ function renderReport(){
     // ── DAILY ──
     html+=`<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--border)">Daily Productivity Report</div>`;
     const todayStr=todayUS();
-    const todayEntries=[];
-    cases.forEach(c=>{(c.bannerLog||[]).filter(b=>b.date===todayStr).forEach(entry=>{todayEntries.push({c,entry});});});
-    const totalToday=todayEntries.reduce((s,{entry})=>s+(parseInt(entry.count)||0),0);
+    const rawEntries=[];
+    cases.forEach(c=>{(c.bannerLog||[]).filter(b=>b.date===todayStr).forEach(entry=>{rawEntries.push({c,entry});});});
+
+    // Merge entries by case id — sum banners, combine notes
+    const mergedMap=new Map();
+    rawEntries.forEach(({c,entry})=>{
+      if(!mergedMap.has(c.id)) mergedMap.set(c.id,{c,banners:0,notes:[],count:0});
+      const m=mergedMap.get(c.id);
+      m.banners+=parseInt(entry.count)||0;
+      m.count++;
+      if(entry.note&&entry.note!=='—'&&entry.note!=='EOD log') m.notes.push(entry.note);
+    });
+    const todayMerged=[...mergedMap.values()];
+    const totalToday=todayMerged.reduce((s,m)=>s+m.banners,0);
+    const totalEntries=rawEntries.length; // real entry count for footer
+    // Group by type
+    const byTypeMerged={};
+    todayMerged.forEach(m=>{ const t=m.c.type; if(!byTypeMerged[t])byTypeMerged[t]=[]; byTypeMerged[t].push(m); });
+
     // Auto summary
-    if(todayEntries.length){
-      const summaryText=`Today, logged ${totalToday} banner${totalToday!==1?'s':''} across ${todayEntries.length} entr${todayEntries.length!==1?'ies':'y'}.`;
-      html+=`<div class="rpt-summary-box"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:rgba(255,255,255,.4);margin-bottom:6px">Summary</div><div class="rpt-summary-text">${summaryText}</div><button class="rpt-summary-copy" onclick="navigator.clipboard.writeText('${summaryText.replace(/'/g,"\\'")}').then(()=>toast('Copied!'))">Copy</button></div>`;
+    if(todayMerged.length){
+      const summaryText=`Today, logged ${totalToday} banner${totalToday!==1?'s':''} across ${todayMerged.length} case${todayMerged.length!==1?'s':''}.`;
+      html+=`<div class="rpt-summary-box"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:rgba(255,255,255,.4);margin-bottom:6px">Summary</div><div class="rpt-summary-text">${summaryText}</div><button class="rpt-summary-copy" onclick="copyReport()">Copy as Email</button></div>`;
     }
     let any=false;
     TYPES.forEach(type=>{
-      const typeEntries=todayEntries.filter(({c})=>c.type===type);
-      if(!typeEntries.length)return;
+      const typeItems=byTypeMerged[type];
+      if(!typeItems?.length)return;
       any=true;
-      const typeBanners=typeEntries.reduce((s,{entry})=>s+(parseInt(entry.count)||0),0);
-      html+=`<div class="rpt-section-title">${type} <span style="font-weight:400;font-size:9px;color:var(--text3);margin-left:6px">${typeEntries.length} entr${typeEntries.length!==1?'ies':'y'} · ${typeBanners} banners</span></div>
+      const typeBanners=typeItems.reduce((s,m)=>s+m.banners,0);
+      html+=`<div class="rpt-section-title">${type} <span style="font-weight:400;font-size:9px;color:var(--text3);margin-left:6px">${typeItems.length} case${typeItems.length!==1?'s':''} · ${typeBanners} banners</span></div>
         <div class="rpt-tbl-wrap"><table class="rpt-tbl">
           <thead><tr><th style="width:100px">Case #</th><th>Case Name</th><th style="width:130px">Status</th><th style="width:80px;text-align:center">Banners</th><th>Note</th></tr></thead>
-          <tbody>${typeEntries.map(({c,entry})=>`<tr><td>${numCell(c)}</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name||'—'}</td><td>${bS(c.status)}</td><td style="text-align:center;font-family:var(--mono);font-weight:700">${entry.count}</td><td style="font-size:11px;color:var(--text3)">${entry.note||'—'}</td></tr>`).join('')}</tbody>
+          <tbody>${typeItems.map(({c,banners,notes,count})=>`<tr><td>${numCell(c)}</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name||'—'}</td><td>${bS(c.status)}</td><td style="text-align:center;font-family:var(--mono);font-weight:700">${banners}${count>1?`<span style="font-size:10px;color:var(--text3);font-weight:400;margin-left:4px">(${count}×)</span>`:''}</td><td style="font-size:11px;color:var(--text3)">${notes.length?notes.join('; '):'—'}</td></tr>`).join('')}</tbody>
         </table></div>`;
     });
     if(!any)html+=`<div style="font-size:13px;color:var(--text3);padding:24px 0;text-align:center">No banner work logged for today.<br><span style="font-size:11px">Use the Banners button on a case to log today's work.</span></div>`;
-    else html+=`<div class="rpt-totals" style="margin-top:14px"><div class="rpt-totals-title">Today's Total</div><div class="rpt-total-row"><span class="rpt-total-k">Total Banners Logged Today</span><span class="rpt-total-v">${totalToday}</span></div><div class="rpt-total-row"><span class="rpt-total-k">Work Entries</span><span class="rpt-total-v">${todayEntries.length}</span></div></div>`;
+    else html+=`<div class="rpt-totals" style="margin-top:14px"><div class="rpt-totals-title">Today's Total</div><div class="rpt-total-row"><span class="rpt-total-k">Total Banners Logged Today</span><span class="rpt-total-v">${totalToday}</span></div><div class="rpt-total-row"><span class="rpt-total-k">Cases Worked On</span><span class="rpt-total-v">${todayMerged.length}</span></div><div class="rpt-total-row"><span class="rpt-total-k">Work Entries</span><span class="rpt-total-v">${totalEntries}</span></div></div>`;
 
   } else {
     // ── WEEKLY / MONTHLY / CUSTOM ──
@@ -3264,18 +3291,131 @@ function buildAutoSummary(range, periodCases, workedCases, totalBanners, from) {
 
 // ── REPORT: COPY TO CLIPBOARD ──
 function copyReport() {
+  // Build a clean HTML email from the current report data (not from DOM innerText)
+  const range = document.getElementById('rpt-range')?.value || 'weekly';
+  const todayStr = todayUS();
+  const now = new Date();
+
+  // ── Daily: build from today's banner log entries, merged by case ──
+  if (range === 'daily') {
+    const rawEntries = [];
+    cases.forEach(c => {
+      (c.bannerLog||[]).filter(b => b.date === todayStr).forEach(entry => {
+        rawEntries.push({c, entry});
+      });
+    });
+    if (!rawEntries.length) { toast('Nothing to copy — no work logged today'); return; }
+
+    // Merge entries by case number (same case logged multiple times → sum banners, combine notes)
+    const mergedMap = new Map();
+    rawEntries.forEach(({c, entry}) => {
+      const key = c.id; // group by case id
+      if (!mergedMap.has(key)) {
+        mergedMap.set(key, { c, banners: 0, notes: [] });
+      }
+      const m = mergedMap.get(key);
+      m.banners += parseInt(entry.count)||0;
+      if (entry.note && entry.note !== '—' && entry.note !== 'EOD log') m.notes.push(entry.note);
+    });
+    const merged = [...mergedMap.values()];
+
+    // Group merged entries by type
+    const byType = {};
+    merged.forEach(m => {
+      const t = m.c.type;
+      if (!byType[t]) byType[t] = [];
+      byType[t].push(m);
+    });
+
+    const totalBanners = merged.reduce((s, m) => s + m.banners, 0);
+    const totalCases = merged.length;
+    const dateLabel = now.toLocaleDateString('en-US', {timeZone: US_TZ, weekday:'long', year:'numeric', month:'long', day:'numeric'});
+
+    // Table styles for email clients
+    const tStyle = 'border-collapse:collapse;width:100%;font-family:Arial,sans-serif;font-size:13px;margin:8px 0 16px';
+    const thStyle = 'background:#183358;color:#fff;padding:7px 10px;text-align:left;font-size:11px;font-weight:bold;border:1px solid #ccc';
+    const tdStyle = 'padding:6px 10px;border:1px solid #ddd;vertical-align:top';
+    const tdNumStyle = 'padding:6px 10px;border:1px solid #ddd;text-align:center;font-weight:bold';
+
+    let sectionsHtml = '';
+    TYPES.forEach(type => {
+      const items = byType[type];
+      if (!items?.length) return;
+      const typeBanners = items.reduce((s, m) => s + m.banners, 0);
+      const rows = items.map(({c, banners, notes}) => {
+        const num = c.url && c.number ? `<a href="${c.url}" style="color:#1D5BBF">${c.number}</a>` : (c.number || '—');
+        const note = notes.length ? notes.join('; ') : '—';
+        return `<tr>
+          <td style="${tdStyle}">${num}</td>
+          <td style="${tdStyle}">${c.name||'—'}</td>
+          <td style="${tdStyle}">${c.status}</td>
+          <td style="${tdNumStyle}">${banners}</td>
+          <td style="${tdStyle}">${note}</td>
+        </tr>`;
+      }).join('');
+      sectionsHtml += `
+        <p style="margin:16px 0 4px;font-family:Arial,sans-serif">
+          <strong style="font-size:12px;letter-spacing:.05em;text-transform:uppercase">${type}</strong>
+          <span style="color:#888;font-size:12px"> — ${items.length} case${items.length!==1?'s':''} · ${typeBanners} banners</span>
+        </p>
+        <table style="${tStyle}">
+          <thead><tr>
+            <th style="${thStyle}">CASE #</th>
+            <th style="${thStyle}">CASE NAME</th>
+            <th style="${thStyle}">STATUS</th>
+            <th style="${thStyle};text-align:center">BANNERS</th>
+            <th style="${thStyle}">NOTE</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    });
+
+    const html = `<div style="font-family:Arial,sans-serif;font-size:14px;color:#111;max-width:800px">
+      <p style="color:#555;font-size:13px;margin:0 0 4px">${dateLabel}</p>
+      <p style="font-size:14px;margin:0 0 16px">Please find the Daily Productivity Report</p>
+      ${sectionsHtml}
+      <table style="border-collapse:collapse;width:260px;margin-top:8px;font-family:Arial,sans-serif;font-size:13px">
+        <tr><td style="padding:5px 12px 5px 0;color:#555">Total Cases Worked on</td><td style="padding:5px 0;font-weight:bold">${totalCases}</td></tr>
+        <tr><td style="padding:5px 12px 5px 0;color:#555">Total Pages Migrated</td><td style="padding:5px 0;font-weight:bold">${totalBanners}</td></tr>
+      </table>
+    </div>`;
+
+    // Copy as HTML to clipboard (pastes as formatted table in Gmail/Outlook)
+    try {
+      const blob = new Blob([html], {type: 'text/html'});
+      const data = new ClipboardItem({'text/html': blob});
+      navigator.clipboard.write([data]).then(() => toast('📋 Report copied — paste into Gmail or Outlook!')).catch(() => _fallbackCopyHtml(html));
+    } catch(e) { _fallbackCopyHtml(html); }
+    return;
+  }
+
+  // ── Weekly/Monthly/Custom: copy plain text summary ──
   const body = document.getElementById('report-body');
   if (!body) return;
-  // Build plain text version
   const text = body.innerText || body.textContent;
   navigator.clipboard.writeText(text).then(() => toast('Report copied to clipboard!')).catch(() => {
-    // Fallback
     const ta = document.createElement('textarea');
     ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
     document.body.appendChild(ta); ta.select();
     document.execCommand('copy'); document.body.removeChild(ta);
     toast('Report copied!');
   });
+}
+
+function _fallbackCopyHtml(html) {
+  // Fallback: write to hidden div and use execCommand copy
+  const div = document.createElement('div');
+  div.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+  div.innerHTML = html;
+  document.body.appendChild(div);
+  const range = document.createRange();
+  range.selectNode(div);
+  window.getSelection().removeAllRanges();
+  window.getSelection().addRange(range);
+  try { document.execCommand('copy'); toast('📋 Report copied — paste into Gmail or Outlook!'); }
+  catch(e) { toast('Copy failed — try a different browser'); }
+  window.getSelection().removeAllRanges();
+  document.body.removeChild(div);
 }
 
 // ── PHASES 2-4 STATE ──
