@@ -90,13 +90,13 @@
 
 /* Dark — buttons */
 [data-theme="dark"] .btn { background: #1E1E1E; border-color: #3C3C3C; color: #F0F0F0; }
-[data-theme="dark"] .btn:hover { background: #282828; }
+[data-theme="dark"] .btn:hover { background: #303030; border-color: #4A4A4A; color: #F0F0F0; }
 [data-theme="dark"] .btn-primary { background: #F0F0F0; color: #111; border-color: #F0F0F0; }
-[data-theme="dark"] .btn-primary:hover { opacity: .85; }
+[data-theme="dark"] .btn-primary:hover { background: #F0F0F0; opacity: .80; border-color: #F0F0F0; }
 [data-theme="dark"] .btn-ghost { background: transparent; border-color: transparent; color: #A0A0A0; }
-[data-theme="dark"] .btn-ghost:hover { background: #282828; border-color: #2A2A2A; color: #F0F0F0; }
-[data-theme="dark"] .btn-danger { background: #2C0A0A; color: #F87171; border-color: rgba(248,113,113,.18); }
-[data-theme="dark"] .btn-danger:hover { background: #3a0f0f; }
+[data-theme="dark"] .btn-ghost:hover { background: #303030; border-color: #3C3C3C; color: #F0F0F0; }
+[data-theme="dark"] .btn-danger { background: #2C0A0A; color: #F87171; border-color: rgba(248,113,113,.25); }
+[data-theme="dark"] .btn-danger:hover { background: #3D1010; border-color: rgba(248,113,113,.45); color: #F87171; }
 
 /* Dark — topbar */
 [data-theme="dark"] .topbar { background: #161616; border-bottom-color: #2A2A2A; }
@@ -368,6 +368,14 @@
 
 /* Dark — autosave */
 [data-theme="dark"] .autosave { color: #606060; }
+/* Dark — active cases panel */
+[data-theme="dark"] .active-cases-panel { background: #161616; border-color: #2A2A2A; }
+[data-theme="dark"] .acp-header { background: #1E1E1E; border-bottom-color: #2A2A2A; }
+[data-theme="dark"] .acp-header:hover { background: #282828; }
+[data-theme="dark"] .acp-row { border-bottom-color: #2A2A2A; }
+[data-theme="dark"] .acp-row:hover { background: #1E1E1E; }
+[data-theme="dark"] .acp-section-hdr { background: #1E1E1E; color: #606060; }
+[data-theme="dark"] .dash-widget-row { background: #1E1E1E; border-color: #2A2A2A; color: #F0F0F0; }
 
 /* ── DEALERON BRANDED THEME ── */
 [data-theme="dealeron"] {
@@ -444,6 +452,8 @@
 }
 
 /* Buttons */
+[data-theme="dealeron"] .btn { border-color: #C3CEDD; color: #0F1F38; background: #FFFFFF; }
+[data-theme="dealeron"] .btn:hover { background: #EDF1F7; border-color: #C3CEDD; color: #0F1F38; }
 [data-theme="dealeron"] .btn-primary {
   background: #FF7319;
   border-color: #FF7319;
@@ -454,9 +464,12 @@
   background: #E0621A;
   border-color: #E0621A;
   opacity: 1;
+  box-shadow: 0 4px 12px rgba(255,115,25,.35);
 }
-[data-theme="dealeron"] .btn:hover { background: #EDF1F7; }
-[data-theme="dealeron"] .btn-ghost:hover { background: #EDF1F7; border-color: #DDE3EE; }
+[data-theme="dealeron"] .btn-ghost { background: transparent; border-color: transparent; color: #4A5A72; }
+[data-theme="dealeron"] .btn-ghost:hover { background: #EDF1F7; border-color: #DDE3EE; color: #0F1F38; }
+[data-theme="dealeron"] .btn-danger { background: #FEF2F2; color: #DC2626; border-color: rgba(220,38,38,.22); }
+[data-theme="dealeron"] .btn-danger:hover { background: #FDE2E2; border-color: rgba(220,38,38,.4); color: #DC2626; }
 
 /* Focus rings — orange */
 [data-theme="dealeron"] input:focus,
@@ -654,6 +667,14 @@
 
 /* DealerOn — goal bar */
 [data-theme="dealeron"] .goal-bar-wrap { background: #EDF1F7; }
+/* DealerOn — active cases panel */
+[data-theme="dealeron"] .active-cases-panel { background: #FFFFFF; border-color: #DDE3EE; }
+[data-theme="dealeron"] .acp-header { background: #F7F9FC; border-bottom-color: #DDE3EE; }
+[data-theme="dealeron"] .acp-header:hover { background: #EDF1F7; }
+[data-theme="dealeron"] .acp-row { border-bottom-color: #DDE3EE; }
+[data-theme="dealeron"] .acp-row:hover { background: #F7F9FC; }
+[data-theme="dealeron"] .acp-section-hdr { background: #F7F9FC; }
+[data-theme="dealeron"] .dash-widget-row { background: #F7F9FC; border-color: #DDE3EE; }
 
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px}
@@ -815,15 +836,15 @@ input:focus,select:focus,textarea:focus{border-color:var(--text);box-shadow:0 0 
 [data-theme="dark"] input:focus,[data-theme="dark"] select:focus,[data-theme="dark"] textarea:focus{box-shadow:0 0 0 3px rgba(240,240,240,.08)}
 input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--text);-webkit-appearance:auto}
 
-.btn{font-family:var(--font);font-size:12px;font-weight:600;padding:0 11px;height:34px;border-radius:var(--r);cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--text);transition:all .12s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
-.btn:hover{background:var(--surface2)}
+.btn{font-family:var(--font);font-size:12px;font-weight:600;padding:0 11px;height:34px;border-radius:var(--r);cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--text);transition:background .12s,border-color .12s,opacity .12s,color .12s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{background:var(--surface3);border-color:var(--border2)}
 .btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
 .btn-primary{background:var(--text);color:var(--accent-inv);border-color:var(--text)}
-.btn-primary:hover{opacity:.82}
+.btn-primary:hover{background:var(--text);opacity:.78;border-color:var(--text)}
 .btn-ghost{background:transparent;border-color:transparent;color:var(--text2)}
-.btn-ghost:hover{background:var(--surface2);border-color:var(--border)}
-.btn-danger{color:var(--p-critical);border-color:rgba(220,38,38,.18);background:var(--p-critical-bg)}
-.btn-danger:hover{background:#fee2e2}
+.btn-ghost:hover{background:var(--surface3);border-color:var(--border);color:var(--text)}
+.btn-danger{color:var(--p-critical);border-color:rgba(220,38,38,.22);background:var(--p-critical-bg)}
+.btn-danger:hover{background:#fde2e2;border-color:rgba(220,38,38,.4);color:var(--p-critical)}
 .btn-sm{height:28px;padding:0 8px;font-size:11px}
 .btn-icon{width:34px;padding:0;justify-content:center}
 .btn-icon.sm{width:28px;height:28px}
@@ -1178,7 +1199,33 @@ tbody td{padding:7px 10px;color:var(--text);vertical-align:middle;overflow:hidde
 .health-dot.bad{background:var(--p-critical)}
 .health-text{flex:1;color:var(--text2)}
 
-/* Density: compact */
+/* ── ACTIVE CASES PANEL ── */
+.active-cases-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:14px;overflow:hidden}
+.acp-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;background:var(--surface2)}
+.acp-header:hover{background:var(--surface3)}
+.acp-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);display:flex;align-items:center;gap:8px}
+.acp-counts{display:flex;gap:8px}
+.acp-chip{font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;display:inline-flex;align-items:center;gap:4px}
+.acp-chip.new{background:var(--s-new-bg);color:var(--s-new)}
+.acp-chip.inp{background:var(--s-inp-bg);color:var(--s-inp)}
+.acp-chip.pyi{background:var(--s-pyi-bg);color:var(--s-pyi)}
+.acp-toggle-icon{color:var(--text3);font-size:11px;transition:transform .18s;display:inline-block}
+.acp-toggle-icon.open{transform:rotate(180deg)}
+.acp-body{display:none;padding:0}
+.acp-body.open{display:block}
+.acp-row{display:flex;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.acp-row:last-child{border-bottom:none}
+.acp-row:hover{background:var(--surface2)}
+.acp-row-num{font-family:var(--mono);font-size:10px;color:var(--text3);width:76px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acp-row-name{font-size:12px;font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acp-row-due{font-size:10px;color:var(--text3);font-family:var(--mono);flex-shrink:0}
+.acp-section-hdr{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);padding:8px 14px 4px;background:var(--surface2)}
+.acp-empty{font-size:12px;color:var(--text3);padding:16px 14px;text-align:center}
+
+/* ── DASHBOARD WIDGET TOGGLE GRID ── */
+.dash-widget-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dash-widget-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);font-size:12px;color:var(--text)}
+.dash-widget-row span{font-weight:500}
 body.compact tbody td{padding:4px 10px}
 body.compact thead th{padding:5px 10px}
 body.compact .rc-row{padding:3px 0}
@@ -1385,6 +1432,20 @@ body.compact .k-card{padding:6px 8px}
   <div id="tab-cases" class="section">
     <div class="cases-layout">
       <div class="list-pane">
+        <!-- Active Cases Panel -->
+        <div class="active-cases-panel" id="acp-cases">
+          <div class="acp-header" onclick="toggleACP('acp-cases')">
+            <div class="acp-title">
+              <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Active Cases
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="acp-counts" id="acp-cases-counts"></div>
+              <span class="acp-toggle-icon" id="acp-cases-icon">▾</span>
+            </div>
+          </div>
+          <div class="acp-body" id="acp-cases-body"></div>
+        </div>
         <div class="ph">
           <h2>All Cases</h2>
           <div class="vtog">
@@ -1525,6 +1586,11 @@ body.compact .k-card{padding:6px 8px}
           <div class="a-card"><div class="a-card-title">Top Closers</div><div id="leaderboard"></div></div>
           <div class="a-card"><div class="a-card-title">Case Aging Heatmap (last 90 days)</div><div id="heatmap"></div></div>
         </div>
+        <div class="analytics-grid" style="margin-top:0">
+          <div class="a-card"><div class="a-card-title">Cases by Status</div><canvas id="chart-status-a" height="200"></canvas></div>
+          <div class="a-card"><div class="a-card-title">Cases by Priority</div><canvas id="chart-priority-a" height="200"></canvas></div>
+        </div>
+        <div class="a-card" style="margin-top:12px"><div class="a-card-title">Cases Opened — last 14 days</div><canvas id="chart-timeline-a" height="120"></canvas></div>
       </div>
     </div>
   </div>
@@ -1705,6 +1771,11 @@ body.compact .k-card{padding:6px 8px}
                 <button class="btn btn-sm btn-primary" onclick="saveDailyGoal()">Set</button>
               </div>
             </div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-section-title">Dashboard Widgets</div>
+            <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Choose which sections appear on your dashboard.</div>
+            <div class="dash-widget-grid" id="dash-widget-grid"></div>
           </div>
           <div class="settings-section">
             <div class="settings-section-title">Data Health Check</div>
@@ -2139,29 +2210,75 @@ function renderBento(){
   const wClosed=cases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=wa).length;
   const wB=cases.reduce((s,c)=>s+sumBInPeriod(c,wa),0);
   const recent=[...cases].filter(c=>!c.archived).sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6);
-  const alerts=[
-    overdue.length?`<div class="b c12 b-alert danger" style="min-height:auto"><div class="b-alert-dot"></div><div class="b-alert-text"><strong>${overdue.length} case${overdue.length>1?'s':''} overdue</strong> (7+ days open): ${overdue.map(c=>c.number||c.name).slice(0,5).join(', ')}${overdue.length>5?` +${overdue.length-5} more`:''}</div></div>`:'',
-    pastDue.length?`<div class="b c12 b-alert warn" style="min-height:auto"><div class="b-alert-dot"></div><div class="b-alert-text"><strong>${pastDue.length} case${pastDue.length>1?'s':''} past due date</strong>: ${pastDue.map(c=>c.number||c.name).slice(0,4).join(', ')}</div></div>`:''
-  ].join('');
 
-  document.getElementById('bento-grid').innerHTML=`
-    ${alerts}
+  const w=dashWidgets;
+  let html='';
 
-    <!-- ROW 1: Status stat cards -->
+  // ── Alerts ──
+  if(w.alerts){
+    if(overdue.length) html+=`<div class="b c12 b-alert danger" style="min-height:auto"><div class="b-alert-dot"></div><div class="b-alert-text"><strong>${overdue.length} case${overdue.length>1?'s':''} overdue</strong> (${slaGlobalDays||7}+ days open): ${overdue.map(c=>c.number||c.name).slice(0,5).join(', ')}${overdue.length>5?` +${overdue.length-5} more`:''}</div></div>`;
+    if(pastDue.length) html+=`<div class="b c12 b-alert warn" style="min-height:auto"><div class="b-alert-dot"></div><div class="b-alert-text"><strong>${pastDue.length} case${pastDue.length>1?'s':''} past due date</strong>: ${pastDue.map(c=>c.number||c.name).slice(0,4).join(', ')}</div></div>`;
+  }
+
+  // ── Status stat cards ──
+  if(w.stats) html+=`
     <div class="b c2 bp b-dark"><div class="b-lbl">Total</div><div class="b-num">${total}</div><div class="b-sub">all cases</div></div>
     <div class="b c2 bp"><div class="b-lbl">New</div><div class="b-num" style="color:var(--s-new)">${bySt('New')}</div><div class="b-sub">awaiting</div></div>
     <div class="b c2 bp"><div class="b-lbl">In Progress</div><div class="b-num" style="color:var(--s-inp)">${bySt('In Progress')}</div><div class="b-sub">active</div></div>
     <div class="b c2 bp"><div class="b-lbl">Pend. Input</div><div class="b-num" style="color:var(--s-pyi)">${bySt('Pending Your Input')}</div><div class="b-sub">needs info</div></div>
     <div class="b c2 bp"><div class="b-lbl">Pend. Confirm</div><div class="b-num" style="color:var(--s-pyc)">${bySt('Pending Your Confirmation')}</div><div class="b-sub">awaiting OK</div></div>
-    <div class="b c2 bp"><div class="b-lbl">Closed</div><div class="b-num" style="color:var(--s-closed)">${bySt('Closed')}</div><div class="b-sub">resolved</div></div>
+    <div class="b c2 bp"><div class="b-lbl">Closed</div><div class="b-num" style="color:var(--s-closed)">${bySt('Closed')}</div><div class="b-sub">resolved</div></div>`;
 
-    <!-- ROW 2: Banners / Resolution / Due Soon / Past Due -->
+  // ── Metrics row ──
+  if(w.metrics) html+=`
     <div class="b c3 bp"><div class="b-lbl">Total Banners</div><div class="b-num">${allB}</div><div class="b-sub">all time</div></div>
     <div class="b c3 bp"><div class="b-lbl">Avg Resolution</div><div class="b-num" style="font-size:${avgRes!==null?'26':'18'}px">${avgRes!==null?avgRes+'d':'—'}</div><div class="b-sub">days to close</div></div>
     <div class="b c3 bp"><div class="b-lbl">Due Soon</div><div class="b-num" style="color:${dueSoon.length?'var(--s-pyi)':'var(--text)'}">${dueSoon.length}</div><div class="b-sub">within 2 days</div></div>
-    <div class="b c3 bp"><div class="b-lbl">Past Due</div><div class="b-num" style="color:${pastDue.length?'var(--p-critical)':'var(--text)'}">${pastDue.length}</div><div class="b-sub">missed deadline</div></div>
+    <div class="b c3 bp"><div class="b-lbl">Past Due</div><div class="b-num" style="color:${pastDue.length?'var(--p-critical)':'var(--text)'}">${pastDue.length}</div><div class="b-sub">missed deadline</div></div>`;
 
-    <!-- ROW 3: Recent Cases / Quick Add / Weekly Digest -->
+  // ── Active Cases Panel ──
+  if(w.activecases){
+    const newCases=cases.filter(c=>c.status==='New'&&!c.archived);
+    const ipCases=cases.filter(c=>c.status==='In Progress'&&!c.archived);
+    const pyiCases=cases.filter(c=>c.status==='Pending Your Input'&&!c.archived);
+    const allActive=[...newCases,...ipCases,...pyiCases];
+    const makeSections=()=>{
+      let s='';
+      [{label:'New',list:newCases,cls:'s-new'},{label:'In Progress',list:ipCases,cls:'s-inp'},{label:'Pending Your Input',list:pyiCases,cls:'s-pyi'}].forEach(({label,list,cls})=>{
+        if(!list.length)return;
+        s+=`<div class="acp-section-hdr">${label} — ${list.length}</div>`;
+        s+=list.map(c=>`
+          <div class="acp-row" onclick="switchTab('cases',document.querySelector('[data-tab=cases]'));openDetail('${c.id}')">
+            <div class="acp-row-num">${c.number||'—'}</div>
+            <div class="acp-row-name">${c.name}</div>
+            ${bP(c.priority)}
+            <div class="acp-row-due">${c.dueDate?fmtD(c.dueDate):c.start?dSince(c.start)+'d':''}</div>
+          </div>`).join('');
+      });
+      return s||'<div class="acp-empty">No active cases</div>';
+    };
+    html+=`<div class="b c12" style="padding:0;overflow:visible">
+      <div class="acp-header" onclick="toggleACP('acp-dash')">
+        <div class="acp-title">
+          <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Active Cases
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="acp-counts">
+            ${newCases.length?`<span class="acp-chip new">New: ${newCases.length}</span>`:''}
+            ${ipCases.length?`<span class="acp-chip inp">In Progress: ${ipCases.length}</span>`:''}
+            ${pyiCases.length?`<span class="acp-chip pyi">Pend. Input: ${pyiCases.length}</span>`:''}
+          </div>
+          <span class="acp-toggle-icon open" id="acp-dash-icon">▾</span>
+        </div>
+      </div>
+      <div class="acp-body open" id="acp-dash-body">${makeSections()}</div>
+    </div>`;
+  }
+
+  // ── Row 3: Recent / Quick Add / Digest ──
+  let row3='';
+  if(w.recent) row3+=`
     <div class="b c5 bp">
       <div class="b-lbl">Recent Cases</div>
       ${recent.length?recent.map(c=>`
@@ -2171,8 +2288,9 @@ function renderBento(){
           ${bS(c.status)}
           <div class="rc-age">${c.start?dSince(c.start)+'d':''}</div>
         </div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px 0">No cases yet</div>'}
-    </div>
-    <div class="b c4 b-quickadd">
+    </div>`;
+  if(w.quickadd) row3+=`
+    <div class="b ${w.recent&&w.digest?'c4':w.recent||w.digest?'c7':'c12'} b-quickadd">
       <div class="b-lbl">Quick Add</div>
       <input type="text" id="qa-name" placeholder="Case name…" onkeydown="if(event.key==='Enter')quickAdd()">
       <select id="qa-type"><option>Automotive Content Migration</option><option>Automotive Blog Migration</option><option>LeadScience Content Migration</option><option>LeadScience Blog Migration</option></select>
@@ -2180,7 +2298,8 @@ function renderBento(){
       <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="quickAdd()">
         <svg viewBox="0 0 24 24" style="stroke-width:2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Case
       </button>
-    </div>
+    </div>`;
+  if(w.digest) row3+=`
     <div class="b c3 b-digest">
       <div class="b-lbl">Weekly Digest</div>
       <div style="font-size:9.5px;color:rgba(255,255,255,.25);font-family:var(--mono);margin-bottom:8px">Last 7 days</div>
@@ -2189,52 +2308,33 @@ function renderBento(){
       <div class="drow"><span class="drow-k">Banners</span><span class="drow-v">${wB}</span></div>
       <div class="drow"><span class="drow-k">Overdue</span><span class="drow-v ${overdue.length?'bad':''}">${overdue.length}</span></div>
       <div class="drow"><span class="drow-k">Avg Res.</span><span class="drow-v">${avgRes!==null?avgRes+'d':'—'}</span></div>
-    </div>
+    </div>`;
+  html+=row3;
 
-    <!-- ROW 4: Morning briefing / Daily goal / Work streak -->
+  // ── Row 4: Focus / Goal / Streak ──
+  let row4='';
+  if(w.focus) row4+=`
     <div class="b c4 bp">
       <div class="b-lbl">⭐ Today's Focus</div>
       ${(()=>{const bi=buildMorningBriefing();return bi.length?bi.map(i=>`<div class="brief-row" onclick="switchTab('cases',document.querySelector('[data-tab=cases]'));openDetail('${i.c.id}')"><div class="brief-dot" style="background:${i.dot}"></div><div style="flex:1;min-width:0"><div class="brief-name">${i.c.name}</div><div class="brief-sub">${i.reason}</div></div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px 0">Nothing urgent — good to go! ✓</div>';})()}
-    </div>
+    </div>`;
+  if(w.goal) row4+=`
     <div class="b c4 goal-card">
       <div class="b-lbl">Daily Goal</div>
       ${(()=>{const todayB=todayBanners(),gp=dailyGoal>0?Math.min(100,Math.round(todayB/dailyGoal*100)):0;return dailyGoal>0?`<div style="display:flex;align-items:baseline;gap:6px;margin-top:6px"><div style="font-family:var(--mono);font-size:28px;font-weight:700;color:${todayB>=dailyGoal?'var(--s-closed)':'var(--text)'}">${todayB}</div><div style="font-size:13px;color:var(--text3)">/ ${dailyGoal}</div></div><div class="goal-bar-wrap"><div class="goal-bar ${todayB>=dailyGoal?'done':''}" style="width:${gp}%"></div></div><div style="font-size:11px;color:var(--text3)">${todayB>=dailyGoal?'🎉 Goal reached!':dailyGoal-todayB+' banners to go'}</div>`:`<div style="font-size:12px;color:var(--text3);margin-top:8px">No goal set.<br><a onclick="switchTab('settings',document.querySelector('[data-tab=settings]'))" style="cursor:pointer;color:var(--s-inp)">Set a daily goal →</a></div>`;})()}
-    </div>
+    </div>`;
+  if(w.streak) row4+=`
     <div class="b c4 bp">
       <div class="b-lbl">Work Streak</div>
       ${(()=>{const s=calcStreak();return`<div style="display:flex;align-items:center;margin-top:8px"><span class="streak-flame">🔥</span><span class="streak-num">${s}</span></div><div class="b-sub">${s===1?'day in a row':s>1?'days in a row':'Start logging to build a streak'}</div>`;})()}
-    </div>
+    </div>`;
+  html+=row4;
 
-    <!-- ROW 5: Charts -->
-    <div class="b c4 b-chart"><div class="b-chart-title">Status</div><canvas id="dash-status" height="170"></canvas></div>
-    <div class="b c4 b-chart"><div class="b-chart-title">Priority</div><canvas id="dash-priority" height="170"></canvas></div>
-    <div class="b c4 b-chart"><div class="b-chart-title">Opened — last 14 days</div><canvas id="dash-timeline" height="170"></canvas></div>
-  `;
+  document.getElementById('bento-grid').innerHTML=html;
 }
 
-// ── DASHBOARD CHARTS ──
-function renderDashCharts(){
-  const theme=document.documentElement.getAttribute('data-theme')||'light';
-  const isDark=theme==='dark'||theme==='dealeron';
-  const gc=isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.05)';
-  const tc=isDark?'#606060':'#999999';
-  Chart.defaults.color=tc; Chart.defaults.font.family="'Inter',sans-serif";
-  const sc={};STATUSES.forEach(s=>sc[s]=0);
-  const pc={Critical:0,High:0,Medium:0,Low:0};
-  cases.forEach(c=>{if(sc[c.status]!==undefined)sc[c.status]++;if(pc[c.priority]!==undefined)pc[c.priority]++;});
-  const days=[],counts=[];
-  for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().slice(0,10);days.push(i===0?'Today':d.toLocaleDateString('en-US',{day:'numeric',month:'short'}));counts.push(cases.filter(c=>c.start===ds).length);}
-  const bd=isDark?'#161616':'#fff';
-  const dopts={responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:9,usePointStyle:true,pointStyleWidth:7}}},cutout:'68%'};
-  ['dash-status','dash-priority','dash-timeline'].forEach(id=>{const el=document.getElementById(id);if(el&&charts[id]){charts[id].destroy();delete charts[id];}});
-  const s1=document.getElementById('dash-status'),s2=document.getElementById('dash-priority'),s3=document.getElementById('dash-timeline');
-  if(!s1||!s2||!s3)return;
-  const bgS=isDark?['#333','#0C1F4A','#2C1800','#1A0E40','#082010']:['#F2F2F2','#EFF6FF','#FFFBEB','#F5F3FF','#F0FDF4'];
-  const bgP=isDark?['#2C0A0A','#2C1400','#0C1F4A','#082010']:['#FEF2F2','#FFF7ED','#EFF6FF','#F0FDF4'];
-  charts['dash-status']=new Chart(s1,{type:'doughnut',data:{labels:Object.keys(sc),datasets:[{data:Object.values(sc),backgroundColor:bgS,borderWidth:2,borderColor:bd,hoverOffset:5}]},options:dopts});
-  charts['dash-priority']=new Chart(s2,{type:'doughnut',data:{labels:Object.keys(pc),datasets:[{data:Object.values(pc),backgroundColor:bgP,borderWidth:2,borderColor:bd,hoverOffset:5}]},options:dopts});
-  charts['dash-timeline']=new Chart(s3,{type:'bar',data:{labels:days,datasets:[{data:counts,backgroundColor:isDark?'rgba(240,240,240,.1)':'rgba(17,17,17,.08)',borderColor:isDark?'rgba(240,240,240,.45)':'rgba(17,17,17,.4)',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,font:{size:10}},grid:{color:gc}},x:{ticks:{font:{size:9},maxRotation:45},grid:{display:false}}}}});
-}
+// ── DASHBOARD CHARTS ── (charts moved to Analytics tab)
+function renderDashCharts(){ /* Status/Priority/Timeline charts now in renderAnalytics */ }
 
 // ── QUICK ADD ──
 function quickAdd(){
@@ -2274,6 +2374,7 @@ function getFiltered(){
   return list;
 }
 function renderTable(){
+  renderActiveCasesPanel();
   const list=getFiltered();
   const tbody=document.getElementById('tbody');
   if(!tbody)return;
@@ -2604,7 +2705,41 @@ function renderKanban(){
 }
 
 // ── ANALYTICS ──
-function renderAnalytics(){renderTrend();renderImpact();renderLeaderboard();renderHeatmap();}
+function renderAnalytics(){renderTrend();renderImpact();renderLeaderboard();renderHeatmap();renderStatusChart();renderPriorityChart();renderTimelineChart();}
+
+function renderStatusChart(){
+  const theme=document.documentElement.getAttribute('data-theme')||'light';
+  const isDark=theme==='dark'||theme==='dealeron';
+  const sc={};STATUSES.forEach(s=>sc[s]=0);
+  cases.forEach(c=>{if(sc[c.status]!==undefined)sc[c.status]++;});
+  const el=document.getElementById('chart-status-a');if(!el)return;
+  if(charts['stat-a']){charts['stat-a'].destroy();}
+  const bd=isDark?'#161616':'#fff';
+  const bgS=isDark?['#333','#0C1F4A','#2C1800','#1A0E40','#082010']:['#F2F2F2','#EFF6FF','#FFFBEB','#F5F3FF','#F0FDF4'];
+  Chart.defaults.color=isDark?'#606060':'#999'; Chart.defaults.font.family="'Inter',sans-serif";
+  charts['stat-a']=new Chart(el,{type:'doughnut',data:{labels:Object.keys(sc),datasets:[{data:Object.values(sc),backgroundColor:bgS,borderWidth:2,borderColor:bd,hoverOffset:5}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:9,usePointStyle:true,pointStyleWidth:7}}},cutout:'65%'}});
+}
+function renderPriorityChart(){
+  const theme=document.documentElement.getAttribute('data-theme')||'light';
+  const isDark=theme==='dark'||theme==='dealeron';
+  const pc={Critical:0,High:0,Medium:0,Low:0};
+  cases.forEach(c=>{if(pc[c.priority]!==undefined)pc[c.priority]++;});
+  const el=document.getElementById('chart-priority-a');if(!el)return;
+  if(charts['pri-a']){charts['pri-a'].destroy();}
+  const bd=isDark?'#161616':'#fff';
+  const bgP=isDark?['#2C0A0A','#2C1400','#0C1F4A','#082010']:['#FEF2F2','#FFF7ED','#EFF6FF','#F0FDF4'];
+  charts['pri-a']=new Chart(el,{type:'doughnut',data:{labels:Object.keys(pc),datasets:[{data:Object.values(pc),backgroundColor:bgP,borderWidth:2,borderColor:bd,hoverOffset:5}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:9,usePointStyle:true,pointStyleWidth:7}}},cutout:'65%'}});
+}
+function renderTimelineChart(){
+  const theme=document.documentElement.getAttribute('data-theme')||'light';
+  const isDark=theme==='dark'||theme==='dealeron';
+  const gc=isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.04)';
+  const days=[],counts=[];
+  for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().slice(0,10);days.push(i===0?'Today':d.toLocaleDateString('en-US',{day:'numeric',month:'short'}));counts.push(cases.filter(c=>c.start===ds).length);}
+  const el=document.getElementById('chart-timeline-a');if(!el)return;
+  if(charts['tl-a']){charts['tl-a'].destroy();}
+  charts['tl-a']=new Chart(el,{type:'bar',data:{labels:days,datasets:[{data:counts,backgroundColor:isDark?'rgba(240,240,240,.1)':'rgba(17,17,17,.08)',borderColor:isDark?'rgba(240,240,240,.45)':'rgba(17,17,17,.4)',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,font:{size:10}},grid:{color:gc}},x:{ticks:{font:{size:9},maxRotation:45},grid:{display:false}}}}});
+}
 function renderTrend(){
   const theme=document.documentElement.getAttribute('data-theme')||'light';
   const isDark=theme==='dark'||theme==='dealeron';
@@ -3296,6 +3431,7 @@ let undoStack = null;
 let undoTimer = null;
 let lastExportDate = null;
 let autosaveTimer = null;
+let dashWidgets = {alerts:true,stats:true,metrics:true,activecases:true,recent:true,quickadd:true,digest:true,focus:true,goal:true,streak:true};
 const SETTINGS_STORE = 'sf_settings_v1';
 
 // loadSettings and saveSettings defined in Phase 2-4 section below
@@ -4108,6 +4244,7 @@ function loadSettings() {
     densityCompact = !!s.densityCompact;
     reminderEnabled = !!s.reminderEnabled;
     if (s.defaultSort) { sortKey = s.defaultSort; }
+    if (s.dashWidgets) { dashWidgets = {...dashWidgets, ...s.dashWidgets}; }
   } catch(e){}
 }
 function saveSettings() {
@@ -4115,7 +4252,7 @@ function saveSettings() {
     localStorage.setItem(SETTINGS_STORE, JSON.stringify({
       pinned: [...pinnedCases], savedFilters, lastExportDate,
       dailyGoal, slaDays: slaGlobalDays, densityCompact, reminderEnabled,
-      defaultSort: sortKey
+      defaultSort: sortKey, dashWidgets
     }));
   } catch(e){}
 }
@@ -4136,6 +4273,7 @@ function renderSettingsUI() {
   if (densityCompact) document.body.classList.add('compact'); else document.body.classList.remove('compact');
   const ts = document.getElementById('theme-selector');
   if (ts) ts.value = cur;
+  renderDashWidgetsSettings();
 }
 function toggleDensity() {
   densityCompact = !densityCompact;
@@ -4253,6 +4391,74 @@ function buildMorningBriefing() {
 
 function archiveFromDetail() {
   if (openDetailId) { archiveCase(openDetailId); closeDetail(); }
+}
+
+// ── ACTIVE CASES PANEL (All Cases tab) ──
+function renderActiveCasesPanel() {
+  const countsEl = document.getElementById('acp-cases-counts');
+  const bodyEl = document.getElementById('acp-cases-body');
+  if (!countsEl || !bodyEl) return;
+  const newC = cases.filter(c=>c.status==='New'&&!c.archived);
+  const ipC = cases.filter(c=>c.status==='In Progress'&&!c.archived);
+  const pyiC = cases.filter(c=>c.status==='Pending Your Input'&&!c.archived);
+  countsEl.innerHTML = [
+    newC.length ? `<span class="acp-chip new">New: ${newC.length}</span>` : '',
+    ipC.length  ? `<span class="acp-chip inp">In Progress: ${ipC.length}</span>` : '',
+    pyiC.length ? `<span class="acp-chip pyi">Pend. Input: ${pyiC.length}</span>` : ''
+  ].join('');
+  let html = '';
+  [{label:'New',list:newC},{label:'In Progress',list:ipC},{label:'Pending Your Input',list:pyiC}].forEach(({label,list})=>{
+    if (!list.length) return;
+    html += `<div class="acp-section-hdr">${label} — ${list.length}</div>`;
+    html += list.map(c=>`
+      <div class="acp-row" onclick="openDetail('${c.id}')">
+        <div class="acp-row-num">${c.number||'—'}</div>
+        <div class="acp-row-name">${c.name}</div>
+        ${bP(c.priority)}
+        <div class="acp-row-due">${c.dueDate?fmtD(c.dueDate):c.start?dSince(c.start)+'d':''}</div>
+      </div>`).join('');
+  });
+  bodyEl.innerHTML = html || '<div class="acp-empty">No active cases</div>';
+}
+
+// ── TOGGLE ACP (Accordion) ──
+function toggleACP(id) {
+  const body = document.getElementById(id+'-body');
+  const icon = document.getElementById(id+'-icon');
+  if (!body) return;
+  const isOpen = body.classList.toggle('open');
+  if (icon) icon.classList.toggle('open', isOpen);
+}
+
+// ── DASHBOARD WIDGET SETTINGS ──
+const DASH_WIDGET_LABELS = {
+  alerts:     '🚨 Alert Banners',
+  stats:      '📊 Status Stat Cards',
+  metrics:    '📈 Metrics Row',
+  activecases:'📋 Active Cases Panel',
+  recent:     '🕐 Recent Cases',
+  quickadd:   '⚡ Quick Add',
+  digest:     '📅 Weekly Digest',
+  focus:      '⭐ Today\'s Focus',
+  goal:       '🎯 Daily Goal',
+  streak:     '🔥 Work Streak',
+};
+function renderDashWidgetsSettings() {
+  const el = document.getElementById('dash-widget-grid');
+  if (!el) return;
+  el.innerHTML = Object.entries(DASH_WIDGET_LABELS).map(([key,label])=>`
+    <div class="dash-widget-row">
+      <span>${label}</span>
+      <button class="toggle ${dashWidgets[key]?' on':''}" onclick="toggleDashWidget('${key}')"></button>
+    </div>`).join('');
+}
+function toggleDashWidget(key) {
+  dashWidgets[key] = !dashWidgets[key];
+  saveSettings();
+  renderDashWidgetsSettings();
+  if (document.getElementById('tab-dashboard').classList.contains('active')) {
+    renderBento();
+  }
 }
 
 // ── REPORT: CUSTOM DATE RANGE ──
