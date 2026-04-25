@@ -1199,7 +1199,21 @@ tbody td{padding:7px 10px;color:var(--text);vertical-align:middle;overflow:hidde
 .health-dot.bad{background:var(--p-critical)}
 .health-text{flex:1;color:var(--text2)}
 
-/* ── ACTIVE CASES PANEL ── */
+/* ── CUSTOM CASE TYPES ── */
+.type-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 8px 3px 10px;border-radius:14px;font-size:11px;font-weight:600;border:1px solid var(--border2);background:var(--surface2);color:var(--text);margin:3px}
+.type-chip-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;line-height:1;padding:0;margin-left:2px;transition:color .12s}
+.type-chip-del:hover{color:var(--p-critical)}
+.type-chip.builtin{background:var(--surface3);color:var(--text2)}
+.type-chip.builtin .type-chip-del{display:none}
+.type-add-row{display:flex;gap:7px;margin-top:10px}
+.bento-widget{cursor:default}
+.bento-widget.dragging{opacity:.45;cursor:grabbing}
+.bento-widget.drag-over{outline:2px dashed var(--accent);outline-offset:3px;border-radius:var(--r-lg)}
+.bento-drag-handle{display:none;position:absolute;top:6px;right:6px;width:18px;height:18px;cursor:grab;color:var(--text3);align-items:center;justify-content:center;border-radius:4px;transition:color .12s,background .12s;z-index:2}
+.bento-drag-handle:hover{color:var(--text2);background:var(--surface3)}
+.bento-drag-handle svg{width:12px;height:12px;fill:currentColor}
+.b:hover .bento-drag-handle{display:flex}
+.bento-drag-handle.dragging-active{cursor:grabbing}
 .active-cases-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:14px;overflow:hidden}
 .acp-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;background:var(--surface2)}
 .acp-header:hover{background:var(--surface3)}
@@ -1606,6 +1620,10 @@ body.compact .k-card{padding:6px 8px}
               <option value="daily">Daily — Today</option>
               <option value="weekly" selected>Weekly — Last 7 days</option>
               <option value="monthly">Monthly — Last 30 days</option>
+              <option value="month-0">This Month</option>
+              <option value="month-1">Last Month</option>
+              <option value="month-2">2 Months Ago</option>
+              <option value="month-3">3 Months Ago</option>
               <option value="custom">Custom Range…</option>
             </select>
             <div id="rpt-custom-dates" style="display:none;gap:6px;align-items:center;display:none">
@@ -1771,6 +1789,11 @@ body.compact .k-card{padding:6px 8px}
                 <button class="btn btn-sm btn-primary" onclick="saveDailyGoal()">Set</button>
               </div>
             </div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-section-title">Custom Case Types</div>
+            <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Add custom migration types beyond the built-in four. They appear in all dropdowns, reports, and filters.</div>
+            <div id="custom-types-wrap"></div>
           </div>
           <div class="settings-section">
             <div class="settings-section-title">Dashboard Widgets</div>
@@ -2012,9 +2035,14 @@ body.compact .k-card{padding:6px 8px}
 const STORE = 'sf_cases_v6';
 const STATUSES = ['New','In Progress','Pending Your Input','Pending Your Confirmation','Closed'];
 const WORKED = ['Pending Your Confirmation','Closed']; // counted in totals
-const TYPES = ['Automotive Content Migration','Automotive Blog Migration','LeadScience Content Migration','LeadScience Blog Migration'];
-const TSHORT = {'Automotive Content Migration':'ACM','Automotive Blog Migration':'ABM','LeadScience Content Migration':'LCM','LeadScience Blog Migration':'LBM'};
-const TCLASS = {'Automotive Content Migration':'t-acm','Automotive Blog Migration':'t-abm','LeadScience Content Migration':'t-lcm','LeadScience Blog Migration':'t-lbm'};
+const BUILTIN_TYPES = ['Automotive Content Migration','Automotive Blog Migration','LeadScience Content Migration','LeadScience Blog Migration'];
+const BUILTIN_TSHORT = {'Automotive Content Migration':'ACM','Automotive Blog Migration':'ABM','LeadScience Content Migration':'LCM','LeadScience Blog Migration':'LBM'};
+const BUILTIN_TCLASS = {'Automotive Content Migration':'t-acm','Automotive Blog Migration':'t-abm','LeadScience Content Migration':'t-lcm','LeadScience Blog Migration':'t-lbm'};
+// Dynamic — updated when custom types are added/removed
+let TYPES = [...BUILTIN_TYPES];
+let TSHORT = {...BUILTIN_TSHORT};
+let TCLASS = {...BUILTIN_TCLASS};
+let customTypes = []; // user-added type names
 
 // ── STATE ──
 let cases=[], editId=null, sortKey='start', sortDir=-1, selected=new Set();
@@ -2056,6 +2084,7 @@ function load() {
   renderSavedFilters();
   renderPinnedCases();
   renderNotifications();
+  populateTypeSelects();
   renderAll();
 }
 function save(){try{localStorage.setItem(STORE,JSON.stringify(cases));}catch(e){}markSaved();}
@@ -2222,19 +2251,23 @@ function renderBento(){
 
   // ── Status stat cards ──
   if(w.stats) html+=`
-    <div class="b c2 bp b-dark"><div class="b-lbl">Total</div><div class="b-num">${total}</div><div class="b-sub">all cases</div></div>
-    <div class="b c2 bp"><div class="b-lbl">New</div><div class="b-num" style="color:var(--s-new)">${bySt('New')}</div><div class="b-sub">awaiting</div></div>
-    <div class="b c2 bp"><div class="b-lbl">In Progress</div><div class="b-num" style="color:var(--s-inp)">${bySt('In Progress')}</div><div class="b-sub">active</div></div>
-    <div class="b c2 bp"><div class="b-lbl">Pend. Input</div><div class="b-num" style="color:var(--s-pyi)">${bySt('Pending Your Input')}</div><div class="b-sub">needs info</div></div>
-    <div class="b c2 bp"><div class="b-lbl">Pend. Confirm</div><div class="b-num" style="color:var(--s-pyc)">${bySt('Pending Your Confirmation')}</div><div class="b-sub">awaiting OK</div></div>
-    <div class="b c2 bp"><div class="b-lbl">Closed</div><div class="b-num" style="color:var(--s-closed)">${bySt('Closed')}</div><div class="b-sub">resolved</div></div>`;
+    <div class="b c12" style="padding:0;display:grid;grid-template-columns:repeat(6,1fr);gap:0;border:none;background:transparent;box-shadow:none" data-widget="stats">
+      <div class="b bp b-dark"><div class="b-lbl">Total</div><div class="b-num">${total}</div><div class="b-sub">all cases</div></div>
+      <div class="b bp"><div class="b-lbl">New</div><div class="b-num" style="color:var(--s-new)">${bySt('New')}</div><div class="b-sub">awaiting</div></div>
+      <div class="b bp"><div class="b-lbl">In Progress</div><div class="b-num" style="color:var(--s-inp)">${bySt('In Progress')}</div><div class="b-sub">active</div></div>
+      <div class="b bp"><div class="b-lbl">Pend. Input</div><div class="b-num" style="color:var(--s-pyi)">${bySt('Pending Your Input')}</div><div class="b-sub">needs info</div></div>
+      <div class="b bp"><div class="b-lbl">Pend. Confirm</div><div class="b-num" style="color:var(--s-pyc)">${bySt('Pending Your Confirmation')}</div><div class="b-sub">awaiting OK</div></div>
+      <div class="b bp"><div class="b-lbl">Closed</div><div class="b-num" style="color:var(--s-closed)">${bySt('Closed')}</div><div class="b-sub">resolved</div></div>
+    </div>`;
 
   // ── Metrics row ──
   if(w.metrics) html+=`
-    <div class="b c3 bp"><div class="b-lbl">Total Banners</div><div class="b-num">${allB}</div><div class="b-sub">all time</div></div>
-    <div class="b c3 bp"><div class="b-lbl">Avg Resolution</div><div class="b-num" style="font-size:${avgRes!==null?'26':'18'}px">${avgRes!==null?avgRes+'d':'—'}</div><div class="b-sub">days to close</div></div>
-    <div class="b c3 bp"><div class="b-lbl">Due Soon</div><div class="b-num" style="color:${dueSoon.length?'var(--s-pyi)':'var(--text)'}">${dueSoon.length}</div><div class="b-sub">within 2 days</div></div>
-    <div class="b c3 bp"><div class="b-lbl">Past Due</div><div class="b-num" style="color:${pastDue.length?'var(--p-critical)':'var(--text)'}">${pastDue.length}</div><div class="b-sub">missed deadline</div></div>`;
+    <div class="b c12" style="padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:none;background:transparent;box-shadow:none" data-widget="metrics">
+      <div class="b bp"><div class="b-lbl">Total Banners</div><div class="b-num">${allB}</div><div class="b-sub">all time</div></div>
+      <div class="b bp"><div class="b-lbl">Avg Resolution</div><div class="b-num" style="font-size:${avgRes!==null?'26':'18'}px">${avgRes!==null?avgRes+'d':'—'}</div><div class="b-sub">days to close</div></div>
+      <div class="b bp"><div class="b-lbl">Due Soon</div><div class="b-num" style="color:${dueSoon.length?'var(--s-pyi)':'var(--text)'}">${dueSoon.length}</div><div class="b-sub">within 2 days</div></div>
+      <div class="b bp"><div class="b-lbl">Past Due</div><div class="b-num" style="color:${pastDue.length?'var(--p-critical)':'var(--text)'}">${pastDue.length}</div><div class="b-sub">missed deadline</div></div>
+    </div>`;
 
   // ── Active Cases Panel ──
   if(w.activecases){
@@ -2278,63 +2311,129 @@ function renderBento(){
 
   // ── Row 3: Recent / Quick Add / Digest ──
   let row3='';
-  if(w.recent) row3+=`
-    <div class="b c5 bp">
-      <div class="b-lbl">Recent Cases</div>
-      ${recent.length?recent.map(c=>`
-        <div class="rc-row" onclick="switchTab('cases',document.querySelector('[data-tab=cases]'));openDetail('${c.id}')">
-          <div class="rc-num">${c.number||'—'}</div>
-          <div class="rc-name">${c.name}</div>
-          ${bS(c.status)}
-          <div class="rc-age">${c.start?dSince(c.start)+'d':''}</div>
-        </div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px 0">No cases yet</div>'}
-    </div>`;
-  if(w.quickadd) row3+=`
-    <div class="b ${w.recent&&w.digest?'c4':w.recent||w.digest?'c7':'c12'} b-quickadd">
-      <div class="b-lbl">Quick Add</div>
-      <input type="text" id="qa-name" placeholder="Case name…" onkeydown="if(event.key==='Enter')quickAdd()">
-      <select id="qa-type"><option>Automotive Content Migration</option><option>Automotive Blog Migration</option><option>LeadScience Content Migration</option><option>LeadScience Blog Migration</option></select>
-      <select id="qa-priority"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select>
-      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="quickAdd()">
-        <svg viewBox="0 0 24 24" style="stroke-width:2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Case
-      </button>
-    </div>`;
-  if(w.digest) row3+=`
-    <div class="b c3 b-digest">
-      <div class="b-lbl">Weekly Digest</div>
-      <div style="font-size:9.5px;color:rgba(255,255,255,.25);font-family:var(--mono);margin-bottom:8px">Last 7 days</div>
-      <div class="drow"><span class="drow-k">Opened</span><span class="drow-v ${wOpened>wClosed?'warn':''}">${wOpened}</span></div>
-      <div class="drow"><span class="drow-k">Closed</span><span class="drow-v ok">${wClosed}</span></div>
-      <div class="drow"><span class="drow-k">Banners</span><span class="drow-v">${wB}</span></div>
-      <div class="drow"><span class="drow-k">Overdue</span><span class="drow-v ${overdue.length?'bad':''}">${overdue.length}</span></div>
-      <div class="drow"><span class="drow-k">Avg Res.</span><span class="drow-v">${avgRes!==null?avgRes+'d':'—'}</span></div>
-    </div>`;
+  if(w.recent||w.quickadd||w.digest){
+    row3+=`<div class="b c12" style="padding:0;display:grid;grid-template-columns:${w.recent&&w.quickadd&&w.digest?'5fr 4fr 3fr':w.recent&&w.quickadd?'5fr 7fr':w.recent&&w.digest?'9fr 3fr':w.quickadd&&w.digest?'8fr 4fr':w.recent?'1fr':w.quickadd?'1fr':'1fr'};gap:0;border:none;background:transparent;box-shadow:none" data-widget="row3">`;
+    if(w.recent) row3+=`
+      <div class="b bp" style="border-radius:var(--r-lg) 0 0 var(--r-lg)">
+        <div class="b-lbl">Recent Cases</div>
+        ${recent.length?recent.map(c=>`
+          <div class="rc-row" onclick="switchTab('cases',document.querySelector('[data-tab=cases]'));openDetail('${c.id}')">
+            <div class="rc-num">${c.number||'—'}</div>
+            <div class="rc-name">${c.name}</div>
+            ${bS(c.status)}
+            <div class="rc-age">${c.start?dSince(c.start)+'d':''}</div>
+          </div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px 0">No cases yet</div>'}
+      </div>`;
+    if(w.quickadd) row3+=`
+      <div class="b b-quickadd" style="${!w.recent&&!w.digest?'border-radius:var(--r-lg)':!w.recent?'border-radius:var(--r-lg) 0 0 var(--r-lg)':!w.digest?'border-radius:0 var(--r-lg) var(--r-lg) 0':'border-radius:0'}">
+        <div class="b-lbl">Quick Add</div>
+        <input type="text" id="qa-name" placeholder="Case name…" onkeydown="if(event.key==='Enter')quickAdd()">
+        <select id="qa-type"></select>
+        <select id="qa-priority"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="quickAdd()">
+          <svg viewBox="0 0 24 24" style="stroke-width:2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Case
+        </button>
+      </div>`;
+    if(w.digest) row3+=`
+      <div class="b b-digest" style="${!w.recent&&!w.quickadd?'border-radius:var(--r-lg)':'border-radius:0 var(--r-lg) var(--r-lg) 0'}">
+        <div class="b-lbl">Weekly Digest</div>
+        <div style="font-size:9.5px;color:rgba(255,255,255,.25);font-family:var(--mono);margin-bottom:8px">Last 7 days</div>
+        <div class="drow"><span class="drow-k">Opened</span><span class="drow-v ${wOpened>wClosed?'warn':''}">${wOpened}</span></div>
+        <div class="drow"><span class="drow-k">Closed</span><span class="drow-v ok">${wClosed}</span></div>
+        <div class="drow"><span class="drow-k">Banners</span><span class="drow-v">${wB}</span></div>
+        <div class="drow"><span class="drow-k">Overdue</span><span class="drow-v ${overdue.length?'bad':''}">${overdue.length}</span></div>
+        <div class="drow"><span class="drow-k">Avg Res.</span><span class="drow-v">${avgRes!==null?avgRes+'d':'—'}</span></div>
+      </div>`;
+    row3+='</div>';
+  }
   html+=row3;
 
   // ── Row 4: Focus / Goal / Streak ──
   let row4='';
-  if(w.focus) row4+=`
-    <div class="b c4 bp">
-      <div class="b-lbl">⭐ Today's Focus</div>
-      ${(()=>{const bi=buildMorningBriefing();return bi.length?bi.map(i=>`<div class="brief-row" onclick="switchTab('cases',document.querySelector('[data-tab=cases]'));openDetail('${i.c.id}')"><div class="brief-dot" style="background:${i.dot}"></div><div style="flex:1;min-width:0"><div class="brief-name">${i.c.name}</div><div class="brief-sub">${i.reason}</div></div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px 0">Nothing urgent — good to go! ✓</div>';})()}
-    </div>`;
-  if(w.goal) row4+=`
-    <div class="b c4 goal-card">
-      <div class="b-lbl">Daily Goal</div>
-      ${(()=>{const todayB=todayBanners(),gp=dailyGoal>0?Math.min(100,Math.round(todayB/dailyGoal*100)):0;return dailyGoal>0?`<div style="display:flex;align-items:baseline;gap:6px;margin-top:6px"><div style="font-family:var(--mono);font-size:28px;font-weight:700;color:${todayB>=dailyGoal?'var(--s-closed)':'var(--text)'}">${todayB}</div><div style="font-size:13px;color:var(--text3)">/ ${dailyGoal}</div></div><div class="goal-bar-wrap"><div class="goal-bar ${todayB>=dailyGoal?'done':''}" style="width:${gp}%"></div></div><div style="font-size:11px;color:var(--text3)">${todayB>=dailyGoal?'🎉 Goal reached!':dailyGoal-todayB+' banners to go'}</div>`:`<div style="font-size:12px;color:var(--text3);margin-top:8px">No goal set.<br><a onclick="switchTab('settings',document.querySelector('[data-tab=settings]'))" style="cursor:pointer;color:var(--s-inp)">Set a daily goal →</a></div>`;})()}
-    </div>`;
-  if(w.streak) row4+=`
-    <div class="b c4 bp">
-      <div class="b-lbl">Work Streak</div>
-      ${(()=>{const s=calcStreak();return`<div style="display:flex;align-items:center;margin-top:8px"><span class="streak-flame">🔥</span><span class="streak-num">${s}</span></div><div class="b-sub">${s===1?'day in a row':s>1?'days in a row':'Start logging to build a streak'}</div>`;})()}
-    </div>`;
+  if(w.focus||w.goal||w.streak){
+    const cols=[w.focus,w.goal,w.streak].filter(Boolean).length;
+    row4+=`<div class="b c12" style="padding:0;display:grid;grid-template-columns:repeat(${cols},1fr);gap:0;border:none;background:transparent;box-shadow:none" data-widget="row4">`;
+    if(w.focus) row4+=`
+      <div class="b bp">
+        <div class="b-lbl">⭐ Today's Focus</div>
+        ${(()=>{const bi=buildMorningBriefing();return bi.length?bi.map(i=>`<div class="brief-row" onclick="switchTab('cases',document.querySelector('[data-tab=cases]'));openDetail('${i.c.id}')"><div class="brief-dot" style="background:${i.dot}"></div><div style="flex:1;min-width:0"><div class="brief-name">${i.c.name}</div><div class="brief-sub">${i.reason}</div></div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px 0">Nothing urgent — good to go! ✓</div>';})()}
+      </div>`;
+    if(w.goal) row4+=`
+      <div class="b goal-card">
+        <div class="b-lbl">Daily Goal</div>
+        ${(()=>{const todayB=todayBanners(),gp=dailyGoal>0?Math.min(100,Math.round(todayB/dailyGoal*100)):0;return dailyGoal>0?`<div style="display:flex;align-items:baseline;gap:6px;margin-top:6px"><div style="font-family:var(--mono);font-size:28px;font-weight:700;color:${todayB>=dailyGoal?'var(--s-closed)':'var(--text)'}">${todayB}</div><div style="font-size:13px;color:var(--text3)">/ ${dailyGoal}</div></div><div class="goal-bar-wrap"><div class="goal-bar ${todayB>=dailyGoal?'done':''}" style="width:${gp}%"></div></div><div style="font-size:11px;color:var(--text3)">${todayB>=dailyGoal?'🎉 Goal reached!':dailyGoal-todayB+' banners to go'}</div>`:`<div style="font-size:12px;color:var(--text3);margin-top:8px">No goal set.<br><a onclick="switchTab('settings',document.querySelector('[data-tab=settings]'))" style="cursor:pointer;color:var(--s-inp)">Set a daily goal →</a></div>`;})()}
+      </div>`;
+    if(w.streak) row4+=`
+      <div class="b bp">
+        <div class="b-lbl">Work Streak</div>
+        ${(()=>{const s=calcStreak();return`<div style="display:flex;align-items:center;margin-top:8px"><span class="streak-flame">🔥</span><span class="streak-num">${s}</span></div><div class="b-sub">${s===1?'day in a row':s>1?'days in a row':'Start logging to build a streak'}</div>`;})()}
+      </div>`;
+    row4+='</div>';
+  }
   html+=row4;
 
   document.getElementById('bento-grid').innerHTML=html;
+  populateTypeSelects();
+  initBentoDrag();
 }
 
 // ── DASHBOARD CHARTS ── (charts moved to Analytics tab)
 function renderDashCharts(){ /* Status/Priority/Timeline charts now in renderAnalytics */ }
+
+// ── BENTO DRAG & DROP ──
+let _dragSrc = null;
+function initBentoDrag() {
+  const grid = document.getElementById('bento-grid');
+  if (!grid) return;
+  // Add drag handles to each direct .b child that spans c12
+  grid.querySelectorAll('.b.c12').forEach(el => {
+    if (!el.querySelector('.bento-drag-handle')) {
+      const h = document.createElement('button');
+      h.className = 'bento-drag-handle';
+      h.title = 'Drag to reorder';
+      h.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 6a1 1 0 100-2 1 1 0 000 2zm0 4a1 1 0 100-2 1 1 0 000 2zm0 4a1 1 0 100-2 1 1 0 000 2zm8-8a1 1 0 100-2 1 1 0 000 2zm0 4a1 1 0 100-2 1 1 0 000 2zm0 4a1 1 0 100-2 1 1 0 000 2z"/></svg>`;
+      h.addEventListener('mousedown', e => {
+        e.preventDefault();
+        el.setAttribute('draggable', 'true');
+      });
+      el.appendChild(h);
+    }
+    el.addEventListener('dragstart', e => {
+      _dragSrc = el;
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+      el.setAttribute('draggable', 'false');
+      grid.querySelectorAll('.drag-over').forEach(x=>x.classList.remove('drag-over'));
+    });
+    el.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (_dragSrc && el !== _dragSrc) {
+        grid.querySelectorAll('.drag-over').forEach(x=>x.classList.remove('drag-over'));
+        el.classList.add('drag-over');
+      }
+    });
+    el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+    el.addEventListener('drop', e => {
+      e.preventDefault();
+      el.classList.remove('drag-over');
+      if (_dragSrc && _dragSrc !== el) {
+        // Get all c12 items and reorder
+        const items = [...grid.querySelectorAll('.b.c12')];
+        const srcIdx = items.indexOf(_dragSrc);
+        const tgtIdx = items.indexOf(el);
+        if (srcIdx !== -1 && tgtIdx !== -1) {
+          if (srcIdx < tgtIdx) grid.insertBefore(_dragSrc, el.nextSibling);
+          else grid.insertBefore(_dragSrc, el);
+        }
+        _dragSrc = null;
+      }
+    });
+  });
+}
 
 // ── QUICK ADD ──
 function quickAdd(){
@@ -2816,6 +2915,12 @@ function renderReport(){
   } else if(range==='monthly'){
     from=new Date(now-30*864e5);
     periodLabel='Last 30 days ('+from.toLocaleDateString('en-US',{timeZone:US_TZ,month:'short',day:'numeric'})+' – '+now.toLocaleDateString('en-US',{timeZone:US_TZ,month:'short',day:'numeric',year:'numeric'})+')';
+  } else if(range.startsWith('month-')){
+    const offset=parseInt(range.split('-')[1])||0;
+    const d=new Date(now.getFullYear(), now.getMonth()-offset, 1);
+    const dEnd=new Date(d.getFullYear(), d.getMonth()+1, 0, 23, 59, 59);
+    from=d; to=dEnd;
+    periodLabel=d.toLocaleDateString('en-US',{timeZone:US_TZ,month:'long',year:'numeric'});
   } else if(range==='custom'){
     const fv=document.getElementById('rpt-from')?.value;
     const tv=document.getElementById('rpt-to')?.value;
@@ -2895,7 +3000,7 @@ function renderReport(){
   } else {
     // ── WEEKLY / MONTHLY / CUSTOM ──
     const isWeekly=range==='weekly';
-    const title=isWeekly?'Weekly Productivity Report':range==='monthly'?'Monthly Productivity Report':'Custom Range Report';
+    const title=isWeekly?'Weekly Productivity Report':range==='monthly'?'Monthly Productivity Report':range.startsWith('month-')?`${periodLabel} Report`:'Custom Range Report';
     html+=`<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--border)">${title}</div>`;
 
     // Auto-summary
@@ -3432,6 +3537,7 @@ let undoTimer = null;
 let lastExportDate = null;
 let autosaveTimer = null;
 let dashWidgets = {alerts:true,stats:true,metrics:true,activecases:true,recent:true,quickadd:true,digest:true,focus:true,goal:true,streak:true};
+let dashWidgetOrder = ['alerts','stats','metrics','activecases','recent+quickadd+digest','focus+goal+streak'];
 const SETTINGS_STORE = 'sf_settings_v1';
 
 // loadSettings and saveSettings defined in Phase 2-4 section below
@@ -3481,11 +3587,10 @@ function executeUndo() {
 function buildNotifications() {
   const items = [];
   const now = new Date();
-  const todayStr = todayUS();
 
   // Overdue cases
   const overdue = cases.filter(isOD);
-  if (overdue.length) items.push({type:'danger', text:`${overdue.length} case${overdue.length>1?'s':''} overdue (7+ days open)`, sub: overdue.slice(0,3).map(c=>c.number||c.name).join(', '), action:()=>applyQuickFilter('overdue')});
+  if (overdue.length) items.push({key:'overdue', type:'danger', text:`${overdue.length} case${overdue.length>1?'s':''} overdue (${slaGlobalDays||7}+ days open)`, sub: overdue.slice(0,3).map(c=>c.number||c.name).join(', '), action:()=>applyQuickFilter('overdue')});
 
   // Remaining = 0 but not PYC/Closed
   const readyForConf = cases.filter(c => {
@@ -3493,14 +3598,14 @@ function buildNotifications() {
     const done = sumB(c);
     return target > 0 && done >= target && !['Pending Your Confirmation','Closed'].includes(c.status);
   });
-  if (readyForConf.length) items.push({type:'info', text:`${readyForConf.length} case${readyForConf.length>1?'s':''} ready for confirmation`, sub:`All banners done — move to Pending Your Confirmation`, action:()=>{}});
+  if (readyForConf.length) items.push({key:'ready_conf', type:'info', text:`${readyForConf.length} case${readyForConf.length>1?'s':''} ready for confirmation`, sub:`All banners done — move to Pending Your Confirmation`, action:()=>{}});
 
   // Pending Your Input 3+ days
   const stuckPYI = cases.filter(c => c.status === 'Pending Your Input' && c.statusHistory?.length && (() => {
     const last = [...c.statusHistory].reverse().find(h => h.to === 'Pending Your Input');
     return last && Math.floor((now - new Date(last.ts)) / 86400000) >= 3;
   })());
-  if (stuckPYI.length) items.push({type:'warn', text:`${stuckPYI.length} case${stuckPYI.length>1?'s':''} waiting for your input 3+ days`, sub: stuckPYI.slice(0,3).map(c=>c.number||c.name).join(', '), action:()=>{}});
+  if (stuckPYI.length) items.push({key:'stuck_pyi', type:'warn', text:`${stuckPYI.length} case${stuckPYI.length>1?'s':''} waiting for your input 3+ days`, sub: stuckPYI.slice(0,3).map(c=>c.number||c.name).join(', '), action:()=>{}});
 
   // Due in next 2 days
   const dueSoon2 = cases.filter(c => {
@@ -3508,20 +3613,21 @@ function buildNotifications() {
     const d = Math.floor((new Date(c.dueDate+'T12:00:00') - now) / 86400000);
     return d >= 0 && d <= 2;
   });
-  if (dueSoon2.length) items.push({type:'warn', text:`${dueSoon2.length} case${dueSoon2.length>1?'s':''} due within 2 days`, sub: dueSoon2.map(c=>`${c.number||c.name} (${fmtD(c.dueDate)})`).slice(0,3).join(', '), action:()=>applyQuickFilter('dueweek')});
+  if (dueSoon2.length) items.push({key:'due_soon', type:'warn', text:`${dueSoon2.length} case${dueSoon2.length>1?'s':''} due within 2 days`, sub: dueSoon2.map(c=>`${c.number||c.name} (${fmtD(c.dueDate)})`).slice(0,3).join(', '), action:()=>applyQuickFilter('dueweek')});
 
-  // Backup reminder — no export in 30 days
+  // Backup reminder
   if (lastExportDate) {
     const daysSinceExport = Math.floor((now - new Date(lastExportDate)) / 86400000);
-    if (daysSinceExport >= 30) items.push({type:'warn', text:`No CSV export in ${daysSinceExport} days`, sub:'Export your data as a backup', action:()=>exportCSV()});
+    if (daysSinceExport >= 30) items.push({key:'backup_old', type:'warn', text:`No CSV export in ${daysSinceExport} days`, sub:'Export your data as a backup', action:()=>exportCSV()});
   } else if (cases.length > 0) {
-    items.push({type:'info', text:'Back up your data', sub:'Export CSV to keep a backup of your cases', action:()=>exportCSV()});
+    items.push({key:'backup_never', type:'info', text:'Back up your data', sub:'Export CSV to keep a backup of your cases', action:()=>exportCSV()});
   }
 
   return items;
 }
 function renderNotifications() {
-  const items = buildNotifications();
+  const allItems = buildNotifications();
+  const items = allItems.filter(i => !dismissedNotifs.has(i.key));
   const badge = document.getElementById('notif-badge');
   const list = document.getElementById('notif-list');
   if (!badge || !list) return;
@@ -3534,12 +3640,12 @@ function renderNotifications() {
   list.innerHTML = items.map((item, i) => `
     <div class="notif-item" onclick="notifAction(${i})">
       <div class="notif-dot ${item.type}"></div>
-      <div>
+      <div style="flex:1">
         <div class="notif-text">${item.text}</div>
         ${item.sub ? `<div class="notif-sub">${item.sub}</div>` : ''}
       </div>
+      <button onclick="event.stopPropagation();dismissNotif('${item.key}')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:0 2px;line-height:1;flex-shrink:0" title="Dismiss">×</button>
     </div>`).join('');
-  // Store actions
   window._notifActions = items.map(i => i.action);
 }
 function notifAction(i) {
@@ -3552,8 +3658,19 @@ function toggleNotifPanel() {
   panel.classList.toggle('open');
   if (panel.classList.contains('open')) renderNotifications();
 }
+let dismissedNotifs = new Set(); // session-dismissed notification keys
 function clearAllNotifs() {
+  // Build keys for all current notifications and dismiss them
+  const items = buildNotifications();
+  items.forEach((item, i) => {
+    dismissedNotifs.add(item.key || item.text);
+  });
+  renderNotifications();
   document.getElementById('notif-panel').classList.remove('open');
+}
+function dismissNotif(key) {
+  dismissedNotifs.add(key);
+  renderNotifications();
 }
 // Close notif panel on outside click
 document.addEventListener('click', e => {
@@ -4245,6 +4362,8 @@ function loadSettings() {
     reminderEnabled = !!s.reminderEnabled;
     if (s.defaultSort) { sortKey = s.defaultSort; }
     if (s.dashWidgets) { dashWidgets = {...dashWidgets, ...s.dashWidgets}; }
+    if (s.dashWidgetOrder) { dashWidgetOrder = s.dashWidgetOrder; }
+    if (s.customTypes) { customTypes = s.customTypes; rebuildTypes(); }
   } catch(e){}
 }
 function saveSettings() {
@@ -4252,7 +4371,7 @@ function saveSettings() {
     localStorage.setItem(SETTINGS_STORE, JSON.stringify({
       pinned: [...pinnedCases], savedFilters, lastExportDate,
       dailyGoal, slaDays: slaGlobalDays, densityCompact, reminderEnabled,
-      defaultSort: sortKey, dashWidgets
+      defaultSort: sortKey, dashWidgets, dashWidgetOrder, customTypes
     }));
   } catch(e){}
 }
@@ -4274,6 +4393,7 @@ function renderSettingsUI() {
   const ts = document.getElementById('theme-selector');
   if (ts) ts.value = cur;
   renderDashWidgetsSettings();
+  renderCustomTypesUI();
 }
 function toggleDensity() {
   densityCompact = !densityCompact;
@@ -4389,11 +4509,74 @@ function buildMorningBriefing() {
 
 // ── PHASE 2-4 WIRING (no function overrides — direct additions) ──
 
+// ── CUSTOM CASE TYPES ──
+function rebuildTypes() {
+  TYPES = [...BUILTIN_TYPES, ...customTypes];
+  TSHORT = {...BUILTIN_TSHORT};
+  TCLASS = {...BUILTIN_TCLASS};
+  customTypes.forEach(t => {
+    // Auto-generate short code from initials, max 4 chars
+    const short = t.split(/\s+/).map(w=>w[0]||'').join('').toUpperCase().slice(0,4) || t.slice(0,3).toUpperCase();
+    TSHORT[t] = short;
+    TCLASS[t] = 'badge'; // generic badge class — uses CSS vars
+  });
+  populateTypeSelects();
+}
+function populateTypeSelects() {
+  const opts = TYPES.map(t=>`<option value="${t}">${t}</option>`).join('');
+  // Modal type select
+  const fm = document.getElementById('f-type-m');
+  if (fm) { const prev=fm.value; fm.innerHTML=opts; if(TYPES.includes(prev))fm.value=prev; }
+  // Quick add type select
+  const qa = document.getElementById('qa-type');
+  if (qa) { const prev=qa.value; qa.innerHTML=opts; if(TYPES.includes(prev))qa.value=prev; }
+  // Filter type select
+  const ft = document.getElementById('f-type');
+  if (ft) {
+    const prev=ft.value;
+    ft.innerHTML='<option value="">All types</option>'+opts;
+    if(TYPES.includes(prev))ft.value=prev;
+  }
+}
+function addCustomType() {
+  const inp = document.getElementById('new-type-input');
+  if (!inp) return;
+  const name = inp.value.trim();
+  if (!name) { toast('Enter a type name'); return; }
+  if (TYPES.includes(name)) { toast('Type already exists'); return; }
+  customTypes.push(name);
+  rebuildTypes();
+  saveSettings();
+  renderCustomTypesUI();
+  inp.value = '';
+  toast(`Type "${name}" added`);
+}
+function removeCustomType(name) {
+  const inUse = cases.some(c => c.type === name);
+  if (inUse && !confirm(`"${name}" is used by ${cases.filter(c=>c.type===name).length} case(s).\nCases will keep the type but it won't appear in new dropdowns. Remove anyway?`)) return;
+  customTypes = customTypes.filter(t => t !== name);
+  rebuildTypes();
+  saveSettings();
+  renderCustomTypesUI();
+  toast(`Type "${name}" removed`);
+}
+function renderCustomTypesUI() {
+  const el = document.getElementById('custom-types-wrap');
+  if (!el) return;
+  el.innerHTML = `
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">
+      ${BUILTIN_TYPES.map(t=>`<span class="type-chip builtin">${t}</span>`).join('')}
+      ${customTypes.map(t=>`<span class="type-chip">${t}<button class="type-chip-del" onclick="removeCustomType('${t.replace(/'/g,'\\\'')}')" title="Remove">×</button></span>`).join('')}
+    </div>
+    <div class="type-add-row">
+      <input type="text" id="new-type-input" placeholder="e.g. Dealer Branding Migration" style="flex:1;height:32px;font-size:12px" onkeydown="if(event.key==='Enter')addCustomType()">
+      <button class="btn btn-sm btn-primary" onclick="addCustomType()">Add Type</button>
+    </div>`;
+}
+
 function archiveFromDetail() {
   if (openDetailId) { archiveCase(openDetailId); closeDetail(); }
 }
-
-// ── ACTIVE CASES PANEL (All Cases tab) ──
 function renderActiveCasesPanel() {
   const countsEl = document.getElementById('acp-cases-counts');
   const bodyEl = document.getElementById('acp-cases-body');
