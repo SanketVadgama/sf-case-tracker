@@ -772,7 +772,7 @@ tbody td{padding:7px 10px;color:var(--text);vertical-align:middle;overflow:hidde
             <option selected>New</option><option>In Progress</option><option>Pending Your Input</option><option>Pending Your Confirmation</option><option>Closed</option>
           </select>
         </div>
-        <div class="fg"><label>Banner Count</label><input type="number" id="f-banners-init" placeholder="0" min="0"></div>
+        <div class="fg"><label>Total Banners (Target)</label><input type="number" id="f-banners-init" placeholder="0" min="0" title="Total number of banners in this case to work towards"></div>
         <div class="fg"><label>Start Date</label><input type="date" id="f-start"></div>
         <div class="fg"><label>Completion Date</label><input type="date" id="f-end"></div>
         <div class="fg full"><label>Notes</label><textarea id="f-notes" placeholder="Context, links, or notes…"></textarea></div>
@@ -888,10 +888,20 @@ function load() {
     if(!c.bannerLog) c.bannerLog=[];
     if(!c.comments) c.comments=[];
     if(!c.statusHistory) c.statusHistory=[];
-    // Migrate old banner value into log if no entries
-    if(c.bannerLog.length===0&&(c.banners||c.totalBanners)){
-      const n=parseInt(c.totalBanners||c.banners)||0;
-      if(n>0) c.bannerLog.push({count:n,date:c.start||today(),note:'Migrated',ts:Date.now()});
+    // Migrate: if bannerTarget not set, derive from old "Initial count" seed entry or totalBanners field
+    if(c.bannerTarget===undefined||c.bannerTarget===null){
+      const seedEntry=c.bannerLog.find(b=>b.note==='Initial count'||b.note==='Count adjusted');
+      if(seedEntry){
+        // The old seed entry IS the target — extract it and remove from log
+        c.bannerTarget=parseInt(seedEntry.count)||0;
+        c.bannerLog=c.bannerLog.filter(b=>b.note!=='Initial count'&&b.note!=='Count adjusted');
+      } else if(c.banners||c.totalBanners){
+        // Very old data: banners field = target, log is empty
+        c.bannerTarget=parseInt(c.totalBanners||c.banners)||0;
+        c.bannerLog=[]; // no real daily entries existed
+      } else {
+        c.bannerTarget=0;
+      }
     }
     c.totalBanners=sumB(c);
     // Migrate old statuses
@@ -1160,8 +1170,13 @@ function renderTable(){
   document.getElementById('tbl-empty').style.display=list.length?'none':'block';
   document.getElementById('count-lbl').textContent=list.length?`Showing ${list.length} of ${cases.length} cases`:'';
   tbody.innerHTML=list.map(c=>{
-    const tb=sumB(c),pd=isPD(c),ds=isDS(c);
+    const done=sumB(c),target=parseInt(c.bannerTarget)||0,pd=isPD(c),ds=isDS(c);
+    const remaining=Math.max(0,target-done);
     const dueStr=c.dueDate?`<span class="${pd?'due-warn':ds?'due-soon':''}">${fmtD(c.dueDate)}${pd?' ⚠':ds?' ●':''}</span>`:'—';
+    // Banner cell: show "done/target" if target set, else just done
+    const banCell=target>0
+      ?`<span style="font-family:var(--mono);font-weight:700;font-size:11px">${done}<span style="color:var(--text3);font-weight:400">/${target}</span></span>`
+      :`<span style="font-family:var(--mono);font-weight:700;font-size:11px">${done||0}</span>`;
     // Case number linked to URL — NOT the name
     const numCell=c.url&&c.number
       ?`<a href="${c.url}" target="_blank" onclick="event.stopPropagation()" style="font-family:var(--mono);font-size:10.5px">${c.number}</a>`
@@ -1175,7 +1190,7 @@ function renderTable(){
       <td>${bP(c.priority)}</td>
       <td style="font-size:11px">${fmtD(c.start)}</td>
       <td style="font-size:11px">${dueStr}</td>
-      <td style="text-align:center;font-family:var(--mono);font-weight:700;font-size:11px">${tb||0}</td>
+      <td style="text-align:center">${banCell}</td>
       <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-ghost" style="font-size:10px;height:24px;padding:0 6px" onclick="openModal('${c.id}')">Edit</button></td>
     </tr>`;
   }).join('');
@@ -1247,14 +1262,19 @@ function renderDTab(tab){
       const bc=age>7?'var(--p-critical)':age>5?'var(--p-high)':'var(--s-closed)';
       sla=`<div class="sla-box"><div class="sla-top"><span class="sla-lbl">Age</span><span class="sla-val">${age}d</span></div><div class="sla-bar-bg"><div class="sla-bar" style="width:${pct}%;background:${bc}"></div></div><div class="sla-meta"><span>7-day SLA</span><span style="color:${age>7?'var(--p-critical)':'var(--text3)'}">${age>7?'⚠ Overdue':(7-age)+'d left'}</span></div></div>`;
     }
-    const tb=sumB(c);
+    const done=sumB(c);
+    const target=parseInt(c.bannerTarget)||0;
+    const remaining=Math.max(0,target-done);
     let dur='—';
     if(c.start&&c.end){const d=Math.round((new Date(c.end+'T12:00:00')-new Date(c.start+'T12:00:00'))/86400000);dur=d+'d';}
     else if(c.start&&c.status!=='Closed'){dur=age+'d (open)';}
     const dueMeta=c.dueDate?fmtDF(c.dueDate)+(isPD(c)?' <span style="color:var(--p-critical);font-size:10px">⚠ Past due</span>':isDS(c)?' <span style="color:var(--p-high);font-size:10px">⏰ Due soon</span>':''):'—';
+    const bannersMeta=target>0
+      ?`<span style="font-family:var(--mono)">${done}<span style="color:var(--text3);font-size:11px"> / ${target} &nbsp; <span style="color:${remaining>0?'var(--s-pyi)':'var(--s-closed)'}">${remaining} left</span></span></span>`
+      :`<span style="font-family:var(--mono)">${done} logged</span>`;
     body.innerHTML=`${sla}
       <div class="d-sec"><div class="d-sec-title">Details</div>
-        <div class="d-row"><span class="d-rl">Banners</span><span class="d-rv" style="font-family:var(--mono)">${tb}</span></div>
+        <div class="d-row"><span class="d-rl">Banners</span><span class="d-rv">${bannersMeta}</span></div>
         <div class="d-row"><span class="d-rl">Start</span><span class="d-rv">${fmtDF(c.start)}</span></div>
         <div class="d-row"><span class="d-rl">Due Date</span><span class="d-rv">${dueMeta}</span></div>
         <div class="d-row"><span class="d-rl">Completion</span><span class="d-rv">${fmtDF(c.end)}</span></div>
@@ -1277,10 +1297,35 @@ function renderDTab(tab){
       ${hist.length?hist.map(h=>`<div class="hist"><div class="hist-dot" style="background:${sc[h.to]||'var(--text3)'}"></div><div class="hist-content"><div style="font-size:12px">${h.from?`<span style="color:var(--text3)">${h.from}</span> → `:''}<strong>${h.to}</strong></div><div class="hist-time">${h.ts?fmtTs(h.ts):'—'}</div></div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:5px 0">No history yet.</div>'}
     </div>`;
   } else if(tab==='banners'){
-    const log=[...(c.bannerLog||[])].reverse(),tb=sumB(c);
+    const log=[...(c.bannerLog||[])].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    const target=parseInt(c.bannerTarget)||0;
+    const done=sumB(c);
+    const remaining=Math.max(0,target-done);
+    const pct=target>0?Math.min(100,Math.round(done/target*100)):0;
     body.innerHTML=`<div class="d-sec">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px"><div class="d-sec-title" style="margin-bottom:0">Banner Log</div><div style="font-family:var(--mono);font-size:20px;font-weight:700">${tb}</div></div>
-      ${log.length?log.map(b=>`<div class="bl-item"><div class="bl-cnt">+${b.count}</div><div class="bl-note">${b.note||'—'}</div><div class="bl-date">${b.date||'—'}</div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:5px 0">No entries yet.</div>'}
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="d-sec-title" style="margin-bottom:0">Banner Progress</div>
+        <div style="font-size:10px;color:var(--text3);font-family:var(--mono)">${pct}%</div>
+      </div>
+      <div style="height:5px;background:var(--surface3);border-radius:3px;overflow:hidden;margin-bottom:10px">
+        <div style="height:100%;width:${pct}%;background:${remaining===0?'var(--s-closed)':'var(--s-inp)'};border-radius:3px"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:14px;text-align:center">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 4px">
+          <div style="font-family:var(--mono);font-size:17px;font-weight:700">${target}</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.06em">Target</div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 4px">
+          <div style="font-family:var(--mono);font-size:17px;font-weight:700;color:var(--s-inp)">${done}</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.06em">Done</div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 4px">
+          <div style="font-family:var(--mono);font-size:17px;font-weight:700;color:${remaining>0?'var(--s-pyi)':'var(--s-closed)'}">${remaining}</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.06em">Remaining</div>
+        </div>
+      </div>
+      <div class="d-sec-title">Work Log</div>
+      ${log.length?log.map(b=>`<div class="bl-item"><div class="bl-date">${fmtDateUS(b.date)}</div><div class="bl-note">${b.note||'—'}</div><div class="bl-cnt" style="font-family:var(--mono);font-weight:700;color:var(--s-inp)">−${b.count}</div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:5px 0">No work logged yet. Use the Banners button below.</div>'}
     </div>`;
   }
 }
@@ -1326,28 +1371,62 @@ function openBannerModal(){
 function renderBannerList(){
   const c=cases.find(x=>x.id===openDetailId);if(!c)return;
   const log=[...(c.bannerLog||[])].sort((a,b)=>b.date.localeCompare(a.date));
-  const tb=sumB(c);
+  const target=parseInt(c.bannerTarget)||0;
+  const done=sumB(c);
+  const remaining=Math.max(0,target-done);
   const todayStr=todayUS();
-  const todayTotal=(c.bannerLog||[]).filter(b=>b.date===todayStr).reduce((s,b)=>s+(parseInt(b.count)||0),0);
-  const remaining=Math.max(0,tb-(c.bannerLog||[]).reduce((s,b)=>s+(b.date<todayStr?parseInt(b.count)||0:0),0));
+  const todayDone=(c.bannerLog||[]).filter(b=>b.date===todayStr).reduce((s,b)=>s+(parseInt(b.count)||0),0);
+  const pct=target>0?Math.min(100,Math.round(done/target*100)):0;
+
   // Update today strip
-  document.getElementById('banner-today-val').textContent=todayTotal;
-  document.getElementById('banner-today-sub').textContent=`${tb} total logged · ${sumB(c)} banners across all dates`;
+  document.getElementById('banner-today-val').textContent=todayDone;
+  document.getElementById('banner-today-sub').textContent=`${done} done of ${target} total · ${remaining} remaining`;
+
   document.getElementById('bl-list').innerHTML=`
-    <div style="display:flex;justify-content:space-between;margin-bottom:8px;align-items:center">
+    <!-- Progress bar -->
+    <div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+        <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3)">Progress</span>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--text3)">${pct}%</span>
+      </div>
+      <div style="height:6px;background:var(--surface3);border-radius:4px;overflow:hidden;margin-bottom:8px">
+        <div style="height:100%;width:${pct}%;background:${remaining===0?'var(--s-closed)':'var(--s-inp)'};border-radius:4px;transition:width .4s"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 6px">
+          <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--text)">${target}</div>
+          <div style="font-size:9.5px;color:var(--text3);margin-top:2px">Target</div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 6px">
+          <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--s-inp)">${done}</div>
+          <div style="font-size:9.5px;color:var(--text3);margin-top:2px">Done</div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 6px">
+          <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:${remaining>0?'var(--s-pyi)':'var(--s-closed)'}">${remaining}</div>
+          <div style="font-size:9.5px;color:var(--text3);margin-top:2px">Remaining</div>
+        </div>
+      </div>
+    </div>
+    <!-- Work log entries -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
       <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3)">Work history (US Eastern)</span>
-      <span style="font-family:var(--mono);font-size:16px;font-weight:700">${tb} total</span>
     </div>
     ${log.length?log.map(b=>`<div class="bl-item">
       <div class="bl-date">${fmtDateUS(b.date)}</div>
       <div class="wl-note">${b.note||'—'}</div>
-      <div class="bl-banners" style="font-family:var(--mono);font-weight:700;font-size:13px;flex-shrink:0">+${b.count}</div>
-    </div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:4px 0">No entries yet.</div>'}`;
+      <div class="bl-banners" style="font-family:var(--mono);font-weight:700;font-size:13px;flex-shrink:0">−${b.count}</div>
+    </div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:4px 0">No work logged yet.</div>'}`;
 }
 function saveBannerEntry(){
   const c=cases.find(x=>x.id===openDetailId);if(!c)return;
   const count=parseInt(document.getElementById('bl-count').value)||0;
   if(count<=0){toast('Enter a count > 0');return;}
+  const target=parseInt(c.bannerTarget)||0;
+  const done=sumB(c);
+  const remaining=target-done;
+  if(target>0&&count>remaining){
+    toast(`Only ${remaining} banners remaining — can't log ${count}`);return;
+  }
   const date=document.getElementById('bl-date').value||today();
   const note=document.getElementById('bl-note').value.trim();
   if(!c.bannerLog)c.bannerLog=[];
@@ -1356,7 +1435,9 @@ function saveBannerEntry(){
   save();renderBannerList();renderAll();
   if(openDetailId)renderDTab(openDTab);
   document.getElementById('bl-count').value='';document.getElementById('bl-note').value='';
-  toast(`+${count} banners logged`);
+  const newDone=sumB(c);
+  const newRemaining=Math.max(0,target-newDone);
+  toast(newRemaining===0?`✓ All ${target} banners done!`:`${count} logged — ${newRemaining} remaining`);
 }
 
 // ── KANBAN ──
@@ -1631,7 +1712,7 @@ function openModal(id){
     document.getElementById('f-start').value=c.start||'';
     document.getElementById('f-end').value=c.end||'';
     document.getElementById('f-due').value=c.dueDate||'';
-    document.getElementById('f-banners-init').value=sumB(c)||'';
+    document.getElementById('f-banners-init').value=c.bannerTarget||'';
     document.getElementById('f-notes').value=c.notes||'';
   } else {
     ['f-number','f-name','f-url','f-notes','f-end','f-due'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
@@ -1659,15 +1740,15 @@ function saveCase(){
   const newStatus=document.getElementById('f-status-m').value;
   const initBanners=parseInt(document.getElementById('f-banners-init').value)||0;
 
-  // Banner log handling
+  // Banner log: preserve existing entries unchanged. bannerTarget is the total to work towards.
   let bannerLog=prev?.bannerLog||[];
-  if(!isEdit&&initBanners>0){
-    bannerLog=[{count:initBanners,date:document.getElementById('f-start').value||today(),note:'Initial count',ts:Date.now()}];
-  } else if(isEdit&&prev){
-    const prevTotal=sumB(prev);
-    if(initBanners>prevTotal){
-      bannerLog=[...bannerLog,{count:initBanners-prevTotal,date:today(),note:'Count adjusted',ts:Date.now()}];
-    }
+  // Remove any old "Initial count" / "Count adjusted" seed entries from the log if target is being reset
+  if(isEdit&&prev&&initBanners!==(prev.bannerTarget||0)){
+    // Only remove seed entries, keep real work entries
+    bannerLog=bannerLog.filter(b=>b.note!=='Initial count'&&b.note!=='Count adjusted');
+  }
+  if(!isEdit){
+    bannerLog=[]; // new case starts with empty log — target is stored separately
   }
 
   // Status history
@@ -1687,10 +1768,11 @@ function saveCase(){
     dueDate:document.getElementById('f-due').value,
     notes:document.getElementById('f-notes').value.trim(),
     assignee:prev?.assignee||'',
+    bannerTarget:initBanners,
     bannerLog,comments:prev?.comments||[],statusHistory,
     totalBanners:0
   };
-  c.totalBanners=sumB(c);
+  c.totalBanners=sumB(c); // work done so far
   if(isEdit){const idx=cases.findIndex(x=>x.id===editId);cases[idx]=c;}else cases.push(c);
   save();closeModal();renderAll();
   if(isEdit&&openDetailId===c.id)openDetail(c.id);
