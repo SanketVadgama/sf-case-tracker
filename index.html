@@ -1649,7 +1649,6 @@ function cycleTheme(){
 }
 function toggleTheme(){cycleTheme();}
 function applyTheme(t){
-  const labels={'light':'Dark mode','dark':'DealerOn theme','dealeron':'Light mode'};
   document.documentElement.setAttribute('data-theme', t==='light' ? '' : t);
   updateThemeBtn(t);
 }
@@ -1657,9 +1656,6 @@ function updateThemeBtn(t){
   const labels={'light':'Dark mode','dark':'DealerOn theme','dealeron':'Light mode'};
   const lbl=document.getElementById('theme-lbl');
   if(lbl) lbl.textContent = labels[t] || 'Dark mode';
-  // Update settings toggle
-  const dt=document.getElementById('dark-toggle');
-  if(dt) dt.className='toggle'+(t==='dark'?' on':'');
 }
 
 // ── TABS ──
@@ -1714,7 +1710,7 @@ function renderBento(){
   const wOpened=cases.filter(c=>c.start&&new Date(c.start+'T12:00:00')>=wa).length;
   const wClosed=cases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=wa).length;
   const wB=cases.reduce((s,c)=>s+sumBInPeriod(c,wa),0);
-  const recent=[...cases].sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6);
+  const recent=[...cases].filter(c=>!c.archived).sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6);
   const alerts=[
     overdue.length?`<div class="b c12 b-alert danger" style="min-height:auto"><div class="b-alert-dot"></div><div class="b-alert-text"><strong>${overdue.length} case${overdue.length>1?'s':''} overdue</strong> (7+ days open): ${overdue.map(c=>c.number||c.name).slice(0,5).join(', ')}${overdue.length>5?` +${overdue.length-5} more`:''}</div></div>`:'',
     pastDue.length?`<div class="b c12 b-alert warn" style="min-height:auto"><div class="b-alert-dot"></div><div class="b-alert-text"><strong>${pastDue.length} case${pastDue.length>1?'s':''} past due date</strong>: ${pastDue.map(c=>c.number||c.name).slice(0,4).join(', ')}</div></div>`:''
@@ -1790,7 +1786,8 @@ function renderBento(){
 
 // ── DASHBOARD CHARTS ──
 function renderDashCharts(){
-  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const theme=document.documentElement.getAttribute('data-theme')||'light';
+  const isDark=theme==='dark'||theme==='dealeron';
   const gc=isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.05)';
   const tc=isDark?'#606060':'#999999';
   Chart.defaults.color=tc; Chart.defaults.font.family="'Inter',sans-serif";
@@ -1798,7 +1795,7 @@ function renderDashCharts(){
   const pc={Critical:0,High:0,Medium:0,Low:0};
   cases.forEach(c=>{if(sc[c.status]!==undefined)sc[c.status]++;if(pc[c.priority]!==undefined)pc[c.priority]++;});
   const days=[],counts=[];
-  for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().slice(0,10);days.push(i===0?'Today':d.toLocaleDateString('en-IN',{day:'numeric',month:'short'}));counts.push(cases.filter(c=>c.start===ds).length);}
+  for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().slice(0,10);days.push(i===0?'Today':d.toLocaleDateString('en-US',{day:'numeric',month:'short'}));counts.push(cases.filter(c=>c.start===ds).length);}
   const bd=isDark?'#161616':'#fff';
   const dopts={responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:9,usePointStyle:true,pointStyleWidth:7}}},cutout:'68%'};
   ['dash-status','dash-priority','dash-timeline'].forEach(id=>{const el=document.getElementById(id);if(el&&charts[id]){charts[id].destroy();delete charts[id];}});
@@ -2041,6 +2038,7 @@ function addComment(){
   const text=inp?.value.trim();if(!text){toast('Enter a comment');return;}
   if(!c.comments)c.comments=[];
   c.comments.push({author:'You',text,ts:Date.now()});
+  logAudit('comment', c.number, c.name, `Comment added`);
   save();renderDTab('comments');toast('Comment added');
 }
 function editFromDetail(){if(openDetailId)openModal(openDetailId);}
@@ -2060,6 +2058,7 @@ function applyQStatus(){
   if(!c.statusHistory)c.statusHistory=[];
   c.statusHistory.push({from:prev,to:ns,ts:Date.now()});
   c.totalBanners=sumB(c);
+  logAudit('status', c.number, c.name, `Status changed: ${prev} → ${ns}`);
   save();renderAll();openDetail(openDetailId);
   document.getElementById('status-modal').classList.remove('open');
   pushUndo('status',{id:c.id,prevStatus:prev,newStatus:ns,prevHistory,prevEnd});
@@ -2144,6 +2143,7 @@ function saveBannerEntry(){
   if(!c.bannerLog)c.bannerLog=[];
   c.bannerLog.push({count,date,note,ts:Date.now()});
   c.totalBanners=sumB(c);
+  logAudit('banner', c.number, c.name, `Logged ${count} banners on ${fmtDateUS(date)}${note?' — '+note:''}`);
   save();renderBannerList();renderAll();
   if(openDetailId)renderDTab(openDTab);
   document.getElementById('bl-count').value='';document.getElementById('bl-note').value='';
@@ -2178,7 +2178,8 @@ function renderKanban(){
 // ── ANALYTICS ──
 function renderAnalytics(){renderTrend();renderImpact();renderLeaderboard();renderHeatmap();}
 function renderTrend(){
-  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const theme=document.documentElement.getAttribute('data-theme')||'light';
+  const isDark=theme==='dark'||theme==='dealeron';
   const gc=isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.04)';
   const weeks=[],avgs=[];
   for(let i=7;i>=0;i--){
@@ -2193,7 +2194,8 @@ function renderTrend(){
   charts['trend']=new Chart(el,{type:'line',data:{labels:weeks,datasets:[{data:avgs,borderColor:isDark?'#F0F0F0':'#111',backgroundColor:isDark?'rgba(240,240,240,.05)':'rgba(17,17,17,.05)',tension:.3,pointRadius:4,pointBackgroundColor:isDark?'#F0F0F0':'#111',borderWidth:1.5,spanGaps:true}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:10}},grid:{color:gc},title:{display:true,text:'Avg days',font:{size:10}}},x:{ticks:{font:{size:10}},grid:{display:false}}}}});
 }
 function renderImpact(){
-  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const theme=document.documentElement.getAttribute('data-theme')||'light';
+  const isDark=theme==='dark'||theme==='dealeron';
   const gc=isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.04)';
   const bt={},ct={};
   cases.forEach(c=>{const t=TSHORT[c.type]||c.type;bt[t]=(bt[t]||0)+sumB(c);ct[t]=(ct[t]||0)+1;});
@@ -2434,6 +2436,7 @@ function processFile(file){
       type:r[hi('Type')]||TYPES[0],status:r[hi('Status')]||'New',priority:r[hi('Priority')]||'Medium',
       start:r[hi('StartDate')]||'',end:r[hi('CompletionDate')]||'',dueDate:r[hi('DueDate')]||'',
       url:r[hi('URL')]||'',notes:r[hi('Notes')]||'',
+      bannerTarget:parseInt(r[hi('TotalBanners')])||parseInt(r[hi('Banners')])||0,
       bannerLog:[],comments:[],statusHistory:[],
       totalBanners:parseInt(r[hi('TotalBanners')])||parseInt(r[hi('Banners')])||0
     }));
@@ -2543,6 +2546,7 @@ function saveCase(){
   };
   c.totalBanners=sumB(c); // work done so far
   if(isEdit){const idx=cases.findIndex(x=>x.id===editId);cases[idx]=c;}else cases.push(c);
+  logAudit(isEdit?'edited':'created', c.number, c.name, isEdit?'Case updated':'Case created');
   save();closeModal();renderAll();renderPinnedCases();renderNotifications();
   if(isEdit&&openDetailId===c.id)openDetail(c.id);
   toast(isEdit?'Case updated!':'Case added!');
@@ -2555,11 +2559,11 @@ function deleteCase(id){
   cases=cases.filter(c=>c.id!==id);
   selected.delete(id);
   pinnedCases.delete(id);
+  logAudit('deleted', caseData?.number, caseData?.name, 'Case deleted');
   saveSettings();
   save();renderAll();
   renderNotifications();
   pushUndo('delete',{index:idx,case:caseData});
-  // Don't show separate toast — undo toast handles it
 }
 
 // ── CALENDAR STATE ──
@@ -3279,7 +3283,7 @@ function buildAutoSummary(range, periodCases, workedCases, totalBanners, from) {
   const closed = workedCases.filter(c => c.status === 'Closed').length;
   const pendConf = workedCases.filter(c => c.status === 'Pending Your Confirmation').length;
   const byType = {};
-  periodCases.forEach(c => { byType[TSHORT[c.type]||c.type] = (byType[c.type]||0) + 1; });
+  periodCases.forEach(c => { const k=TSHORT[c.type]||c.type; byType[k] = (byType[k]||0) + 1; });
   const topTypes = Object.entries(byType).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([t])=>t).join(' & ');
   let s = `${period === 'today' ? 'Today' : `This ${range}`}, worked on ${periodCases.length} case${periodCases.length!==1?'s':''}`;
   if (totalBanners > 0) s += `, completed ${totalBanners} banner${totalBanners!==1?'s':''}`;
@@ -3689,14 +3693,12 @@ function saveSettings() {
 }
 function renderSettingsUI() {
   const cur = localStorage.getItem('sf_theme')||'light';
-  const dt = document.getElementById('dark-toggle');
   const den = document.getElementById('density-toggle');
   const rem = document.getElementById('reminder-toggle');
   const sla = document.getElementById('sla-days-input');
   const dg = document.getElementById('daily-goal-input');
   const ds = document.getElementById('default-sort-sel');
   const le = document.getElementById('last-export-lbl');
-  if (dt) dt.className = 'toggle' + (cur==='dark'?' on':'');
   if (den) den.className = 'toggle' + (densityCompact?' on':'');
   if (rem) rem.className = 'toggle' + (reminderEnabled?' on':'');
   if (sla) sla.value = slaGlobalDays;
@@ -3704,7 +3706,6 @@ function renderSettingsUI() {
   if (ds) ds.value = sortKey;
   if (le) le.textContent = lastExportDate ? fmtD(lastExportDate) : 'Never';
   if (densityCompact) document.body.classList.add('compact'); else document.body.classList.remove('compact');
-  // Update theme selector if present
   const ts = document.getElementById('theme-selector');
   if (ts) ts.value = cur;
 }
