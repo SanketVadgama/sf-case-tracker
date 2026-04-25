@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SF Case Tracker</title>
+<title>Salesforce Case Tracker & Report</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -182,7 +182,26 @@ a:hover{opacity:.65}
 .ldr-bar{height:100%;background:var(--text);border-radius:2px}
 .ldr-n{font-family:var(--mono);font-size:11px;color:var(--text2);width:22px;text-align:right;flex-shrink:0}
 
-/* ── FORMS / INPUTS / BUTTONS ── */
+/* ── SIDEBAR TOGGLE ── */
+.sb-toggle{width:26px;height:26px;background:none;border:1px solid rgba(255,255,255,.12);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .12s;margin-left:auto}
+.sb-toggle:hover{background:rgba(255,255,255,.1)}
+.sb-toggle svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;transition:transform .2s var(--ease)}
+/* Collapsed sidebar */
+.sidebar.collapsed{width:52px}
+.sidebar.collapsed .sb-title,
+.sidebar.collapsed .sb-item span,
+.sidebar.collapsed .sb-badge,
+.sidebar.collapsed .sb-date,
+.sidebar.collapsed .sb-grp,
+.sidebar.collapsed .sb-sep,
+.sidebar.collapsed .sb-toggle-label{display:none}
+.sidebar.collapsed .sb-logo{justify-content:center;padding:14px 10px;gap:0}
+.sidebar.collapsed .sb-toggle{margin-left:0}
+.sidebar.collapsed .sb-item{justify-content:center;padding:8px}
+.sidebar.collapsed .sb-nav{padding:8px 6px}
+.sidebar.collapsed .sb-footer{padding:6px 6px 10px}
+
+
 input,select,textarea{font-family:var(--font);font-size:13px;color:var(--text);background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:6px 10px;outline:none;transition:border .12s,box-shadow .12s;-webkit-appearance:none}
 input[type=text],input[type=date],input[type=number]{height:34px}
 select{height:34px;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:26px}
@@ -413,7 +432,10 @@ tbody td{padding:7px 10px;color:var(--text);vertical-align:middle;overflow:hidde
 <aside class="sidebar">
   <div class="sb-logo">
     <div class="sb-mark"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg></div>
-    <div class="sb-title">SF Tracker<small>Case Manager</small></div>
+    <div class="sb-title">Salesforce Case Tracker<small>& Report</small></div>
+    <button class="sb-toggle" onclick="toggleSidebar()" title="Toggle sidebar" id="sb-toggle-btn">
+      <svg viewBox="0 0 24 24" id="sb-toggle-icon"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
   </div>
   <nav class="sb-nav">
     <div class="sb-grp">Workspace</div>
@@ -773,6 +795,7 @@ function load() {
   });
   const th=localStorage.getItem('sf_theme');
   if(th==='dark'){document.documentElement.setAttribute('data-theme','dark');updateThemeBtn(true);}
+  if(localStorage.getItem('sb_collapsed')==='1'){document.querySelector('.sidebar').classList.add('collapsed');}
   document.getElementById('sb-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
   renderAll();
 }
@@ -796,6 +819,13 @@ function sumBInPeriod(c,from){return(c.bannerLog||[]).filter(b=>!from||new Date(
 function bS(s){const m={'New':'s-new','In Progress':'s-inp','Pending Your Input':'s-pyi','Pending Your Confirmation':'s-pyc','Closed':'s-closed'};return`<span class="badge ${m[s]||'s-new'}">${s}</span>`;}
 function bP(p){const m={'Critical':'p-critical','High':'p-high','Medium':'p-medium','Low':'p-low'};return`<span class="badge ${m[p]||'p-low'}">${p||'—'}</span>`;}
 function bT(t){return`<span class="badge ${TCLASS[t]||'t-acm'}" title="${t}">${TSHORT[t]||t}</span>`;}
+
+// ── SIDEBAR TOGGLE ──
+function toggleSidebar(){
+  const sb=document.querySelector('.sidebar');
+  const collapsed=sb.classList.toggle('collapsed');
+  localStorage.setItem('sb_collapsed', collapsed?'1':'0');
+}
 
 // ── THEME ──
 function toggleTheme(){
@@ -864,6 +894,8 @@ function renderBento(){
 
   document.getElementById('bento-grid').innerHTML=`
     ${alerts}
+
+    <!-- ROW 1: Status stat cards -->
     <div class="b c2 bp b-dark"><div class="b-lbl">Total</div><div class="b-num">${total}</div><div class="b-sub">all cases</div></div>
     <div class="b c2 bp"><div class="b-lbl">New</div><div class="b-num" style="color:var(--s-new)">${bySt('New')}</div><div class="b-sub">awaiting</div></div>
     <div class="b c2 bp"><div class="b-lbl">In Progress</div><div class="b-num" style="color:var(--s-inp)">${bySt('In Progress')}</div><div class="b-sub">active</div></div>
@@ -871,10 +903,13 @@ function renderBento(){
     <div class="b c2 bp"><div class="b-lbl">Pend. Confirm</div><div class="b-num" style="color:var(--s-pyc)">${bySt('Pending Your Confirmation')}</div><div class="b-sub">awaiting OK</div></div>
     <div class="b c2 bp"><div class="b-lbl">Closed</div><div class="b-num" style="color:var(--s-closed)">${bySt('Closed')}</div><div class="b-sub">resolved</div></div>
 
-    <div class="b c4 b-chart"><div class="b-chart-title">Status</div><canvas id="dash-status" height="170"></canvas></div>
-    <div class="b c4 b-chart"><div class="b-chart-title">Priority</div><canvas id="dash-priority" height="170"></canvas></div>
-    <div class="b c4 b-chart"><div class="b-chart-title">Opened — last 14 days</div><canvas id="dash-timeline" height="170"></canvas></div>
+    <!-- ROW 2: Banners / Resolution / Due Soon / Past Due -->
+    <div class="b c3 bp"><div class="b-lbl">Total Banners</div><div class="b-num">${allB}</div><div class="b-sub">all time</div></div>
+    <div class="b c3 bp"><div class="b-lbl">Avg Resolution</div><div class="b-num" style="font-size:${avgRes!==null?'26':'18'}px">${avgRes!==null?avgRes+'d':'—'}</div><div class="b-sub">days to close</div></div>
+    <div class="b c3 bp"><div class="b-lbl">Due Soon</div><div class="b-num" style="color:${dueSoon.length?'var(--s-pyi)':'var(--text)'}">${dueSoon.length}</div><div class="b-sub">within 2 days</div></div>
+    <div class="b c3 bp"><div class="b-lbl">Past Due</div><div class="b-num" style="color:${pastDue.length?'var(--p-critical)':'var(--text)'}">${pastDue.length}</div><div class="b-sub">missed deadline</div></div>
 
+    <!-- ROW 3: Recent Cases / Quick Add / Weekly Digest -->
     <div class="b c5 bp">
       <div class="b-lbl">Recent Cases</div>
       ${recent.length?recent.map(c=>`
@@ -904,10 +939,10 @@ function renderBento(){
       <div class="drow"><span class="drow-k">Avg Res.</span><span class="drow-v">${avgRes!==null?avgRes+'d':'—'}</span></div>
     </div>
 
-    <div class="b c3 bp"><div class="b-lbl">Total Banners</div><div class="b-num">${allB}</div><div class="b-sub">all time</div></div>
-    <div class="b c3 bp"><div class="b-lbl">Avg Resolution</div><div class="b-num" style="font-size:${avgRes!==null?'26':'18'}px">${avgRes!==null?avgRes+'d':'—'}</div><div class="b-sub">days to close</div></div>
-    <div class="b c3 bp"><div class="b-lbl">Due Soon</div><div class="b-num" style="color:${dueSoon.length?'var(--s-pyi)':'var(--text)'}">${dueSoon.length}</div><div class="b-sub">within 2 days</div></div>
-    <div class="b c3 bp"><div class="b-lbl">Past Due</div><div class="b-num" style="color:${pastDue.length?'var(--p-critical)':'var(--text)'}">${pastDue.length}</div><div class="b-sub">missed deadline</div></div>
+    <!-- ROW 4: Charts (moved to bottom) -->
+    <div class="b c4 b-chart"><div class="b-chart-title">Status</div><canvas id="dash-status" height="170"></canvas></div>
+    <div class="b c4 b-chart"><div class="b-chart-title">Priority</div><canvas id="dash-priority" height="170"></canvas></div>
+    <div class="b c4 b-chart"><div class="b-chart-title">Opened — last 14 days</div><canvas id="dash-timeline" height="170"></canvas></div>
   `;
 }
 
