@@ -373,9 +373,10 @@ a:hover{opacity:.65}
 .sidebar.collapsed .sb-item svg{width:16px;height:16px}
 
 /* ── SIDEBAR TOOLTIPS (collapsed only) ── */
-.sidebar.collapsed .sb-item{overflow:visible}
-.sb-tooltip{display:none;position:absolute;left:58px;top:50%;transform:translateY(-50%);background:rgba(20,20,20,.95);color:#fff;font-size:12px;font-weight:600;padding:5px 10px;border-radius:6px;white-space:nowrap;pointer-events:none;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.3)}
-.sb-tooltip::before{content:'';position:absolute;left:-5px;top:50%;transform:translateY(-50%);border:5px solid transparent;border-right-color:rgba(20,20,20,.95);border-left:none}
+.sidebar.collapsed .sb-item{overflow:visible;position:relative}
+.sidebar.collapsed .sb-nav{overflow:visible}
+.sb-tooltip{display:none;position:absolute;left:60px;top:50%;transform:translateY(-50%);background:rgba(15,15,15,.96);color:#fff;font-size:12px;font-weight:600;padding:5px 11px;border-radius:6px;white-space:nowrap;pointer-events:none;z-index:99999;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.sb-tooltip::before{content:'';position:absolute;left:-5px;top:50%;transform:translateY(-50%);border:5px solid transparent;border-right-color:rgba(15,15,15,.96);border-left:none}
 .sidebar.collapsed .sb-item:hover .sb-tooltip{display:block}
 
 
@@ -3333,7 +3334,7 @@ function copyReport() {
 
     // Table styles for email clients
     const tStyle = 'border-collapse:collapse;width:100%;font-family:Arial,sans-serif;font-size:13px;margin:8px 0 16px';
-    const thStyle = 'background:#183358;color:#fff;padding:7px 10px;text-align:left;font-size:11px;font-weight:bold;border:1px solid #ccc';
+    const thStyle = 'background-color:#183358;background:#183358;color:#ffffff;padding:7px 10px;text-align:left;font-size:11px;font-weight:bold;border:1px solid #183358';
     const tdStyle = 'padding:6px 10px;border:1px solid #ddd;vertical-align:top';
     const tdNumStyle = 'padding:6px 10px;border:1px solid #ddd;text-align:center;font-weight:bold';
 
