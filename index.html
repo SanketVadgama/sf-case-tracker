@@ -2277,7 +2277,7 @@ function openModal(id){
 function closeModal(){document.getElementById('modal-bg').classList.remove('open');editId=null;}
 
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeModal();closeDetail();closeEODModal();['status-modal','banner-modal','save-filter-modal'].forEach(id=>document.getElementById(id).classList.remove('open'));closeImportModal();document.getElementById('notif-panel').classList.remove('open');}
+  if(e.key==='Escape'){closeModal();closeDetail();closeEODModal();['status-modal','banner-modal','save-filter-modal'].forEach(id=>document.getElementById(id).classList.remove('open'));closeImportModal();document.getElementById('notif-panel').classList.remove('open');if(document.getElementById('focus-overlay')?.classList.contains('open'))closeFocusMode();}
   if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();const s=document.getElementById('search');if(s){s.focus();switchTab('cases',document.querySelector('[data-tab=cases]'));}}
 });
 
@@ -3485,12 +3485,13 @@ function archiveFromDetail() {
   if (openDetailId) { archiveCase(openDetailId); closeDetail(); }
 }
 
-// ── EXTEND ESCAPE KEY for focus mode ──
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && document.getElementById('focus-overlay')?.classList.contains('open')) {
-    closeFocusMode();
-  }
-});
+// ── REPORT: CUSTOM DATE RANGE ──
+function onRptRangeChange() {
+  const v = document.getElementById('rpt-range').value;
+  const custom = document.getElementById('rpt-custom-dates');
+  if (custom) custom.style.display = v === 'custom' ? 'flex' : 'none';
+  if (v !== 'custom') renderReport();
+}
 
 load();
 </script>
