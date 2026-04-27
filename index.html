@@ -3067,12 +3067,14 @@ function renderReport(){
 
   const bInP=c=>sumBInPeriod(c,from,to);
 
-  // ── Unified case set: cases that had start OR end OR banner activity in period ──
+  // ── Case inclusion: start OR end date falls in period (NOT banner log dates) ──
+  // bInP is used only for banner COUNTS inside the table, not for inclusion.
+  // This prevents old closed cases with late-corrected banner entries
+  // from bleeding into months they don't belong to.
   const inPeriod=c=>{
     if(!from)return true;
     if(c.start&&new Date(c.start+'T12:00:00')>=from&&new Date(c.start+'T12:00:00')<=to)return true;
     if(c.end&&new Date(c.end+'T12:00:00')>=from&&new Date(c.end+'T12:00:00')<=to)return true;
-    if(bInP(c)>0)return true; // had banners logged in period even if started before
     return false;
   };
   const periodCases=cases.filter(inPeriod);
