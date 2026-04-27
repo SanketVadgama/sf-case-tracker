@@ -2337,8 +2337,8 @@ function renderBento(){
   const bySt=s=>(periodFrom?pCases:allCases).filter(c=>c.status===s).length;
   const total=periodFrom?pCases.length:allCases.length;
   const pTo=periodTo||now;
-  // Use allCases (non-archived) for all calculations — same as report
-  const allB=periodFrom?allCases.reduce((s,c)=>s+sumBInPeriod(c,periodFrom,pTo),0):allCases.reduce((s,c)=>s+sumB(c),0);
+  // Sum banners only from cases IN the period (same as report: periodCases.reduce bInP)
+  const allB=periodFrom?pCases.reduce((s,c)=>s+sumBInPeriod(c,periodFrom,pTo),0):allCases.reduce((s,c)=>s+sumB(c),0);
   const resolved=periodFrom?allCases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=periodFrom&&new Date(c.end+'T12:00:00')<=pTo):allCases.filter(c=>c.status==='Closed'&&c.start&&c.end);
   const avgRes=resolved.length?Math.round(resolved.reduce((s,c)=>s+(new Date(c.end+'T12:00:00')-new Date(c.start+'T12:00:00'))/86400000,0)/resolved.length):null;
   const overdue=allCases.filter(isOD);
