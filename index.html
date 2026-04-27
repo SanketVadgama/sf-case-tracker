@@ -3130,7 +3130,7 @@ function renderReport(){
 
     // Auto-summary
     const summaryText=buildAutoSummary(range,periodCases,movedToWorked,totalBanners,from||new Date(0));
-    html+=`<div class="rpt-summary-box"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:rgba(255,255,255,.4);margin-bottom:6px">Summary</div><div class="rpt-summary-text">${summaryText}</div><button class="rpt-summary-copy" onclick="navigator.clipboard.writeText(${JSON.stringify(summaryText)}).then(()=>toast('Copied!'))">Copy</button></div>`;
+    html+=`<div class="rpt-summary-box"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:rgba(255,255,255,.4);margin-bottom:6px">Summary</div><div class="rpt-summary-text">${summaryText}</div><button class="rpt-summary-copy" onclick="copySummaryText(this)">Copy</button></div>`;
 
     // Week-over-week (only for weekly)
     if(isWeekly){
@@ -4105,15 +4105,32 @@ function wowClass(curr, prev) { return curr > prev ? 'up' : curr < prev ? 'down'
 function wowArrow(curr, prev) { return curr > prev ? '↑' : curr < prev ? '↓' : '→'; }
 
 // ── REPORT: AUTO SUMMARY ──
+function copySummaryText(btn) {
+  const text = btn.closest('.rpt-summary-box')?.querySelector('.rpt-summary-text')?.textContent || '';
+  if (!text) return;
+  const finish = () => { toast('Copied!'); btn.textContent = '✓ Copied'; setTimeout(() => btn.textContent = 'Copy', 2000); };
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(finish).catch(() => fallbackCopy(text, finish));
+  } else { fallbackCopy(text, finish); }
+}
+function fallbackCopy(text, cb) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); if(cb) cb(); } catch(e) { toast('Copy failed'); }
+  document.body.removeChild(ta);
+}
+
 function buildAutoSummary(range, periodCases, workedCases, totalBanners, from) {
   const period = range === 'daily' ? 'today' : range === 'weekly' ? 'this week' : range === 'monthly' ? 'this month' : range === 'pick-month' ? (() => { try { const ms=parseInt(document.getElementById('rpt-month-sel')?.value||0); const ys=parseInt(document.getElementById('rpt-year-sel')?.value||new Date().getFullYear()); return new Date(ys,ms,1).toLocaleDateString('en-US',{month:'long',year:'numeric'}); } catch(e){ return 'selected month'; } })() : 'this period';
   const closed = workedCases.filter(c => c.status === 'Closed').length;
   const pendConf = workedCases.filter(c => c.status === 'Pending Your Confirmation').length;
-  const workedCount = workedCases.length; // cases that actually moved to done status
+  const workedCount = workedCases.length;
   const byType = {};
   workedCases.forEach(c => { const k=TSHORT[c.type]||c.type; byType[k] = (byType[k]||0) + 1; });
   const topTypes = Object.entries(byType).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([t])=>t).join(' & ');
-  let s = `This ${period === 'today' ? 'day' : period.replace('this ','')}, worked on ${workedCount} case${workedCount!==1?'s':''}`;
+  let s = `This ${period === 'today' ? 'day' : period.replace('this ','')}`;
+  s += `, worked on ${workedCount} case${workedCount!==1?'s':''}`;
   if (totalBanners > 0) s += `, completed ${totalBanners} banner${totalBanners!==1?'s':''}`;
   if (topTypes) s += ` across ${topTypes}`;
   if (closed > 0) s += `. Closed ${closed} case${closed!==1?'s':''}`;
