@@ -2974,11 +2974,24 @@ function renderImpact(){
 }
 function renderLeaderboard(){
   const el=document.getElementById('leaderboard');if(!el)return;
-  const board={};
-  cases.filter(c=>c.status==='Closed'&&c.assignee).forEach(c=>{board[c.assignee]=(board[c.assignee]||0)+1;});
-  const sorted=Object.entries(board).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  const max=sorted[0]?.[1]||1;
-  el.innerHTML=sorted.length?sorted.map(([name,count],i)=>`<div class="ldr-row"><div class="ldr-rank">${i+1}</div><div class="ldr-name">${name}</div><div class="ldr-bar-bg"><div class="ldr-bar" style="width:${Math.round(count/max*100)}%"></div></div><div class="ldr-n">${count}</div></div>`).join(''):`<div style="font-size:12px;color:var(--text3);padding:8px 0">No closed cases with assignees yet</div>`;
+  const board={};  // { name: { cases, banners } }
+  cases.filter(c=>DONE_STATUSES.includes(c.status)&&c.assignee).forEach(c=>{
+    if(!board[c.assignee]) board[c.assignee]={cases:0,banners:0};
+    board[c.assignee].cases++;
+    board[c.assignee].banners+=sumB(c);
+  });
+  const sorted=Object.entries(board).sort((a,b)=>b[1].cases-a[1].cases).slice(0,8);
+  const max=sorted[0]?.[1].cases||1;
+  el.innerHTML=sorted.length?sorted.map(([name,{cases:cnt,banners}],i)=>`
+    <div class="ldr-row">
+      <div class="ldr-rank">${i+1}</div>
+      <div class="ldr-name">${name}</div>
+      <div class="ldr-bar-bg"><div class="ldr-bar" style="width:${Math.round(cnt/max*100)}%"></div></div>
+      <div class="ldr-n" style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+        <span>${cnt} <span style="font-size:9px;color:var(--text3);font-weight:400">cases</span></span>
+        <span style="font-size:10px;color:var(--text3);font-weight:400">${banners} banners</span>
+      </div>
+    </div>`).join(''):`<div style="font-size:12px;color:var(--text3);padding:8px 0">No completed cases with assignees yet</div>`;
 }
 function renderHeatmap(){
   const el=document.getElementById('heatmap');if(!el)return;
@@ -3034,20 +3047,27 @@ function renderReport(){
     periodLabel=fmtD(fv)+' – '+fmtD(tv);
   }
 
+  const bInP=c=>sumBInPeriod(c,from,to);
+
+  // ── Unified case set: cases that had start OR end OR banner activity in period ──
   const inPeriod=c=>{
     if(!from)return true;
-    return(c.start&&new Date(c.start+'T12:00:00')>=from&&new Date(c.start+'T12:00:00')<=to)||
-           (c.end&&new Date(c.end+'T12:00:00')>=from&&new Date(c.end+'T12:00:00')<=to);
+    if(c.start&&new Date(c.start+'T12:00:00')>=from&&new Date(c.start+'T12:00:00')<=to)return true;
+    if(c.end&&new Date(c.end+'T12:00:00')>=from&&new Date(c.end+'T12:00:00')<=to)return true;
+    if(bInP(c)>0)return true; // had banners logged in period even if started before
+    return false;
   };
-  // Cases that MOVED to worked status during period (not just currently in that status)
-  const movedToWorked=cases.filter(c=>{
+  const periodCases=cases.filter(inPeriod);
+
+  // Cases that MOVED to a done status IN the period — scoped to periodCases only
+  const movedToWorked=periodCases.filter(c=>{
     if(!WORKED.includes(c.status))return false;
     if(!from)return true;
-    const lastWorkedChange=(c.statusHistory||[]).filter(h=>WORKED.includes(h.to)&&h.ts&&new Date(h.ts)>=from&&new Date(h.ts)<=to);
-    return lastWorkedChange.length>0;
+    const changes=(c.statusHistory||[]).filter(h=>WORKED.includes(h.to)&&h.ts&&new Date(h.ts)>=from&&new Date(h.ts)<=to);
+    return changes.length>0;
   });
-  const periodCases=cases.filter(inPeriod);
-  const bInP=c=>sumBInPeriod(c,from,to);
+
+  // Totals — all use same periodCases set with bInP so they're fully consistent
   const totalBanners=periodCases.reduce((s,c)=>s+bInP(c),0);
   const totalBlogs=periodCases.filter(c=>c.type==='Automotive Blog Migration'||c.type==='LeadScience Blog Migration').reduce((s,c)=>s+bInP(c),0);
   const totalPages=periodCases.filter(c=>c.type==='Automotive Content Migration'||c.type==='LeadScience Content Migration').reduce((s,c)=>s+bInP(c),0);
@@ -3165,12 +3185,13 @@ function renderReport(){
     html+=`<div class="rpt-totals">
       <div class="rpt-totals-title">Summary</div>
       <div class="rpt-total-row"><span class="rpt-total-k">Total Cases Worked On <span style="font-size:10px;color:var(--text3)">(moved to Pend. Confirm. or Closed this period)</span></span><span class="rpt-total-v">${movedToWorked.length}</span></div>
+      <div class="rpt-total-row"><span class="rpt-total-k">Total Cases in Period <span style="font-size:10px;color:var(--text3)">(started, closed, or had banners logged)</span></span><span class="rpt-total-v">${periodCases.length}</span></div>
       <div class="rpt-total-row"><span class="rpt-total-k">Total Banners Logged in Period</span><span class="rpt-total-v">${totalBanners}</span></div>
       <div class="rpt-total-row"><span class="rpt-total-k">Total Blogs Migrated (Blog types)</span><span class="rpt-total-v">${totalBlogs}</span></div>
       <div class="rpt-total-row"><span class="rpt-total-k">Total Pages Migrated (Content types)</span><span class="rpt-total-v">${totalPages}</span></div>
-      ${TYPES.map(t=>{const tc=periodCases.filter(c=>c.type===t);const tb=tc.reduce((s,c)=>s+bInP(c),0);return`<div class="rpt-total-row"><span class="rpt-total-k">${TSHORT[t]} — ${t}</span><span class="rpt-total-v" style="display:flex;gap:14px;align-items:center"><span style="color:var(--text2);font-size:11px">${tc.length} case${tc.length!==1?'s':''}</span>${tb}</span></div>`;}).join('')}
+      ${TYPES.map(t=>{const tc=periodCases.filter(c=>c.type===t);const tb=tc.reduce((s,c)=>s+bInP(c),0);return tb>0||tc.length>0?`<div class="rpt-total-row"><span class="rpt-total-k">${TSHORT[t]||t} — ${t}</span><span class="rpt-total-v" style="display:flex;gap:14px;align-items:center"><span style="color:var(--text2);font-size:11px">${tc.length} case${tc.length!==1?'s':''}</span>${tb}</span></div>`:'';}).join('')}
     </div>
-    <div class="rpt-note">* "Total Cases Worked On" counts cases that moved to Pending Your Confirmation or Closed <em>during this period</em>. Does not count cases that were already in those statuses before the period started.</div>`;
+    <div class="rpt-note">* "Total Cases Worked On" = cases that moved to Pending Confirmation or Closed during this period. "Total Cases in Period" = all cases with any activity (start, close, or banners logged) in the window.</div>`;
   }
 
   document.getElementById('report-body').innerHTML=html;
@@ -4085,15 +4106,14 @@ function wowArrow(curr, prev) { return curr > prev ? '↑' : curr < prev ? '↓'
 
 // ── REPORT: AUTO SUMMARY ──
 function buildAutoSummary(range, periodCases, workedCases, totalBanners, from) {
-  const now = new Date();
   const period = range === 'daily' ? 'today' : range === 'weekly' ? 'this week' : range === 'monthly' ? 'this month' : range === 'pick-month' ? (() => { try { const ms=parseInt(document.getElementById('rpt-month-sel')?.value||0); const ys=parseInt(document.getElementById('rpt-year-sel')?.value||new Date().getFullYear()); return new Date(ys,ms,1).toLocaleDateString('en-US',{month:'long',year:'numeric'}); } catch(e){ return 'selected month'; } })() : 'this period';
-  const opened = periodCases.filter(c => c.start && new Date(c.start+'T12:00:00') >= from).length;
   const closed = workedCases.filter(c => c.status === 'Closed').length;
   const pendConf = workedCases.filter(c => c.status === 'Pending Your Confirmation').length;
+  const workedCount = workedCases.length; // cases that actually moved to done status
   const byType = {};
-  periodCases.forEach(c => { const k=TSHORT[c.type]||c.type; byType[k] = (byType[k]||0) + 1; });
+  workedCases.forEach(c => { const k=TSHORT[c.type]||c.type; byType[k] = (byType[k]||0) + 1; });
   const topTypes = Object.entries(byType).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([t])=>t).join(' & ');
-  let s = `${period === 'today' ? 'Today' : `This ${range}`}, worked on ${periodCases.length} case${periodCases.length!==1?'s':''}`;
+  let s = `This ${period === 'today' ? 'day' : period.replace('this ','')}, worked on ${workedCount} case${workedCount!==1?'s':''}`;
   if (totalBanners > 0) s += `, completed ${totalBanners} banner${totalBanners!==1?'s':''}`;
   if (topTypes) s += ` across ${topTypes}`;
   if (closed > 0) s += `. Closed ${closed} case${closed!==1?'s':''}`;
