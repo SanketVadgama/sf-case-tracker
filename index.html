@@ -2337,16 +2337,17 @@ function renderBento(){
   const bySt=s=>(periodFrom?pCases:allCases).filter(c=>c.status===s).length;
   const total=periodFrom?pCases.length:allCases.length;
   const pTo=periodTo||now;
-  const allB=periodFrom?cases.reduce((s,c)=>s+sumBInPeriod(c,periodFrom,pTo),0):cases.reduce((s,c)=>s+sumB(c),0);
-  const resolved=periodFrom?cases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=periodFrom&&new Date(c.end+'T12:00:00')<=pTo):cases.filter(c=>c.status==='Closed'&&c.start&&c.end);
+  // Use allCases (non-archived) for all calculations — same as report
+  const allB=periodFrom?allCases.reduce((s,c)=>s+sumBInPeriod(c,periodFrom,pTo),0):allCases.reduce((s,c)=>s+sumB(c),0);
+  const resolved=periodFrom?allCases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=periodFrom&&new Date(c.end+'T12:00:00')<=pTo):allCases.filter(c=>c.status==='Closed'&&c.start&&c.end);
   const avgRes=resolved.length?Math.round(resolved.reduce((s,c)=>s+(new Date(c.end+'T12:00:00')-new Date(c.start+'T12:00:00'))/86400000,0)/resolved.length):null;
   const overdue=allCases.filter(isOD);
   const pastDue=allCases.filter(isPD);
   const dueSoon=allCases.filter(c=>isDS(c)&&!isPD(c));
   // Digest always uses same period window as dashboard selection
-  const wOpened=cases.filter(c=>c.start&&new Date(c.start+'T12:00:00')>=(periodFrom||new Date(0))&&new Date(c.start+'T12:00:00')<=pTo).length;
-  const wClosed=cases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=(periodFrom||new Date(0))&&new Date(c.end+'T12:00:00')<=pTo).length;
-  const wB=cases.reduce((s,c)=>s+sumBInPeriod(c,periodFrom||new Date(0),pTo),0);
+  const wOpened=allCases.filter(c=>c.start&&new Date(c.start+'T12:00:00')>=(periodFrom||new Date(0))&&new Date(c.start+'T12:00:00')<=pTo).length;
+  const wClosed=allCases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=(periodFrom||new Date(0))&&new Date(c.end+'T12:00:00')<=pTo).length;
+  const wB=allCases.reduce((s,c)=>s+sumBInPeriod(c,periodFrom||new Date(0),pTo),0);
   const recent=periodFrom?[...allCases].filter(c=>inPeriod(c)).sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6):[...allCases].sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6);
 
   const w=dashWidgets;
@@ -2365,7 +2366,7 @@ function renderBento(){
       <div class="b bp"><div class="b-lbl">In Progress</div><div class="b-num" style="color:var(--s-inp)">${bySt('In Progress')}</div><div class="b-sub">active</div></div>
       <div class="b bp"><div class="b-lbl">Pend. Input</div><div class="b-num" style="color:var(--s-pyi)">${bySt('Pending Your Input')}</div><div class="b-sub">needs info</div></div>
       <div class="b bp"><div class="b-lbl">Pend. Confirm</div><div class="b-num" style="color:var(--s-pyc)">${bySt('Pending Your Confirmation')}</div><div class="b-sub">awaiting OK</div></div>
-      <div class="b bp"><div class="b-lbl">Closed</div><div class="b-num" style="color:var(--s-closed)">${bySt('Closed')}</div><div class="b-sub">resolved</div></div>
+      <div class="b bp"><div class="b-lbl">Closed</div><div class="b-num" style="color:var(--s-closed)">${bySt('Closed')}</div><div class="b-sub">in period</div></div>
     </div>`,
     metrics:()=>`<div class="b c12" style="padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:none;background:transparent;box-shadow:none">
       <div class="b bp"><div class="b-lbl">Banners — ${pLabel}</div><div class="b-num">${allB}</div><div class="b-sub">${pSub[dashPeriod]}</div></div>
