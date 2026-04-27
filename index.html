@@ -960,16 +960,31 @@ tbody td{padding:7px 10px;color:var(--text);vertical-align:middle;overflow:hidde
 
 /* Banner log */
 .bl-list{max-height:155px;overflow-y:auto;margin-bottom:10px}
-.bl-item{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;gap:8px}
+.bl-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;gap:8px}
 .bl-item:last-child{border-bottom:none}
+.bl-item:hover .bl-actions{opacity:1}
+.bl-actions{display:flex;gap:4px;opacity:0;transition:opacity .15s;flex-shrink:0}
+.bl-action-btn{width:22px;height:22px;border-radius:4px;border:1px solid var(--border2);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text3);transition:all .12s;padding:0;font-size:11px}
+.bl-action-btn:hover{background:var(--surface3);color:var(--text)}
+.bl-action-btn.del:hover{background:var(--p-critical-bg);color:var(--p-critical);border-color:var(--p-critical)}
+.bl-edit-row{padding:8px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);margin:4px 0;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .bl-cnt{font-family:var(--mono);font-weight:700;color:var(--text);font-size:13px;flex-shrink:0}
 .bl-note{color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bl-date{color:var(--text3);font-family:var(--mono);font-size:10px;flex-shrink:0}
 
 /* ── KANBAN ── */
-.kanban{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:start}
-.k-col{background:var(--surface2);border-radius:var(--r-lg);border:1px solid var(--border)}
-.k-head{padding:9px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.kanban{display:flex;gap:10px;align-items:start;overflow-x:auto;padding-bottom:4px}
+.k-col{flex:1 1 0;min-width:200px}
+.k-col{background:var(--surface2);border-radius:var(--r-lg);border:1px solid var(--border);transition:min-width .2s}
+.k-col.collapsed{min-width:0;width:44px;flex:0 0 44px}
+.k-col.collapsed .k-cards{display:none}
+.k-head{padding:9px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px}
+.k-col.collapsed .k-head{flex-direction:column;align-items:center;padding:10px 6px;gap:8px;border-bottom:none;height:calc(100% - 0px)}
+.k-col.collapsed .k-title-wrap{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap}
+.k-col.collapsed .k-cnt{margin:0}
+.k-col.collapsed .k-collapse-btn{transform:rotate(90deg)}
+.k-collapse-btn{background:none;border:none;cursor:pointer;color:var(--text3);padding:2px;border-radius:3px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.k-collapse-btn:hover{color:var(--text);background:var(--surface3)}
 .k-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2)}
 .k-cnt{font-size:10px;padding:1px 6px;border-radius:10px;background:var(--surface3);color:var(--text3);font-weight:700;font-family:var(--mono)}
 .k-cards{padding:8px;display:flex;flex-direction:column;gap:6px;min-height:46px}
@@ -1209,13 +1224,13 @@ tbody td{padding:7px 10px;color:var(--text);vertical-align:middle;overflow:hidde
 .type-chip.builtin{background:var(--surface3);color:var(--text2)}
 .type-chip.builtin .type-chip-del{display:none}
 .type-add-row{display:flex;gap:7px;margin-top:10px}
-.bento-widget{cursor:default}
-.b.c12.dragging{opacity:.5}
-.b.c12.drag-over{outline:2px dashed var(--accent);outline-offset:2px;border-radius:var(--r-lg)}
-.bento-drag-handle{display:none;position:absolute;top:6px;right:6px;width:22px;height:22px;cursor:grab;color:var(--text3);align-items:center;justify-content:center;border-radius:4px;transition:color .12s,background .12s;z-index:10;background:var(--surface);border:1px solid var(--border);padding:2px;box-shadow:var(--sh)}
-.bento-drag-handle:hover{color:var(--text);background:var(--surface2)}
-.bento-drag-handle svg{width:14px;height:14px}
-.b.c12:hover > .bento-drag-handle{display:flex}
+/* ── DASHBOARD SECTION ORDER ── */
+.dash-order-row{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:5px}
+.dash-order-label{flex:1;font-size:12px;font-weight:500;color:var(--text)}
+.dash-order-btns{display:flex;gap:3px}
+.dash-order-btn{width:24px;height:24px;border:1px solid var(--border2);background:var(--surface);border-radius:5px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:all .12s;padding:0}
+.dash-order-btn:hover{background:var(--surface3);color:var(--text)}
+.dash-order-btn:disabled{opacity:.3;cursor:default}
 .active-cases-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:14px;overflow:hidden}
 .acp-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;background:var(--surface2)}
 .acp-header:hover{background:var(--surface3)}
@@ -1819,9 +1834,9 @@ body.compact .k-card{padding:6px 8px}
             </div>
           </div>
           <div class="settings-section">
-            <div class="settings-section-title">Dashboard Widgets</div>
-            <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Choose which sections appear on your dashboard.</div>
-            <div class="dash-widget-grid" id="dash-widget-grid"></div>
+            <div class="settings-section-title">Dashboard Widgets &amp; Order</div>
+            <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Toggle sections on/off and use ↑↓ to reorder them on the dashboard.</div>
+            <div id="dash-order-wrap"></div>
           </div>
           <div class="settings-section">
             <div class="settings-section-title">Data Health Check</div>
@@ -1894,7 +1909,7 @@ body.compact .k-card{padding:6px 8px}
     <div class="m-body">
       <div class="form-grid">
         <div class="fg"><label>Case Number *</label><input type="text" id="f-number" placeholder="e.g. 00123456"></div>
-        <div class="fg"><label>Due Date</label><input type="date" id="f-due"></div>
+        <div class="fg"><label>Due Date *</label><input type="date" id="f-due"></div>
         <div class="fg full"><label>Case Name *</label><input type="text" id="f-name" placeholder="Short description of the case"></div>
         <div class="fg full"><label>Salesforce URL *</label><input type="text" id="f-url" placeholder="https://…salesforce.com/…"></div>
         <div class="fg"><label>Type *</label>
@@ -2143,9 +2158,28 @@ function fmtD(d){return fmtDateUS(d);}
 function fmtDF(d){return fmtDateUSFull(d);}
 function fmtTs(ts){const d=new Date(ts),now=new Date(),diff=Math.floor((now-d)/6e4);if(diff<1)return'just now';if(diff<60)return diff+'m ago';if(diff<1440)return Math.floor(diff/60)+'h ago';return d.toLocaleDateString('en-US',{timeZone:US_TZ,month:'short',day:'numeric'});}
 function dSince(d){if(!d)return null;return Math.floor((new Date()-(new Date(d+'T12:00:00')))/86400000);}
-function isOD(c){return c.status!=='Closed'&&!c.archived&&c.start&&dSince(c.start)>(slaGlobalDays||7);}
-function isPD(c){if(!c.dueDate||c.status==='Closed')return false;return new Date(c.dueDate+'T12:00:00')<new Date();}
-function isDS(c){if(!c.dueDate||c.status==='Closed')return false;const d=Math.floor((new Date(c.dueDate+'T12:00:00')-new Date())/86400000);return d<=2&&d>=0;}
+
+// Due date EOD = 23:59:59 on that date in local time
+function dueDateEOD(ds){if(!ds)return null;const [y,m,d]=ds.split('-');return new Date(+y,+m-1,+d,23,59,59,999);}
+
+// Statuses where case is done from our side — no SLA/overdue
+const DONE_STATUSES=['Pending Your Confirmation','Closed'];
+
+// Past due: due date EOD has passed, case not done
+function isPD(c){
+  if(!c.dueDate||DONE_STATUSES.includes(c.status)||c.archived)return false;
+  return new Date()>dueDateEOD(c.dueDate);
+}
+// Due soon: due date EOD is within 2 days, case not done, not already past due
+function isDS(c){
+  if(!c.dueDate||DONE_STATUSES.includes(c.status)||c.archived)return false;
+  const eod=dueDateEOD(c.dueDate);
+  const now=new Date();
+  const hoursLeft=(eod-now)/3600000;
+  return hoursLeft>=0&&hoursLeft<=48;
+}
+// Overdue: past due AND case not done (SLA violation)
+function isOD(c){return isPD(c);}
 function sumB(c){return(c.bannerLog||[]).reduce((s,b)=>s+(parseInt(b.count)||0),0);}
 // Banners logged from a date onwards
 function sumBInPeriod(c,from,to){
@@ -2197,7 +2231,7 @@ function cycleTheme(){
   const active=document.querySelector('.section.active');
   if(!active)return;
   const tab=active.id.replace('tab-','');
-  if(tab==='dashboard'){renderBento();setTimeout(renderDashCharts,60);}
+  if(tab==='dashboard'){renderBento();}
   if(tab==='analytics')renderAnalytics();
 }
 function toggleTheme(){cycleTheme();}
@@ -2219,7 +2253,7 @@ function switchTab(name,el){
   document.getElementById('tab-'+name).classList.add('active');
   el.classList.add('active');
   document.getElementById('topbar-title').textContent=TAB_TITLES[name]||name;
-  if(name==='dashboard'){renderBento();setTimeout(renderDashCharts,60);}
+  if(name==='dashboard'){renderBento();}
   if(name==='analytics')renderAnalytics();
   if(name==='reports')renderReport();
   if(name==='kanban')renderKanban();
@@ -2238,7 +2272,7 @@ function renderAll(){
   const active=document.querySelector('.section.active');
   if(!active)return;
   const tab=active.id.replace('tab-','');
-  if(tab==='dashboard'){renderBento();setTimeout(renderDashCharts,60);}
+  if(tab==='dashboard'){renderBento();}
   else if(tab==='cases')renderTable();
   else if(tab==='kanban')renderKanban();
   else if(tab==='analytics')renderAnalytics();
@@ -2259,267 +2293,130 @@ function renderBento(){
   const pLabels={daily:'Today',weekly:'This Week',monthly:'This Month',overall:'All Time'};
   const pLabel=pLabels[dashPeriod]||'All Time';
   const pSub={daily:'today',weekly:'last 7 days',monthly:'last 30 days',overall:'all time'};
-  if(dashPeriod==='daily'){
-    periodFrom=new Date(now.toLocaleDateString('en-CA',{timeZone:US_TZ})+'T00:00:00');
-  } else if(dashPeriod==='weekly'){
-    periodFrom=new Date(now-7*864e5);
-  } else if(dashPeriod==='monthly'){
-    periodFrom=new Date(now-30*864e5);
-  }
+  if(dashPeriod==='daily') periodFrom=new Date(now.toLocaleDateString('en-CA',{timeZone:US_TZ})+'T00:00:00');
+  else if(dashPeriod==='weekly') periodFrom=new Date(now-7*864e5);
+  else if(dashPeriod==='monthly') periodFrom=new Date(now-30*864e5);
 
-  // ── Filtered case sets ──
-  const inPeriod=c=>{
-    if(!periodFrom) return true;
-    return (c.start&&new Date(c.start+'T12:00:00')>=periodFrom)||
-           (c.end&&new Date(c.end+'T12:00:00')>=periodFrom)||
-           sumBInPeriod(c,periodFrom,now)>0;
-  };
+  // ── Data ──
+  const inPeriod=c=>!periodFrom||(c.start&&new Date(c.start+'T12:00:00')>=periodFrom)||(c.end&&new Date(c.end+'T12:00:00')>=periodFrom)||sumBInPeriod(c,periodFrom,now)>0;
   const allCases=cases.filter(c=>!c.archived);
   const pCases=periodFrom?allCases.filter(inPeriod):allCases;
-
-  // Status counts — for daily/weekly/monthly show cases active in period; overall = all
-  const bySt=s=>periodFrom
-    ? pCases.filter(c=>c.status===s).length
-    : allCases.filter(c=>c.status===s).length;
+  const bySt=s=>(periodFrom?pCases:allCases).filter(c=>c.status===s).length;
   const total=periodFrom?pCases.length:allCases.length;
-
-  // Banners
-  const allB=periodFrom
-    ? cases.reduce((s,c)=>s+sumBInPeriod(c,periodFrom,now),0)
-    : cases.reduce((s,c)=>s+sumB(c),0);
-
-  // Avg resolution — closed cases in period
-  const resolved=periodFrom
-    ? cases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=periodFrom)
-    : cases.filter(c=>c.status==='Closed'&&c.start&&c.end);
+  const allB=periodFrom?cases.reduce((s,c)=>s+sumBInPeriod(c,periodFrom,now),0):cases.reduce((s,c)=>s+sumB(c),0);
+  const resolved=periodFrom?cases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=periodFrom):cases.filter(c=>c.status==='Closed'&&c.start&&c.end);
   const avgRes=resolved.length?Math.round(resolved.reduce((s,c)=>s+(new Date(c.end+'T12:00:00')-new Date(c.start+'T12:00:00'))/86400000,0)/resolved.length):null;
-
-  // Alerts always use all cases regardless of period
   const overdue=allCases.filter(isOD);
   const pastDue=allCases.filter(isPD);
   const dueSoon=allCases.filter(c=>isDS(c)&&!isPD(c));
-
-  // Weekly digest — always last 7 days
   const wa=new Date(now-7*864e5);
   const wOpened=cases.filter(c=>c.start&&new Date(c.start+'T12:00:00')>=wa).length;
   const wClosed=cases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=wa).length;
   const wB=cases.reduce((s,c)=>s+sumBInPeriod(c,wa),0);
-
-  // Recent cases — in period if period set, else most recent
-  const recent=periodFrom
-    ? [...allCases].filter(c=>c.start&&new Date(c.start+'T12:00:00')>=periodFrom).sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6)
-    : [...allCases].sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6);
+  const recent=periodFrom?[...allCases].filter(c=>c.start&&new Date(c.start+'T12:00:00')>=periodFrom).sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6):[...allCases].sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6);
 
   const w=dashWidgets;
-  let html='';
 
-  // ── Period pill (shown in bento) ──
-  html+=`<div class="b c12" style="padding:8px 14px;display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-color:var(--border);position:relative" data-widget="period-bar">
-    <div style="font-size:11px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:8px">
-      <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      Dashboard — <span style="color:var(--accent)">${pLabel}</span>
-    </div>
-    <div style="display:flex;gap:0;border:1px solid var(--border2);border-radius:var(--r);overflow:hidden">
-      ${['daily','weekly','monthly','overall'].map(p=>`<button onclick="setDashPeriod('${p}')" style="padding:4px 10px;font-size:10px;font-weight:700;border:none;border-right:${p!=='overall'?'1px solid var(--border2)':'none'};background:${dashPeriod===p?'var(--accent)':'var(--surface)'};color:${dashPeriod===p?'var(--accent-inv)':'var(--text2)'};cursor:pointer;font-family:var(--font);transition:all .12s">${p==='daily'?'Day':p==='weekly'?'Week':p==='monthly'?'Month':'All Time'}</button>`).join('')}
-    </div>
-  </div>`;
-
-  // ── Alerts (always all-time) ──
-  if(w.alerts){
-    if(overdue.length) html+=`<div class="b c12 b-alert danger" style="min-height:auto;position:relative" data-widget="alert-overdue"><div class="b-alert-dot"></div><div class="b-alert-text"><strong>${overdue.length} case${overdue.length>1?'s':''} overdue</strong> (${slaGlobalDays||7}+ days open): ${overdue.map(c=>c.number||c.name).slice(0,5).join(', ')}${overdue.length>5?` +${overdue.length-5} more`:''}</div></div>`;
-    if(pastDue.length) html+=`<div class="b c12 b-alert warn" style="min-height:auto;position:relative" data-widget="alert-pastdue"><div class="b-alert-dot"></div><div class="b-alert-text"><strong>${pastDue.length} case${pastDue.length>1?'s':''} past due date</strong>: ${pastDue.map(c=>c.number||c.name).slice(0,4).join(', ')}</div></div>`;
-  }
-
-  // ── Status stat cards ──
-  if(w.stats) html+=`
-    <div class="b c12" style="padding:0;display:grid;grid-template-columns:repeat(6,1fr);gap:0;border:none;background:transparent;box-shadow:none;position:relative" data-widget="stats">
+  // ── Section builders (keyed) ──
+  const sections={
+    alerts:()=>{
+      let h='';
+      if(overdue.length) h+=`<div class="b c12 b-alert danger" style="min-height:auto"><div class="b-alert-dot"></div><div class="b-alert-text"><strong>${overdue.length} case${overdue.length>1?'s':''} overdue</strong> (${slaGlobalDays||7}+ days open): ${overdue.map(c=>c.number||c.name).slice(0,5).join(', ')}${overdue.length>5?` +${overdue.length-5} more`:''}</div></div>`;
+      if(pastDue.length) h+=`<div class="b c12 b-alert warn" style="min-height:auto"><div class="b-alert-dot"></div><div class="b-alert-text"><strong>${pastDue.length} case${pastDue.length>1?'s':''} past due date</strong>: ${pastDue.map(c=>c.number||c.name).slice(0,4).join(', ')}</div></div>`;
+      return h;
+    },
+    stats:()=>`<div class="b c12" style="padding:0;display:grid;grid-template-columns:repeat(6,1fr);gap:0;border:none;background:transparent;box-shadow:none">
       <div class="b bp b-dark"><div class="b-lbl">${pLabel} — Cases</div><div class="b-num">${total}</div><div class="b-sub">${pSub[dashPeriod]}</div></div>
       <div class="b bp"><div class="b-lbl">New</div><div class="b-num" style="color:var(--s-new)">${bySt('New')}</div><div class="b-sub">awaiting</div></div>
       <div class="b bp"><div class="b-lbl">In Progress</div><div class="b-num" style="color:var(--s-inp)">${bySt('In Progress')}</div><div class="b-sub">active</div></div>
       <div class="b bp"><div class="b-lbl">Pend. Input</div><div class="b-num" style="color:var(--s-pyi)">${bySt('Pending Your Input')}</div><div class="b-sub">needs info</div></div>
       <div class="b bp"><div class="b-lbl">Pend. Confirm</div><div class="b-num" style="color:var(--s-pyc)">${bySt('Pending Your Confirmation')}</div><div class="b-sub">awaiting OK</div></div>
       <div class="b bp"><div class="b-lbl">Closed</div><div class="b-num" style="color:var(--s-closed)">${bySt('Closed')}</div><div class="b-sub">resolved</div></div>
-    </div>`;
-
-  // ── Metrics row ──
-  if(w.metrics) html+=`
-    <div class="b c12" style="padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:none;background:transparent;box-shadow:none;position:relative" data-widget="metrics">
+    </div>`,
+    metrics:()=>`<div class="b c12" style="padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:none;background:transparent;box-shadow:none">
       <div class="b bp"><div class="b-lbl">Banners — ${pLabel}</div><div class="b-num">${allB}</div><div class="b-sub">${pSub[dashPeriod]}</div></div>
       <div class="b bp"><div class="b-lbl">Avg Resolution</div><div class="b-num" style="font-size:${avgRes!==null?'26':'18'}px">${avgRes!==null?avgRes+'d':'—'}</div><div class="b-sub">${pSub[dashPeriod]}</div></div>
       <div class="b bp"><div class="b-lbl">Due Soon</div><div class="b-num" style="color:${dueSoon.length?'var(--s-pyi)':'var(--text)'}">${dueSoon.length}</div><div class="b-sub">within 2 days</div></div>
       <div class="b bp"><div class="b-lbl">Past Due</div><div class="b-num" style="color:${pastDue.length?'var(--p-critical)':'var(--text)'}">${pastDue.length}</div><div class="b-sub">missed deadline</div></div>
-    </div>`;
-
-  // ── Active Cases Panel ──
-  if(w.activecases){
-    const newCases=cases.filter(c=>c.status==='New'&&!c.archived);
-    const ipCases=cases.filter(c=>c.status==='In Progress'&&!c.archived);
-    const pyiCases=cases.filter(c=>c.status==='Pending Your Input'&&!c.archived);
-    const allActive=[...newCases,...ipCases,...pyiCases];
-    const makeSections=()=>{
-      let s='';
-      [{label:'New',list:newCases,cls:'s-new'},{label:'In Progress',list:ipCases,cls:'s-inp'},{label:'Pending Your Input',list:pyiCases,cls:'s-pyi'}].forEach(({label,list,cls})=>{
-        if(!list.length)return;
-        s+=`<div class="acp-section-hdr">${label} — ${list.length}</div>`;
-        s+=list.map(c=>`
-          <div class="acp-row" onclick="switchTab('cases',document.querySelector('[data-tab=cases]'));openDetail('${c.id}')">
-            <div class="acp-row-num">${c.number||'—'}</div>
-            <div class="acp-row-name">${c.name}</div>
-            ${bP(c.priority)}
-            <div class="acp-row-due">${c.dueDate?fmtD(c.dueDate):c.start?dSince(c.start)+'d':''}</div>
-          </div>`).join('');
-      });
-      return s||'<div class="acp-empty">No active cases</div>';
-    };
-    html+=`<div class="b c12" style="padding:0;overflow:visible;position:relative" data-widget="activecases">
-      <div class="acp-header" onclick="toggleACP('acp-dash')">
-        <div class="acp-title">
-          <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Active Cases
-        </div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <div class="acp-counts">
-            ${newCases.length?`<span class="acp-chip new">New: ${newCases.length}</span>`:''}
-            ${ipCases.length?`<span class="acp-chip inp">In Progress: ${ipCases.length}</span>`:''}
-            ${pyiCases.length?`<span class="acp-chip pyi">Pend. Input: ${pyiCases.length}</span>`:''}
+    </div>`,
+    activecases:()=>{
+      const newC=allCases.filter(c=>c.status==='New');
+      const ipC=allCases.filter(c=>c.status==='In Progress');
+      const pyiC=allCases.filter(c=>c.status==='Pending Your Input');
+      const mkSec=()=>{
+        let s='';
+        [{label:'New',list:newC},{label:'In Progress',list:ipC},{label:'Pending Your Input',list:pyiC}].forEach(({label,list})=>{
+          if(!list.length)return;
+          s+=`<div class="acp-section-hdr">${label} — ${list.length}</div>`;
+          s+=list.map(c=>`<div class="acp-row" onclick="switchTab('cases',document.querySelector('[data-tab=cases]'));openDetail('${c.id}')"><div class="acp-row-num">${c.number||'—'}</div><div class="acp-row-name">${c.name}</div>${bP(c.priority)}<div class="acp-row-due">${c.dueDate?fmtD(c.dueDate):c.start?dSince(c.start)+'d':''}</div></div>`).join('');
+        });
+        return s||'<div class="acp-empty">No active cases</div>';
+      };
+      return `<div class="b c12" style="padding:0;overflow:visible">
+        <div class="acp-header" onclick="toggleACP('acp-dash')">
+          <div class="acp-title"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Active Cases</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="acp-counts">${newC.length?`<span class="acp-chip new">New: ${newC.length}</span>`:''}${ipC.length?`<span class="acp-chip inp">In Progress: ${ipC.length}</span>`:''}${pyiC.length?`<span class="acp-chip pyi">Pend. Input: ${pyiC.length}</span>`:''}</div>
+            <span class="acp-toggle-icon open" id="acp-dash-icon">▾</span>
           </div>
-          <span class="acp-toggle-icon open" id="acp-dash-icon">▾</span>
         </div>
-      </div>
-      <div class="acp-body open" id="acp-dash-body">${makeSections()}</div>
-    </div>`;
-  }
+        <div class="acp-body open" id="acp-dash-body">${mkSec()}</div>
+      </div>`;
+    },
+    recent:()=>`<div class="b c12 bp">
+      <div class="b-lbl">Recent Cases</div>
+      ${recent.length?recent.map(c=>`<div class="rc-row" onclick="switchTab('cases',document.querySelector('[data-tab=cases]'));openDetail('${c.id}')"><div class="rc-num">${c.number||'—'}</div><div class="rc-name">${c.name}</div>${bS(c.status)}<div class="rc-age">${c.start?dSince(c.start)+'d':''}</div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px 0">No cases yet</div>'}
+    </div>`,
+    quickadd:()=>`<div class="b c12 b-quickadd">
+      <div class="b-lbl">Quick Add</div>
+      <input type="text" id="qa-name" placeholder="Case name…" onkeydown="if(event.key==='Enter')quickAdd()">
+      <select id="qa-type"></select>
+      <select id="qa-priority"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="quickAdd()"><svg viewBox="0 0 24 24" style="stroke-width:2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Case</button>
+    </div>`,
+    digest:()=>`<div class="b c12 b-digest">
+      <div class="b-lbl">${pLabel} Digest</div>
+      <div style="font-size:9.5px;color:rgba(255,255,255,.25);font-family:var(--mono);margin-bottom:8px">${pSub[dashPeriod]}</div>
+      <div class="drow"><span class="drow-k">Opened</span><span class="drow-v ${wOpened>wClosed?'warn':''}">${wOpened}</span></div>
+      <div class="drow"><span class="drow-k">Closed</span><span class="drow-v ok">${wClosed}</span></div>
+      <div class="drow"><span class="drow-k">Banners</span><span class="drow-v">${wB}</span></div>
+      <div class="drow"><span class="drow-k">Overdue</span><span class="drow-v ${overdue.length?'bad':''}">${overdue.length}</span></div>
+      <div class="drow"><span class="drow-k">Avg Res.</span><span class="drow-v">${avgRes!==null?avgRes+'d':'—'}</span></div>
+    </div>`,
+    focus:()=>`<div class="b c12 bp">
+      <div class="b-lbl">⭐ Today's Focus</div>
+      ${(()=>{const bi=buildMorningBriefing();return bi.length?bi.map(i=>`<div class="brief-row" onclick="switchTab('cases',document.querySelector('[data-tab=cases]'));openDetail('${i.c.id}')"><div class="brief-dot" style="background:${i.dot}"></div><div style="flex:1;min-width:0"><div class="brief-name">${i.c.name}</div><div class="brief-sub">${i.reason}</div></div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px 0">Nothing urgent — good to go! ✓</div>';})()}
+    </div>`,
+    goal:()=>`<div class="b c12 bp goal-card">
+      <div class="b-lbl">🎯 Daily Goal</div>
+      ${(()=>{const todayB=todayBanners(),gp=dailyGoal>0?Math.min(100,Math.round(todayB/dailyGoal*100)):0;return dailyGoal>0?`<div style="display:flex;align-items:baseline;gap:6px;margin-top:6px"><div style="font-family:var(--mono);font-size:28px;font-weight:700;color:${todayB>=dailyGoal?'var(--s-closed)':'var(--text)'}">${todayB}</div><div style="font-size:13px;color:var(--text3)">/ ${dailyGoal}</div></div><div class="goal-bar-wrap"><div class="goal-bar ${todayB>=dailyGoal?'done':''}" style="width:${gp}%"></div></div><div style="font-size:11px;color:var(--text3)">${todayB>=dailyGoal?'🎉 Goal reached!':dailyGoal-todayB+' banners to go'}</div>`:`<div style="font-size:12px;color:var(--text3);margin-top:8px">No goal set.<br><a onclick="switchTab('settings',document.querySelector('[data-tab=settings]'))" style="cursor:pointer;color:var(--s-inp)">Set a daily goal →</a></div>`;})()}
+    </div>`,
+    streak:()=>`<div class="b c12 bp">
+      <div class="b-lbl">🔥 Work Streak</div>
+      ${(()=>{const s=calcStreak();return`<div style="display:flex;align-items:center;margin-top:8px"><span class="streak-flame">🔥</span><span class="streak-num">${s}</span></div><div class="b-sub">${s===1?'day in a row':s>1?'days in a row':'Start logging to build a streak'}</div>`;})()}
+    </div>`,
+  };
 
-  // ── Row 3: Recent / Quick Add / Digest ──
-  let row3='';
-  if(w.recent||w.quickadd||w.digest){
-    row3+=`<div class="b c12" style="padding:0;display:grid;grid-template-columns:${w.recent&&w.quickadd&&w.digest?'5fr 4fr 3fr':w.recent&&w.quickadd?'5fr 7fr':w.recent&&w.digest?'9fr 3fr':w.quickadd&&w.digest?'8fr 4fr':w.recent?'1fr':w.quickadd?'1fr':'1fr'};gap:0;border:none;background:transparent;box-shadow:none;position:relative" data-widget="row3">`;
-    if(w.recent) row3+=`
-      <div class="b bp" style="border-radius:var(--r-lg) 0 0 var(--r-lg)">
-        <div class="b-lbl">Recent Cases</div>
-        ${recent.length?recent.map(c=>`
-          <div class="rc-row" onclick="switchTab('cases',document.querySelector('[data-tab=cases]'));openDetail('${c.id}')">
-            <div class="rc-num">${c.number||'—'}</div>
-            <div class="rc-name">${c.name}</div>
-            ${bS(c.status)}
-            <div class="rc-age">${c.start?dSince(c.start)+'d':''}</div>
-          </div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px 0">No cases yet</div>'}
-      </div>`;
-    if(w.quickadd) row3+=`
-      <div class="b b-quickadd" style="${!w.recent&&!w.digest?'border-radius:var(--r-lg)':!w.recent?'border-radius:var(--r-lg) 0 0 var(--r-lg)':!w.digest?'border-radius:0 var(--r-lg) var(--r-lg) 0':'border-radius:0'}">
-        <div class="b-lbl">Quick Add</div>
-        <input type="text" id="qa-name" placeholder="Case name…" onkeydown="if(event.key==='Enter')quickAdd()">
-        <select id="qa-type"></select>
-        <select id="qa-priority"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select>
-        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="quickAdd()">
-          <svg viewBox="0 0 24 24" style="stroke-width:2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Case
-        </button>
-      </div>`;
-    if(w.digest) row3+=`
-      <div class="b b-digest" style="${!w.recent&&!w.quickadd?'border-radius:var(--r-lg)':'border-radius:0 var(--r-lg) var(--r-lg) 0'}">
-        <div class="b-lbl">${pLabel} Digest</div>
-        <div style="font-size:9.5px;color:rgba(255,255,255,.25);font-family:var(--mono);margin-bottom:8px">${pSub[dashPeriod]}</div>
-        <div class="drow"><span class="drow-k">Opened</span><span class="drow-v ${wOpened>wClosed?'warn':''}">${wOpened}</span></div>
-        <div class="drow"><span class="drow-k">Closed</span><span class="drow-v ok">${wClosed}</span></div>
-        <div class="drow"><span class="drow-k">Banners</span><span class="drow-v">${wB}</span></div>
-        <div class="drow"><span class="drow-k">Overdue</span><span class="drow-v ${overdue.length?'bad':''}">${overdue.length}</span></div>
-        <div class="drow"><span class="drow-k">Avg Res.</span><span class="drow-v">${avgRes!==null?avgRes+'d':'—'}</span></div>
-      </div>`;
-    row3+='</div>';
-  }
-  html+=row3;
+  // ── Period bar (always first, not orderable) ──
+  let html=`<div class="b c12" style="padding:8px 14px;display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-color:var(--border)">
+    <div style="font-size:11px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:8px">
+      <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Dashboard — <span style="color:var(--accent);margin-left:2px">${pLabel}</span>
+    </div>
+    <div style="display:flex;gap:0;border:1px solid var(--border2);border-radius:var(--r);overflow:hidden">
+      ${['daily','weekly','monthly','overall'].map(p=>`<button onclick="setDashPeriod('${p}')" style="padding:4px 10px;font-size:10px;font-weight:700;border:none;border-right:${p!=='overall'?'1px solid var(--border2)':'none'};background:${dashPeriod===p?'var(--accent)':'var(--surface)'};color:${dashPeriod===p?'var(--accent-inv)':'var(--text2)'};cursor:pointer;font-family:var(--font);transition:all .12s">${p==='daily'?'Day':p==='weekly'?'Week':p==='monthly'?'Month':'All Time'}</button>`).join('')}
+    </div>
+  </div>`;
 
-  // ── Row 4: Focus / Goal / Streak ──
-  let row4='';
-  if(w.focus||w.goal||w.streak){
-    const cols=[w.focus,w.goal,w.streak].filter(Boolean).length;
-    row4+=`<div class="b c12" style="padding:0;display:grid;grid-template-columns:repeat(${cols},1fr);gap:0;border:none;background:transparent;box-shadow:none;position:relative" data-widget="row4">`;
-    if(w.focus) row4+=`
-      <div class="b bp">
-        <div class="b-lbl">⭐ Today's Focus</div>
-        ${(()=>{const bi=buildMorningBriefing();return bi.length?bi.map(i=>`<div class="brief-row" onclick="switchTab('cases',document.querySelector('[data-tab=cases]'));openDetail('${i.c.id}')"><div class="brief-dot" style="background:${i.dot}"></div><div style="flex:1;min-width:0"><div class="brief-name">${i.c.name}</div><div class="brief-sub">${i.reason}</div></div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px 0">Nothing urgent — good to go! ✓</div>';})()}
-      </div>`;
-    if(w.goal) row4+=`
-      <div class="b goal-card">
-        <div class="b-lbl">Daily Goal</div>
-        ${(()=>{const todayB=todayBanners(),gp=dailyGoal>0?Math.min(100,Math.round(todayB/dailyGoal*100)):0;return dailyGoal>0?`<div style="display:flex;align-items:baseline;gap:6px;margin-top:6px"><div style="font-family:var(--mono);font-size:28px;font-weight:700;color:${todayB>=dailyGoal?'var(--s-closed)':'var(--text)'}">${todayB}</div><div style="font-size:13px;color:var(--text3)">/ ${dailyGoal}</div></div><div class="goal-bar-wrap"><div class="goal-bar ${todayB>=dailyGoal?'done':''}" style="width:${gp}%"></div></div><div style="font-size:11px;color:var(--text3)">${todayB>=dailyGoal?'🎉 Goal reached!':dailyGoal-todayB+' banners to go'}</div>`:`<div style="font-size:12px;color:var(--text3);margin-top:8px">No goal set.<br><a onclick="switchTab('settings',document.querySelector('[data-tab=settings]'))" style="cursor:pointer;color:var(--s-inp)">Set a daily goal →</a></div>`;})()}
-      </div>`;
-    if(w.streak) row4+=`
-      <div class="b bp">
-        <div class="b-lbl">Work Streak</div>
-        ${(()=>{const s=calcStreak();return`<div style="display:flex;align-items:center;margin-top:8px"><span class="streak-flame">🔥</span><span class="streak-num">${s}</span></div><div class="b-sub">${s===1?'day in a row':s>1?'days in a row':'Start logging to build a streak'}</div>`;})()}
-      </div>`;
-    row4+='</div>';
-  }
-  html+=row4;
+  // ── Render in order, skip hidden widgets ──
+  const order=dashWidgetOrder.filter(k=>DASH_WIDGET_LABELS[k]);
+  order.forEach(key=>{
+    if(!w[key]) return;
+    if(sections[key]) html+=sections[key]();
+  });
 
   document.getElementById('bento-grid').innerHTML=html;
   populateTypeSelects();
-  initBentoDrag();
-}
-
-// ── DASHBOARD CHARTS ── (charts moved to Analytics tab)
-function renderDashCharts(){ /* Status/Priority/Timeline charts now in renderAnalytics */ }
-
-// ── BENTO DRAG & DROP ──
-let _dragSrc = null;
-function initBentoDrag() {
-  const grid = document.getElementById('bento-grid');
-  if (!grid) return;
-
-  grid.querySelectorAll('.b.c12').forEach(el => {
-    // Skip if it has no data-widget (shouldn't happen but safety)
-    // Add drag handle if not already there
-    if (!el.querySelector('.bento-drag-handle')) {
-      const h = document.createElement('button');
-      h.className = 'bento-drag-handle';
-      h.title = 'Drag to reorder';
-      h.setAttribute('type', 'button');
-      h.innerHTML = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="9" cy="5" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="9" cy="19" r="1.2" fill="currentColor"/><circle cx="15" cy="5" r="1.2" fill="currentColor"/><circle cx="15" cy="12" r="1.2" fill="currentColor"/><circle cx="15" cy="19" r="1.2" fill="currentColor"/></svg>`;
-      h.addEventListener('mousedown', e => {
-        e.preventDefault();
-        el.setAttribute('draggable', 'true');
-        el.classList.add('dragging');
-      });
-      el.style.position = 'relative';
-      el.appendChild(h);
-    }
-
-    el.addEventListener('dragstart', e => {
-      _dragSrc = el;
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', el.dataset.widget || '');
-    });
-    el.addEventListener('dragend', () => {
-      el.classList.remove('dragging');
-      el.setAttribute('draggable', 'false');
-      grid.querySelectorAll('.drag-over').forEach(x => x.classList.remove('drag-over'));
-      _dragSrc = null;
-    });
-    el.addEventListener('dragover', e => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      if (_dragSrc && el !== _dragSrc) {
-        grid.querySelectorAll('.drag-over').forEach(x => x.classList.remove('drag-over'));
-        el.classList.add('drag-over');
-      }
-    });
-    el.addEventListener('dragleave', e => {
-      if (!el.contains(e.relatedTarget)) el.classList.remove('drag-over');
-    });
-    el.addEventListener('drop', e => {
-      e.preventDefault();
-      el.classList.remove('drag-over');
-      if (!_dragSrc || _dragSrc === el) return;
-      // Reorder in DOM
-      const items = [...grid.querySelectorAll('.b.c12')];
-      const srcIdx = items.indexOf(_dragSrc);
-      const tgtIdx = items.indexOf(el);
-      if (srcIdx === -1 || tgtIdx === -1) return;
-      if (srcIdx < tgtIdx) grid.insertBefore(_dragSrc, el.nextSibling);
-      else grid.insertBefore(_dragSrc, el);
-    });
-  });
 }
 
 // ── QUICK ADD ──
@@ -2569,7 +2466,9 @@ function renderTable(){
   tbody.innerHTML=list.map(c=>{
     const done=sumB(c),target=parseInt(c.bannerTarget)||0,pd=isPD(c),ds=isDS(c);
     const remaining=Math.max(0,target-done);
-    const dueStr=c.dueDate?`<span class="${pd?'due-warn':ds?'due-soon':''}">${fmtD(c.dueDate)}${pd?' ⚠':ds?' ●':''}</span>`:'—';
+    const dueStr=c.dueDate
+      ?`<span class="${pd?'due-warn':ds?'due-soon':''}" title="${c.dueDate} EOD">${fmtD(c.dueDate)}${pd?' ⚠':ds?' ⏰':''}</span>`
+      :'—';
     // Banner cell: show "done/target" if target set, else just done
     const banCell=target>0
       ?`<span style="font-family:var(--mono);font-weight:700;font-size:11px">${done}<span style="color:var(--text3);font-weight:400">/${target}</span></span>`
@@ -2672,20 +2571,54 @@ function renderDTab(tab){
   const body=document.getElementById('d-body');if(!body)return;
   if(tab==='info'){
     const age=c.start?dSince(c.start):null;
-    const active=c.status!=='Closed';
+    const isDone=DONE_STATUSES.includes(c.status);
     let sla='';
-    if(age!==null&&active){
-      const pct=Math.min(100,Math.round(age/7*100));
-      const bc=age>7?'var(--p-critical)':age>5?'var(--p-high)':'var(--s-closed)';
-      sla=`<div class="sla-box"><div class="sla-top"><span class="sla-lbl">Age</span><span class="sla-val">${age}d</span></div><div class="sla-bar-bg"><div class="sla-bar" style="width:${pct}%;background:${bc}"></div></div><div class="sla-meta"><span>7-day SLA</span><span style="color:${age>7?'var(--p-critical)':'var(--text3)'}">${age>7?'⚠ Overdue':(7-age)+'d left'}</span></div></div>`;
+    if(c.dueDate){
+      const eod=dueDateEOD(c.dueDate);
+      const now=new Date();
+      const daysOverdue=Math.floor((now-eod)/86400000); // positive = overdue
+      const hoursToEOD=(eod-now)/3600000;
+      const totalDays=c.start?Math.round((eod-new Date(c.start+'T12:00:00'))/86400000):null;
+
+      if(isDone){
+        // Case is done from our side — show completed state
+        const completedOn=c.end?` on ${fmtDF(c.end)}`:'';
+        sla=`<div class="sla-box"><div class="sla-top"><span class="sla-lbl">SLA Status</span><span class="sla-val" style="color:var(--s-closed)">✓ Done</span></div><div class="sla-bar-bg"><div class="sla-bar" style="width:100%;background:var(--s-closed)"></div></div><div class="sla-meta"><span>${c.status}</span><span style="color:var(--s-closed)">Completed${completedOn}</span></div></div>`;
+      } else if(daysOverdue>0){
+        // Past EOD of due date — overdue, show days past
+        const pct=Math.min(100,Math.round(daysOverdue/(slaGlobalDays||7)*100));
+        sla=`<div class="sla-box"><div class="sla-top"><span class="sla-lbl">SLA — Overdue</span><span class="sla-val" style="color:var(--p-critical)">${daysOverdue}d past due</span></div><div class="sla-bar-bg"><div class="sla-bar" style="width:${pct}%;background:var(--p-critical)"></div></div><div class="sla-meta"><span>Due was ${fmtDF(c.dueDate)} EOD</span><span style="color:var(--p-critical)">⚠ ${daysOverdue}d overdue</span></div></div>`;
+      } else if(hoursToEOD<=48){
+        // Due today or tomorrow — warn
+        const hoursLabel=hoursToEOD<1?'< 1h':hoursToEOD<24?Math.round(hoursToEOD)+'h':Math.ceil(hoursToEOD/24)+'d';
+        const pct=totalDays?Math.min(99,Math.round((now-new Date(c.start+'T12:00:00'))/(eod-new Date(c.start+'T12:00:00'))*100)):80;
+        sla=`<div class="sla-box"><div class="sla-top"><span class="sla-lbl">SLA — Due Soon</span><span class="sla-val" style="color:var(--p-high)">${hoursLabel} left</span></div><div class="sla-bar-bg"><div class="sla-bar" style="width:${pct}%;background:var(--p-high)"></div></div><div class="sla-meta"><span>Due ${fmtDF(c.dueDate)} EOD</span><span style="color:var(--p-high)">⏰ Due soon</span></div></div>`;
+      } else {
+        // On track — show time remaining
+        const daysLeft=Math.floor(hoursToEOD/24);
+        const pct=totalDays?Math.min(98,Math.round((now-new Date(c.start+'T12:00:00'))/(eod-new Date(c.start+'T12:00:00'))*100)):Math.max(5,Math.round((1-daysLeft/Math.max(daysLeft,slaGlobalDays||7))*100));
+        sla=`<div class="sla-box"><div class="sla-top"><span class="sla-lbl">SLA — On Track</span><span class="sla-val" style="color:var(--s-closed)">${daysLeft}d left</span></div><div class="sla-bar-bg"><div class="sla-bar" style="width:${pct}%;background:var(--s-closed)"></div></div><div class="sla-meta"><span>Due ${fmtDF(c.dueDate)} EOD</span><span style="color:var(--text3)">${daysLeft}d remaining</span></div></div>`;
+      }
+    } else if(age!==null&&!isDone){
+      // No due date set — fall back to age-based indicator
+      const slaDays=slaGlobalDays||7;
+      const pct=Math.min(100,Math.round(age/slaDays*100));
+      const bc=age>slaDays?'var(--p-critical)':age>slaDays*0.7?'var(--p-high)':'var(--s-closed)';
+      sla=`<div class="sla-box"><div class="sla-top"><span class="sla-lbl">Case Age</span><span class="sla-val">${age}d</span></div><div class="sla-bar-bg"><div class="sla-bar" style="width:${pct}%;background:${bc}"></div></div><div class="sla-meta"><span>${slaDays}-day target</span><span style="color:${bc}">${age>slaDays?'⚠ Over target':(slaDays-age)+'d left'}</span></div></div>`;
     }
     const done=sumB(c);
     const target=parseInt(c.bannerTarget)||0;
     const remaining=Math.max(0,target-done);
     let dur='—';
     if(c.start&&c.end){const d=Math.round((new Date(c.end+'T12:00:00')-new Date(c.start+'T12:00:00'))/86400000);dur=d+'d';}
-    else if(c.start&&c.status!=='Closed'){dur=age+'d (open)';}
-    const dueMeta=c.dueDate?fmtDF(c.dueDate)+(isPD(c)?' <span style="color:var(--p-critical);font-size:10px">⚠ Past due</span>':isDS(c)?' <span style="color:var(--p-high);font-size:10px">⏰ Due soon</span>':''):'—';
+    else if(c.start&&!isDone){dur=(age||0)+'d (open)';}
+    const dueMeta=c.dueDate
+      ? fmtDF(c.dueDate)+' EOD'+(isPD(c)
+          ? ` <span style="color:var(--p-critical);font-size:10px">⚠ ${Math.floor((new Date()-dueDateEOD(c.dueDate))/86400000)}d overdue</span>`
+          : isDS(c)
+          ? ` <span style="color:var(--p-high);font-size:10px">⏰ Due soon</span>`
+          : '')
+      : '—';
     const bannersMeta=target>0
       ?`<span style="font-family:var(--mono)">${done}<span style="color:var(--text3);font-size:11px"> / ${target} &nbsp; <span style="color:${remaining>0?'var(--s-pyi)':'var(--s-closed)'}">${remaining} left</span></span></span>`
       :`<span style="font-family:var(--mono)">${done} logged</span>`;
@@ -2793,7 +2726,7 @@ function openBannerModal(){
 }
 function renderBannerList(){
   const c=cases.find(x=>x.id===openDetailId);if(!c)return;
-  const log=[...(c.bannerLog||[])].sort((a,b)=>b.date.localeCompare(a.date));
+  const log=[...(c.bannerLog||[])].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   const target=parseInt(c.bannerTarget)||0;
   const done=sumB(c);
   const remaining=Math.max(0,target-done);
@@ -2832,13 +2765,70 @@ function renderBannerList(){
     </div>
     <!-- Work log entries -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3)">Work history (US Eastern)</span>
+      <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3)">Work history — hover to edit/delete</span>
     </div>
-    ${log.length?log.map(b=>`<div class="bl-item">
-      <div class="bl-date">${fmtDateUS(b.date)}</div>
-      <div class="wl-note">${b.note||'—'}</div>
-      <div class="bl-banners" style="font-family:var(--mono);font-weight:700;font-size:13px;flex-shrink:0">−${b.count}</div>
-    </div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:4px 0">No work logged yet.</div>'}`;
+    ${log.length ? log.map((b,i)=>{
+      // Use ts as unique key, fallback to index
+      const key=b.ts||i;
+      return `<div class="bl-item" id="bl-entry-${key}">
+        <div class="bl-date" style="flex-shrink:0;width:72px">${fmtDateUS(b.date)}</div>
+        <div class="bl-note" style="flex:1;color:var(--text2);font-size:11px">${b.note||'—'}</div>
+        <div style="font-family:var(--mono);font-weight:700;font-size:13px;color:var(--s-inp);flex-shrink:0;min-width:32px;text-align:right">${b.count}</div>
+        <div class="bl-actions">
+          <button class="bl-action-btn" onclick="editBannerEntry(${key})" title="Edit">✏</button>
+          <button class="bl-action-btn del" onclick="deleteBannerEntry(${key})" title="Delete">×</button>
+        </div>
+      </div>`;
+    }).join('') : '<div style="font-size:12px;color:var(--text3);padding:4px 0">No work logged yet.</div>'}`;
+}
+
+function deleteBannerEntry(key){
+  const c=cases.find(x=>x.id===openDetailId);if(!c||!c.bannerLog)return;
+  const idx=c.bannerLog.findIndex(b=>(b.ts||b)=== key);
+  if(idx===-1)return;
+  const entry=c.bannerLog[idx];
+  if(!confirm(`Delete this entry?\n${fmtDateUS(entry.date)} — ${entry.count} banners${entry.note?' ('+entry.note+')':''}`))return;
+  c.bannerLog.splice(idx,1);
+  c.totalBanners=sumB(c);
+  logAudit('banner', c.number, c.name, `Deleted banner entry: ${entry.count} banners on ${fmtDateUS(entry.date)}`);
+  save();renderBannerList();renderAll();
+  if(openDetailId)renderDTab(openDTab);
+  toast('Entry deleted');
+  renderNotifications();
+}
+
+function editBannerEntry(key){
+  const c=cases.find(x=>x.id===openDetailId);if(!c||!c.bannerLog)return;
+  const idx=c.bannerLog.findIndex(b=>(b.ts||b)===key);
+  if(idx===-1)return;
+  const entry=c.bannerLog[idx];
+  const row=document.getElementById(`bl-entry-${key}`);
+  if(!row)return;
+  // Replace row with inline edit form
+  row.outerHTML=`<div class="bl-edit-row" id="bl-edit-${key}">
+    <input type="number" id="bl-edit-count-${key}" value="${entry.count}" min="1" style="width:64px;height:28px;font-size:12px;font-family:var(--mono);font-weight:700;text-align:center" placeholder="Count">
+    <input type="date" id="bl-edit-date-${key}" value="${entry.date}" style="height:28px;font-size:12px;width:130px">
+    <input type="text" id="bl-edit-note-${key}" value="${entry.note||''}" style="flex:1;min-width:80px;height:28px;font-size:12px" placeholder="Note…">
+    <button class="btn btn-sm btn-primary" style="height:28px;padding:0 10px;font-size:11px" onclick="saveBannerEdit(${key},${idx})">Save</button>
+    <button class="btn btn-sm btn-ghost" style="height:28px;padding:0 8px;font-size:11px" onclick="renderBannerList()">Cancel</button>
+  </div>`;
+  setTimeout(()=>document.getElementById(`bl-edit-count-${key}`)?.focus(),30);
+}
+
+function saveBannerEdit(key,idx){
+  const c=cases.find(x=>x.id===openDetailId);if(!c||!c.bannerLog)return;
+  const count=parseInt(document.getElementById(`bl-edit-count-${key}`)?.value)||0;
+  const date=document.getElementById(`bl-edit-date-${key}`)?.value||c.bannerLog[idx]?.date;
+  const note=document.getElementById(`bl-edit-note-${key}`)?.value.trim()||'';
+  if(count<=0){toast('Count must be > 0');return;}
+  const old=c.bannerLog[idx];
+  c.bannerLog[idx]={...old, count, date, note, ts: old.ts||Date.now()};
+  c.totalBanners=sumB(c);
+  logAudit('banner', c.number, c.name, `Edited banner entry: ${count} banners on ${fmtDateUS(date)}${note?' — '+note:''}`);
+  save();renderBannerList();renderAll();
+  if(openDetailId)renderDTab(openDTab);
+  toast('Entry updated');
+  renderNotifications();
 }
 function saveBannerEntry(){
   const c=cases.find(x=>x.id===openDetailId);if(!c)return;
@@ -2871,10 +2861,37 @@ function saveBannerEntry(){
 }
 
 // ── KANBAN ──
+let kanbanCollapsed = {'Closed': true}; // Closed collapsed by default
+
+function toggleKanbanCol(status) {
+  kanbanCollapsed[status] = !kanbanCollapsed[status];
+  renderKanban();
+}
+
 function renderKanban(){
   document.getElementById('kanban-board').innerHTML=STATUSES.map(status=>{
     const cards=cases.filter(c=>c.status===status&&!c.archived).sort((a,b)=>{const pw={Critical:0,High:1,Medium:2,Low:3};return(pw[a.priority]||2)-(pw[b.priority]||2);});
-    return`<div class="k-col"><div class="k-head"><span class="k-title">${status}</span><span class="k-cnt">${cards.length}</span></div>
+    const collapsed = !!kanbanCollapsed[status];
+    const collapseIcon = `<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5"><polyline points="${collapsed?'9 18 15 12 9 6':'15 18 9 12 15 6'}"/></svg>`;
+
+    if(collapsed){
+      return `<div class="k-col collapsed" style="flex:0 0 44px;min-width:44px">
+        <div class="k-head" style="flex-direction:column;align-items:center;padding:10px 6px;border-bottom:none;cursor:pointer" onclick="toggleKanbanCol('${status}')">
+          <button class="k-collapse-btn" title="Expand">${collapseIcon}</button>
+          <span class="k-cnt" style="margin:4px 0">${cards.length}</span>
+          <span class="k-title k-title-wrap" style="writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-top:4px">${status}</span>
+        </div>
+      </div>`;
+    }
+
+    return`<div class="k-col">
+      <div class="k-head">
+        <div style="display:flex;align-items:center;gap:7px;min-width:0">
+          <span class="k-title">${status}</span>
+          <span class="k-cnt">${cards.length}</span>
+        </div>
+        <button class="k-collapse-btn" onclick="toggleKanbanCol('${status}')" title="Collapse column">${collapseIcon}</button>
+      </div>
       <div class="k-cards">
         ${cards.map(c=>{
           const countdown=dueCountdown(c);const stale=isStale(c);const yest=workedYesterday(c);
@@ -2886,7 +2903,8 @@ function renderKanban(){
           </div>`;
         }).join('')}
         ${!cards.length?`<div class="k-empty">Empty</div>`:''}
-      </div></div>`;
+      </div>
+    </div>`;
   }).join('');
 }
 
@@ -3261,13 +3279,14 @@ function saveCase(){
 
   const get=id=>document.getElementById(id);
   const fields=[
-    {id:'f-number',  label:'Case Number', val:()=>get('f-number').value.trim()},
-    {id:'f-name',    label:'Case Name',   val:()=>get('f-name').value.trim()},
-    {id:'f-url',     label:'Salesforce URL', val:()=>get('f-url').value.trim()},
-    {id:'f-type-m',  label:'Type',        val:()=>get('f-type-m').value},
-    {id:'f-priority-m', label:'Priority', val:()=>get('f-priority-m').value},
-    {id:'f-status-m',label:'Status',      val:()=>get('f-status-m').value},
-    {id:'f-start',   label:'Start Date',  val:()=>get('f-start').value},
+    {id:'f-number',     label:'Case Number',    val:()=>get('f-number').value.trim()},
+    {id:'f-name',       label:'Case Name',       val:()=>get('f-name').value.trim()},
+    {id:'f-url',        label:'Salesforce URL',  val:()=>get('f-url').value.trim()},
+    {id:'f-type-m',     label:'Type',            val:()=>get('f-type-m').value},
+    {id:'f-priority-m', label:'Priority',        val:()=>get('f-priority-m').value},
+    {id:'f-status-m',   label:'Status',          val:()=>get('f-status-m').value},
+    {id:'f-start',      label:'Start Date',      val:()=>get('f-start').value},
+    {id:'f-due',        label:'Due Date',         val:()=>get('f-due').value},
   ];
 
   const missing=[];
@@ -3648,7 +3667,7 @@ let undoTimer = null;
 let lastExportDate = null;
 let autosaveTimer = null;
 let dashWidgets = {alerts:true,stats:true,metrics:true,activecases:true,recent:true,quickadd:true,digest:true,focus:true,goal:true,streak:true};
-let dashWidgetOrder = ['alerts','stats','metrics','activecases','recent+quickadd+digest','focus+goal+streak'];
+let dashWidgetOrder = ['alerts','stats','metrics','activecases','recent','quickadd','digest','focus','goal','streak'];
 let dashPeriod = 'overall'; // 'daily' | 'weekly' | 'monthly' | 'overall'
 const SETTINGS_STORE = 'sf_settings_v1';
 
@@ -3700,15 +3719,15 @@ function buildNotifications() {
   const items = [];
   const now = new Date();
 
-  // Overdue cases
+  // Overdue cases (past due date EOD, not done from our side)
   const overdue = cases.filter(isOD);
-  if (overdue.length) items.push({key:'overdue', type:'danger', text:`${overdue.length} case${overdue.length>1?'s':''} overdue (${slaGlobalDays||7}+ days open)`, sub: overdue.slice(0,3).map(c=>c.number||c.name).join(', '), action:()=>applyQuickFilter('overdue')});
+  if (overdue.length) items.push({key:'overdue', type:'danger', text:`${overdue.length} case${overdue.length>1?'s':''} overdue (past due date EOD)`, sub: overdue.slice(0,3).map(c=>`${c.number||c.name} (due ${fmtD(c.dueDate)})`).join(', '), action:()=>applyQuickFilter('overdue')});
 
   // Remaining = 0 but not PYC/Closed
   const readyForConf = cases.filter(c => {
     const target = parseInt(c.bannerTarget)||0;
     const done = sumB(c);
-    return target > 0 && done >= target && !['Pending Your Confirmation','Closed'].includes(c.status);
+    return target > 0 && done >= target && !DONE_STATUSES.includes(c.status);
   });
   if (readyForConf.length) items.push({key:'ready_conf', type:'info', text:`${readyForConf.length} case${readyForConf.length>1?'s':''} ready for confirmation`, sub:`All banners done — move to Pending Your Confirmation`, action:()=>{}});
 
@@ -3719,13 +3738,9 @@ function buildNotifications() {
   })());
   if (stuckPYI.length) items.push({key:'stuck_pyi', type:'warn', text:`${stuckPYI.length} case${stuckPYI.length>1?'s':''} waiting for your input 3+ days`, sub: stuckPYI.slice(0,3).map(c=>c.number||c.name).join(', '), action:()=>{}});
 
-  // Due in next 2 days
-  const dueSoon2 = cases.filter(c => {
-    if (!c.dueDate || c.status === 'Closed') return false;
-    const d = Math.floor((new Date(c.dueDate+'T12:00:00') - now) / 86400000);
-    return d >= 0 && d <= 2;
-  });
-  if (dueSoon2.length) items.push({key:'due_soon', type:'warn', text:`${dueSoon2.length} case${dueSoon2.length>1?'s':''} due within 2 days`, sub: dueSoon2.map(c=>`${c.number||c.name} (${fmtD(c.dueDate)})`).slice(0,3).join(', '), action:()=>applyQuickFilter('dueweek')});
+  // Due within 2 days (EOD), not done
+  const dueSoon2 = cases.filter(c => isDS(c) && !isPD(c));
+  if (dueSoon2.length) items.push({key:'due_soon', type:'warn', text:`${dueSoon2.length} case${dueSoon2.length>1?'s':''} due within 2 days (EOD)`, sub: dueSoon2.map(c=>`${c.number||c.name} (${fmtD(c.dueDate)} EOD)`).slice(0,3).join(', '), action:()=>applyQuickFilter('dueweek')});
 
   // Backup reminder
   if (lastExportDate) {
@@ -4343,11 +4358,18 @@ function workedYesterday(c) {
 
 // ── DUE COUNTDOWN ──
 function dueCountdown(c) {
-  if (!c.dueDate || c.status === 'Closed') return null;
-  const diff = Math.floor((new Date(c.dueDate+'T12:00:00') - new Date()) / 86400000);
-  if (diff < 0) return { label: `${Math.abs(diff)}d overdue`, cls: 'overdue' };
-  if (diff === 0) return { label: 'Due today', cls: 'today' };
-  if (diff <= 3) return { label: `Due in ${diff}d`, cls: 'soon' };
+  if (!c.dueDate || DONE_STATUSES.includes(c.status) || c.archived) return null;
+  const eod = dueDateEOD(c.dueDate);
+  const now = new Date();
+  const hoursLeft = (eod - now) / 3600000;
+  if (hoursLeft < 0) {
+    const daysOver = Math.floor(-hoursLeft / 24);
+    return { label: `${daysOver||'<1'}d overdue`, cls: 'overdue' };
+  }
+  if (hoursLeft <= 24) return { label: 'Due today (EOD)', cls: 'today' };
+  if (hoursLeft <= 48) return { label: 'Due tomorrow (EOD)', cls: 'soon' };
+  const daysLeft = Math.floor(hoursLeft / 24);
+  if (daysLeft <= 3) return { label: `Due in ${daysLeft}d`, cls: 'soon' };
   return null;
 }
 
@@ -4526,7 +4548,7 @@ function applyThemeFromSelector(val) {
   const active=document.querySelector('.section.active');
   if(!active)return;
   const tab=active.id.replace('tab-','');
-  if(tab==='dashboard'){renderBento();setTimeout(renderDashCharts,60);}
+  if(tab==='dashboard'){renderBento();}
   if(tab==='analytics')renderAnalytics();
 }
 function saveSLADays() {
@@ -4749,13 +4771,34 @@ const DASH_WIDGET_LABELS = {
   streak:     '🔥 Work Streak',
 };
 function renderDashWidgetsSettings() {
-  const el = document.getElementById('dash-widget-grid');
+  const el = document.getElementById('dash-order-wrap');
   if (!el) return;
-  el.innerHTML = Object.entries(DASH_WIDGET_LABELS).map(([key,label])=>`
-    <div class="dash-widget-row">
-      <span>${label}</span>
+  // Ensure all keys are in order array (new keys appended if missing)
+  Object.keys(DASH_WIDGET_LABELS).forEach(k => {
+    if (!dashWidgetOrder.includes(k)) dashWidgetOrder.push(k);
+  });
+  const order = dashWidgetOrder.filter(k => DASH_WIDGET_LABELS[k]);
+  el.innerHTML = order.map((key, idx) => `
+    <div class="dash-order-row">
+      <div class="dash-order-btns">
+        <button class="dash-order-btn" onclick="reorderWidget('${key}',-1)" ${idx===0?'disabled':''} title="Move up">↑</button>
+        <button class="dash-order-btn" onclick="reorderWidget('${key}',1)"  ${idx===order.length-1?'disabled':''} title="Move down">↓</button>
+      </div>
+      <span class="dash-order-label">${DASH_WIDGET_LABELS[key]}</span>
       <button class="toggle ${dashWidgets[key]?' on':''}" onclick="toggleDashWidget('${key}')"></button>
     </div>`).join('');
+}
+
+function reorderWidget(key, dir) {
+  const idx = dashWidgetOrder.indexOf(key);
+  if (idx === -1) return;
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= dashWidgetOrder.length) return;
+  // Swap
+  [dashWidgetOrder[idx], dashWidgetOrder[newIdx]] = [dashWidgetOrder[newIdx], dashWidgetOrder[idx]];
+  saveSettings();
+  renderDashWidgetsSettings();
+  if (document.getElementById('tab-dashboard').classList.contains('active')) renderBento();
 }
 function toggleDashWidget(key) {
   dashWidgets[key] = !dashWidgets[key];
