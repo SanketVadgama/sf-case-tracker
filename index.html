@@ -2084,6 +2084,13 @@ let TSHORT = {...BUILTIN_TSHORT};
 let TCLASS = {...BUILTIN_TCLASS};
 let customTypes = []; // user-added type names
 
+// ── HTML ESCAPE (prevents XSS in all innerHTML assignments) ──
+function safeUrl(u){if(!u)return'';const s=u.trim().toLowerCase();if(s.startsWith('javascript:')||s.startsWith('data:'))return'#';return u;}
+function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+// ── DONE STATUS HELPER (centralises DONE_STATUSES usage) ──
+function isDone(c){ return DONE_STATUSES.includes(c.status); }
+
 // ── STATE ──
 let cases=[], editId=null, sortKey='start', sortDir=-1, selected=new Set();
 let openDetailId=null, openDTab='info', curView='table', pendingImport=null;
@@ -2127,7 +2134,16 @@ function load() {
   populateTypeSelects();
   renderAll();
 }
-function save(){try{localStorage.setItem(STORE,JSON.stringify(cases));}catch(e){}markSaved();}
+function save(){
+  try{
+    localStorage.setItem(STORE,JSON.stringify(cases));
+    markSaved();
+  }catch(e){
+    if(e.name==='QuotaExceededError'||e.code===22){
+      toast('⚠ Storage full — export a CSV backup and delete old cases');
+    }
+  }
+}
 
 // ── US EASTERN TIME HELPERS ──
 const US_TZ = 'America/New_York';
@@ -2266,7 +2282,7 @@ function switchTab(name,el){
 
 // ── RENDER ALL ──
 function renderAll(){
-  const open=cases.filter(c=>c.status!=='Closed'&&!c.archived).length;
+  const open=cases.filter(c=>!isDone(c)&&!c.archived).length;
   const b=document.getElementById('open-badge');
   if(b){b.textContent=open;b.style.display=open?'':'none';}
   const active=document.querySelector('.section.active');
@@ -2312,7 +2328,7 @@ function renderBento(){
   const wa=new Date(now-7*864e5);
   const wOpened=cases.filter(c=>c.start&&new Date(c.start+'T12:00:00')>=wa).length;
   const wClosed=cases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=wa).length;
-  const wB=cases.reduce((s,c)=>s+sumBInPeriod(c,wa),0);
+  const wB=cases.reduce((s,c)=>s+sumBInPeriod(c,wa,now),0);
   const recent=periodFrom?[...allCases].filter(c=>c.start&&new Date(c.start+'T12:00:00')>=periodFrom).sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6):[...allCases].sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6);
 
   const w=dashWidgets;
@@ -2423,9 +2439,12 @@ function renderBento(){
 function quickAdd(){
   const name=document.getElementById('qa-name')?.value.trim();
   if(!name){toast('Enter a case name');return;}
-  const c=newCase({name,type:document.getElementById('qa-type').value,priority:document.getElementById('qa-priority').value,status:'New',start:today()});
+  const type=document.getElementById('qa-type')?.value||TYPES[0];
+  const priority=document.getElementById('qa-priority')?.value||'Medium';
+  const c=newCase({name,type,priority,status:'New',start:today()});
   cases.push(c);save();renderAll();
-  document.getElementById('qa-name').value='';toast('Case added!');
+  document.getElementById('qa-name').value='';
+  toast('Case added — open it to fill in URL and due date');
 }
 function newCase(o){return{id:Date.now().toString()+Math.random().toString(36).slice(2,5),number:'',name:'',url:'',type:TYPES[0],status:'New',priority:'Medium',start:'',end:'',dueDate:'',notes:'',bannerLog:[],comments:[],statusHistory:[],totalBanners:0,...o};}
 
@@ -2475,7 +2494,7 @@ function renderTable(){
       :`<span style="font-family:var(--mono);font-weight:700;font-size:11px">${done||0}</span>`;
     // Case number linked to URL — NOT the name
     const numCell=c.url&&c.number
-      ?`<a href="${c.url}" target="_blank" onclick="event.stopPropagation()" style="font-family:var(--mono);font-size:10.5px">${c.number}</a>`
+      ?`<a href="${safeUrl(c.url)}" target="_blank" onclick="event.stopPropagation()" style="font-family:var(--mono);font-size:10.5px">${c.number}</a>`
       :`<span style="font-family:var(--mono);font-size:10.5px;color:var(--text3)">${c.number||'—'}</span>`;
     const isPinned=pinnedCases.has(c.id);
     return`<tr class="${isOD(c)?'od-row':''} ${openDetailId===c.id?'sel-row':''}" onclick="openDetail('${c.id}')">
@@ -2629,15 +2648,15 @@ function renderDTab(tab){
         <div class="d-row"><span class="d-rl">Due Date</span><span class="d-rv">${dueMeta}</span></div>
         <div class="d-row"><span class="d-rl">Completion</span><span class="d-rv">${fmtDF(c.end)}</span></div>
         <div class="d-row"><span class="d-rl">Duration</span><span class="d-rv">${dur}</span></div>
-        ${c.url?`<div class="d-row"><span class="d-rl">Link</span><span class="d-rv"><a href="${c.url}" target="_blank">Open in SF ↗</a></span></div>`:''}
+        ${c.url?`<div class="d-row"><span class="d-rl">Link</span><span class="d-rv"><a href="${safeUrl(c.url)}" target="_blank">Open in SF ↗</a></span></div>`:''}
       </div>
       <div class="d-sec"><div class="d-sec-title">Notes</div>
-        <div class="d-notes ${c.notes?'':'mt'}">${c.notes||'No notes added.'}</div>
+        <div class="d-notes ${c.notes?'':'mt'}">${escHtml(c.notes)||'No notes added.'}</div>
       </div>`;
   } else if(tab==='comments'){
     const coms=c.comments||[];
     body.innerHTML=`<div class="d-sec">
-      ${coms.length?coms.map(cm=>`<div class="cmt"><div class="cmt-av">${(cm.author||'Y')[0].toUpperCase()}</div><div class="cmt-body"><div class="cmt-meta"><span class="cmt-author">${cm.author||'You'}</span><span>${fmtTs(cm.ts)}</span></div><div class="cmt-text">${cm.text}</div></div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:5px 0">No comments yet.</div>'}
+      ${coms.length?coms.map(cm=>`<div class="cmt"><div class="cmt-av">${(cm.author||'Y')[0].toUpperCase()}</div><div class="cmt-body"><div class="cmt-meta"><span class="cmt-author">${escHtml(cm.author||'You')}</span><span>${fmtTs(cm.ts)}</span></div><div class="cmt-text">${escHtml(cm.text)}</div></div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:5px 0">No comments yet.</div>'}
       <div class="cmt-wrap"><textarea id="cmt-input" placeholder="Add a comment…"></textarea><button class="btn btn-sm btn-primary" style="align-self:flex-end;height:55px;width:55px;flex-direction:column" onclick="addComment()"><svg viewBox="0 0 24 24" style="stroke-width:2;width:14px;height:14px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div>
     </div>`;
   } else if(tab==='history'){
@@ -2768,11 +2787,12 @@ function renderBannerList(){
       <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3)">Work history — hover to edit/delete</span>
     </div>
     ${log.length ? log.map((b,i)=>{
-      // Use ts as unique key, fallback to index
-      const key=b.ts||i;
+      // Use original index in bannerLog array as stable key (sorted display index i won't match)
+      const origIdx = c.bannerLog.indexOf(b);
+      const key = origIdx >= 0 ? origIdx : i;
       return `<div class="bl-item" id="bl-entry-${key}">
         <div class="bl-date" style="flex-shrink:0;width:72px">${fmtDateUS(b.date)}</div>
-        <div class="bl-note" style="flex:1;color:var(--text2);font-size:11px">${b.note||'—'}</div>
+        <div class="bl-note" style="flex:1;color:var(--text2);font-size:11px">${escHtml(b.note)||'—'}</div>
         <div style="font-family:var(--mono);font-weight:700;font-size:13px;color:var(--s-inp);flex-shrink:0;min-width:32px;text-align:right">${b.count}</div>
         <div class="bl-actions">
           <button class="bl-action-btn" onclick="editBannerEntry(${key})" title="Edit">✏</button>
@@ -2784,11 +2804,10 @@ function renderBannerList(){
 
 function deleteBannerEntry(key){
   const c=cases.find(x=>x.id===openDetailId);if(!c||!c.bannerLog)return;
-  const idx=c.bannerLog.findIndex(b=>(b.ts||b)=== key);
-  if(idx===-1)return;
-  const entry=c.bannerLog[idx];
+  const entry=c.bannerLog[key];
+  if(!entry)return;
   if(!confirm(`Delete this entry?\n${fmtDateUS(entry.date)} — ${entry.count} banners${entry.note?' ('+entry.note+')':''}`))return;
-  c.bannerLog.splice(idx,1);
+  c.bannerLog.splice(key,1);
   c.totalBanners=sumB(c);
   logAudit('banner', c.number, c.name, `Deleted banner entry: ${entry.count} banners on ${fmtDateUS(entry.date)}`);
   save();renderBannerList();renderAll();
@@ -2799,30 +2818,28 @@ function deleteBannerEntry(key){
 
 function editBannerEntry(key){
   const c=cases.find(x=>x.id===openDetailId);if(!c||!c.bannerLog)return;
-  const idx=c.bannerLog.findIndex(b=>(b.ts||b)===key);
-  if(idx===-1)return;
-  const entry=c.bannerLog[idx];
+  const entry=c.bannerLog[key];
+  if(!entry)return;
   const row=document.getElementById(`bl-entry-${key}`);
   if(!row)return;
-  // Replace row with inline edit form
   row.outerHTML=`<div class="bl-edit-row" id="bl-edit-${key}">
     <input type="number" id="bl-edit-count-${key}" value="${entry.count}" min="1" style="width:64px;height:28px;font-size:12px;font-family:var(--mono);font-weight:700;text-align:center" placeholder="Count">
     <input type="date" id="bl-edit-date-${key}" value="${entry.date}" style="height:28px;font-size:12px;width:130px">
-    <input type="text" id="bl-edit-note-${key}" value="${entry.note||''}" style="flex:1;min-width:80px;height:28px;font-size:12px" placeholder="Note…">
-    <button class="btn btn-sm btn-primary" style="height:28px;padding:0 10px;font-size:11px" onclick="saveBannerEdit(${key},${idx})">Save</button>
+    <input type="text" id="bl-edit-note-${key}" value="${escHtml(entry.note||'')}" style="flex:1;min-width:80px;height:28px;font-size:12px" placeholder="Note…">
+    <button class="btn btn-sm btn-primary" style="height:28px;padding:0 10px;font-size:11px" onclick="saveBannerEdit(${key})">Save</button>
     <button class="btn btn-sm btn-ghost" style="height:28px;padding:0 8px;font-size:11px" onclick="renderBannerList()">Cancel</button>
   </div>`;
   setTimeout(()=>document.getElementById(`bl-edit-count-${key}`)?.focus(),30);
 }
 
-function saveBannerEdit(key,idx){
+function saveBannerEdit(key){
   const c=cases.find(x=>x.id===openDetailId);if(!c||!c.bannerLog)return;
+  const old=c.bannerLog[key];if(!old)return;
   const count=parseInt(document.getElementById(`bl-edit-count-${key}`)?.value)||0;
-  const date=document.getElementById(`bl-edit-date-${key}`)?.value||c.bannerLog[idx]?.date;
+  const date=document.getElementById(`bl-edit-date-${key}`)?.value||old.date;
   const note=document.getElementById(`bl-edit-note-${key}`)?.value.trim()||'';
   if(count<=0){toast('Count must be > 0');return;}
-  const old=c.bannerLog[idx];
-  c.bannerLog[idx]={...old, count, date, note, ts: old.ts||Date.now()};
+  c.bannerLog[key]={...old, count, date, note, ts: old.ts||Date.now()};
   c.totalBanners=sumB(c);
   logAudit('banner', c.number, c.name, `Edited banner entry: ${count} banners on ${fmtDateUS(date)}${note?' — '+note:''}`);
   save();renderBannerList();renderAll();
@@ -2865,6 +2882,7 @@ let kanbanCollapsed = {'Closed': true}; // Closed collapsed by default
 
 function toggleKanbanCol(status) {
   kanbanCollapsed[status] = !kanbanCollapsed[status];
+  saveSettings();
   renderKanban();
 }
 
@@ -2897,7 +2915,7 @@ function renderKanban(){
           const countdown=dueCountdown(c);const stale=isStale(c);const yest=workedYesterday(c);
           return`<div class="k-card" onclick="switchTab('cases',document.querySelector('[data-tab=cases]'));openDetail('${c.id}')">
             <div class="k-card-num">${c.number?'#'+c.number:''}${yest?'<span class="yesterday-dot"></span>':''}</div>
-            <div class="k-card-name">${c.name||'—'}</div>
+            <div class="k-card-name">${escHtml(c.name)||'—'}</div>
             <div class="k-card-meta">${bP(c.priority)} ${bT(c.type)}${stale?'<span class="stale-badge">stale</span>':''}${countdown?`<span class="due-chip ${countdown.cls}">${countdown.label}</span>`:''}
             <span class="k-card-age" style="margin-left:auto">${c.start?dSince(c.start)+'d':''}</span></div>
           </div>`;
@@ -3073,7 +3091,7 @@ function renderReport(){
   const totalPages=periodCases.filter(c=>c.type==='Automotive Content Migration'||c.type==='LeadScience Content Migration').reduce((s,c)=>s+bInP(c),0);
 
   const numCell=c=>{
-    if(c.url&&c.number)return`<a href="${c.url}" target="_blank" style="font-family:var(--mono);font-size:11px">${c.number}</a>`;
+    if(c.url&&c.number)return`<a href="${safeUrl(c.url)}" target="_blank" style="font-family:var(--mono);font-size:11px">${c.number}</a>`;
     return`<span style="font-family:var(--mono);font-size:11px;color:var(--text3)">${c.number||'—'}</span>`;
   };
 
@@ -3160,7 +3178,7 @@ function renderReport(){
     }
 
     // Carry-over cases
-    const carryOver=cases.filter(c=>c.status!=='Closed'&&c.start&&new Date(c.start+'T12:00:00')<(from||new Date(0)));
+    const carryOver=cases.filter(c=>!isDone(c)&&!c.archived&&c.start&&new Date(c.start+'T12:00:00')<(from||new Date(0)));
     if(carryOver.length){
       html+=`<div class="rpt-section-title">Carry-Over Cases <span style="font-weight:400;font-size:9px;color:var(--text3)">(started before this period, still open)</span></div>`;
       html+=carryOver.map(c=>`<div class="rpt-carry-row"><span style="font-family:var(--mono);font-size:10.5px;color:var(--text3);width:90px;flex-shrink:0">${c.number||'—'}</span><span class="rpt-carry-name">${c.name}</span>${bS(c.status)}<span class="rpt-carry-age" style="margin-left:8px">${dSince(c.start)}d old</span></div>`).join('');
@@ -3224,23 +3242,37 @@ function processFile(file){
     const headers=parseRow(lines[0]);
     const rows=lines.slice(1).map(l=>parseRow(l));
     const hi=name=>headers.findIndex(h=>h.toLowerCase().replace(/\s+/g,'')===name.toLowerCase().replace(/\s+/g,''));
-    pendingImport=rows.filter(r=>r.some(c=>c.trim())).map(r=>({
-      id:Date.now().toString()+Math.random().toString(36).slice(2,5),
+    pendingImport=rows.filter(r=>r.some(c=>c.trim())).map((r,rowIdx)=>{
+      const status=r[hi('Status')]||'New';
+      const id=Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7)+'_'+rowIdx;
+      const banners=parseInt(r[hi('TotalBanners')])||parseInt(r[hi('Banners')])||0;
+      return{
+      id,
       number:r[hi('CaseNumber')]||'',name:r[hi('CaseName')]||'',
       type:r[hi('Type')]||TYPES[0],status:r[hi('Status')]||'New',priority:r[hi('Priority')]||'Medium',
       start:r[hi('StartDate')]||'',end:r[hi('CompletionDate')]||'',dueDate:r[hi('DueDate')]||'',
       url:r[hi('URL')]||'',notes:r[hi('Notes')]||'',
-      bannerTarget:parseInt(r[hi('TotalBanners')])||parseInt(r[hi('Banners')])||0,
-      bannerLog:[],comments:[],statusHistory:[],
-      totalBanners:parseInt(r[hi('TotalBanners')])||parseInt(r[hi('Banners')])||0
-    }));
+      bannerTarget:banners,
+      // Seed a single log entry so sumB() matches the exported total
+      bannerLog: banners>0 ? [{count:banners, date:r[hi('StartDate')]||todayUS(), note:'Imported', ts:Date.now()}] : [],
+      comments:[],
+      statusHistory:[{from:'',to:status,ts:Date.now()}],
+      totalBanners:banners
+      };
+    });
     document.getElementById('import-preview').style.display='';
     document.getElementById('import-preview').innerHTML=`<strong>${pendingImport.length} cases</strong> ready to import from <em>${file.name}</em>`;
     document.getElementById('import-confirm').style.display='';
   };
   r.readAsText(file);
 }
-function confirmImport(){if(!pendingImport)return;cases.push(...pendingImport);save();renderAll();toast(`Imported ${pendingImport.length} cases!`);closeImportModal();}
+function confirmImport(){
+  if(!pendingImport)return;
+  const dupes=pendingImport.filter(c=>c.number&&cases.some(x=>x.number===c.number));
+  if(dupes.length&&!confirm(`${dupes.length} case number${dupes.length>1?'s':''} already exist (${dupes.slice(0,3).map(c=>c.number).join(', ')}${dupes.length>3?'…':''}).\nImport anyway?`))return;
+  cases.push(...pendingImport);
+  save();renderAll();toast(`Imported ${pendingImport.length} case${pendingImport.length>1?'s':''}!`);closeImportModal();
+}
 
 // ── SORT / BULK ──
 function sortBy(key){if(sortKey===key)sortDir*=-1;else{sortKey=key;sortDir=1;}renderTable();}
@@ -3255,7 +3287,7 @@ function applyBulk(){
   selected.forEach(id=>{const c=cases.find(x=>x.id===id);if(c){const prev=c.status;c.status=ns;if(!c.statusHistory)c.statusHistory=[];c.statusHistory.push({from:prev,to:ns,ts:Date.now()});if(ns==='Closed'&&!c.end)c.end=today();}});
   save();clearSel();renderAll();toast(`Updated ${count} case${count>1?'s':''} to "${ns}"`);
 }
-function bulkDelete(){const count=selected.size;if(!confirm(`Delete ${count} case${count>1?'s':''}?`))return;cases=cases.filter(c=>!selected.has(c.id));selected.clear();save();renderAll();toast(`Deleted ${count} case${count>1?'s':''}`);} 
+function bulkDelete(){const count=selected.size;if(!confirm(`Delete ${count} case${count>1?'s':''}?`))return;selected.forEach(id=>pinnedCases.delete(id));cases=cases.filter(c=>!selected.has(c.id));selected.clear();save();saveSettings();renderAll();renderPinnedCases();toast(`Deleted ${count} case${count>1?'s':''}`);}  
 
 // ── MODAL ──
 function openModal(id){
@@ -3557,7 +3589,7 @@ function renderDayPanel(ds) {
     if (entries.length > 0) {
       html += `<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);margin-bottom:8px">Banner Work</div>`;
       entries.forEach(({c, entry}) => {
-        const numLink = c.url && c.number ? `<a href="${c.url}" target="_blank" style="font-family:var(--mono);font-size:10.5px">${c.number}</a>` : `<span style="font-family:var(--mono);font-size:10.5px;color:var(--text3)">${c.number||'—'}</span>`;
+        const numLink = c.url && c.number ? `<a href="${safeUrl(c.url)}" target="_blank" style="font-family:var(--mono);font-size:10.5px">${c.number}</a>` : `<span style="font-family:var(--mono);font-size:10.5px;color:var(--text3)">${c.number||'—'}</span>`;
         html += `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
           <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--text);width:38px;flex-shrink:0">+${entry.count}</div>
           <div style="flex:1;min-width:0">
@@ -3644,7 +3676,7 @@ function downloadDayReport(ds) {
           <thead><tr><th>Case #</th><th>Case Name</th><th>Status</th><th style="text-align:center">Banners</th><th>Note</th></tr></thead>
           <tbody>
             ${group.map(({c,entry})=>{
-              const numDisplay = c.url && c.number ? `<a href="${c.url}" target="_blank">${c.number}</a>` : (c.number||'—');
+              const numDisplay = c.url && c.number ? `<a href="${safeUrl(c.url)}" target="_blank">${c.number}</a>` : (c.number||'—');
               return `<tr>
                 <td class="num">${numDisplay}</td>
                 <td>${c.name||'—'}</td>
@@ -3886,25 +3918,17 @@ function getQuickFilteredList(list) {
   const now = new Date();
   if (activeQuickFilter === 'overdue') return list.filter(isOD);
   if (activeQuickFilter === 'dueweek') return list.filter(c => {
-    if (!c.dueDate || c.status==='Closed') return false;
-    const d = Math.floor((new Date(c.dueDate+'T12:00:00') - now) / 86400000);
-    return d >= 0 && d <= 7;
+    if (!c.dueDate || isDone(c) || c.archived) return false;
+    const eod = dueDateEOD(c.dueDate);
+    const hoursLeft = (eod - now) / 3600000;
+    return hoursLeft >= 0 && hoursLeft <= 168;
   });
   if (activeQuickFilter === 'remaining') return list.filter(c => {
     const target = parseInt(c.bannerTarget)||0;
     return target > 0 && sumB(c) < target && c.status !== 'Closed';
   });
   if (activeQuickFilter === 'pyc') return list.filter(c => c.status === 'Pending Your Confirmation');
-  if (activeQuickFilter === 'stale') return list.filter(c => {
-    if (c.status === 'Closed') return false;
-    const lastAct = Math.max(
-      c.statusHistory?.length ? (c.statusHistory[c.statusHistory.length-1].ts||0) : 0,
-      ...(c.bannerLog||[]).map(b=>b.ts||0),
-      ...(c.comments||[]).map(cm=>cm.ts||0)
-    );
-    if (!lastAct) return dSince(c.start) > 5;
-    return Math.floor((Date.now() - lastAct) / 86400000) > 5;
-  });
+  if (activeQuickFilter === 'stale') return list.filter(c => !isDone(c) && !c.archived && isStale(c));
   return list;
 }
 
@@ -4078,8 +4102,8 @@ function checkAndSuggestPYC(c) {
 
 // ── CLOSED CASE WARNING ──
 function warnIfClosed(c) {
-  if (c.status === 'Closed') {
-    return confirm(`⚠ Case "${c.name}" is Closed.\nLog work anyway?`);
+  if (isDone(c)) {
+    return confirm(`⚠ Case "${escHtml(c.name)}" is ${c.status}.\nLog work anyway?`);
   }
   return true;
 }
@@ -4193,7 +4217,7 @@ function copyReport() {
       if (!items?.length) return;
       const typeBanners = items.reduce((s, m) => s + m.banners, 0);
       const rows = items.map(({c, banners, notes}) => {
-        const num = c.url && c.number ? `<a href="${c.url}" style="color:#1D5BBF">${c.number}</a>` : (c.number || '—');
+        const num = c.url && c.number ? `<a href="${safeUrl(c.url)}" style="color:#1D5BBF">${c.number}</a>` : (c.number || '—');
         const note = notes.length ? notes.join('; ') : '—';
         return `<tr>
           <td style="${tdStyle}">${num}</td>
@@ -4317,8 +4341,10 @@ function archiveCase(id) {
   const c = cases.find(x => x.id === id);
   if (!c) return;
   c.archived = true;
+  pinnedCases.delete(id);
+  selected.delete(id);
   logAudit('archived', c.number, c.name, `Archived (was ${c.status})`);
-  save(); renderAll(); renderArchive();
+  save(); saveSettings(); renderAll(); renderArchive(); renderPinnedCases();
   if (openDetailId === id) closeDetail();
   toast(`"${c.name}" archived`);
 }
@@ -4345,7 +4371,7 @@ function renderArchive() {
   });
   el.innerHTML = sorted.map(c => {
     const numCell = c.url && c.number
-      ? `<a href="${c.url}" target="_blank" style="font-family:var(--mono);font-size:10.5px">${c.number}</a>`
+      ? `<a href="${safeUrl(c.url)}" target="_blank" style="font-family:var(--mono);font-size:10.5px">${c.number}</a>`
       : `<span style="font-family:var(--mono);font-size:10.5px;color:var(--text3)">${c.number||'—'}</span>`;
     return `<tr>
       <td>${numCell}</td>
@@ -4499,7 +4525,7 @@ function openFocusMode(id) {
       <div><strong>Start:</strong> ${fmtD(c.start)}</div>
       ${c.dueDate?`<div><strong>Due:</strong> ${fmtD(c.dueDate)}</div>`:''}
     </div>
-    ${c.notes ? `<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:var(--r);font-size:12px;color:var(--text2);line-height:1.5">${c.notes}</div>` : ''}
+    ${c.notes ? `<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:var(--r);font-size:12px;color:var(--text2);line-height:1.5">${escHtml(c.notes)}</div>` : ''}
     <div style="margin-top:14px">
       <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);margin-bottom:8px">Time in Status</div>
       ${renderTimeInStatus(c)}
@@ -4535,6 +4561,7 @@ function loadSettings() {
     if (s.dashWidgets) { dashWidgets = {...dashWidgets, ...s.dashWidgets}; }
     if (s.dashWidgetOrder) { dashWidgetOrder = s.dashWidgetOrder; }
     if (s.dashPeriod) { dashPeriod = s.dashPeriod; }
+    if (s.kanbanCollapsed) { kanbanCollapsed = s.kanbanCollapsed; }
     if (s.customTypes) { customTypes = s.customTypes; rebuildTypes(); }
   } catch(e){}
 }
@@ -4543,7 +4570,7 @@ function saveSettings() {
     localStorage.setItem(SETTINGS_STORE, JSON.stringify({
       pinned: [...pinnedCases], savedFilters, lastExportDate,
       dailyGoal, slaDays: slaGlobalDays, densityCompact, reminderEnabled,
-      defaultSort: sortKey, dashWidgets, dashWidgetOrder, dashPeriod, customTypes
+      defaultSort: sortKey, dashWidgets, dashWidgetOrder, dashPeriod, customTypes, kanbanCollapsed
     }));
   } catch(e){}
 }
@@ -4650,6 +4677,7 @@ function clearAllData() {
   localStorage.removeItem(AUDIT_STORE);
   cases=[]; auditLog=[];
   pinnedCases=new Set(); savedFilters=[]; lastExportDate=null;
+  dismissedNotifs=new Set();
   dashWidgets={alerts:true,stats:true,metrics:true,activecases:true,recent:true,quickadd:true,digest:true,focus:true,goal:true,streak:true};
   dashPeriod='overall';
   customTypes=[]; rebuildTypes();
@@ -4722,9 +4750,10 @@ function populateTypeSelects() {
 function addCustomType() {
   const inp = document.getElementById('new-type-input');
   if (!inp) return;
-  const name = inp.value.trim();
+  const name = inp.value.trim().replace(/[<>"'&]/g, ''); // strip HTML special chars
   if (!name) { toast('Enter a type name'); return; }
   if (TYPES.includes(name)) { toast('Type already exists'); return; }
+  if (name.length > 60) { toast('Type name too long (max 60 chars)'); return; }
   customTypes.push(name);
   rebuildTypes();
   saveSettings();
