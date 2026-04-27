@@ -1634,7 +1634,7 @@ body.compact .k-card{padding:6px 8px}
             <select id="rpt-range" onchange="onRptRangeChange()">
               <option value="daily">Daily — Today</option>
               <option value="weekly" selected>Weekly — Last 7 days</option>
-              <option value="monthly">Monthly — Last 30 days</option>
+              <option value="monthly">Monthly — This Month</option>
               <option value="pick-month">By Month…</option>
               <option value="custom">Custom Range…</option>
             </select>
@@ -2305,31 +2305,49 @@ function renderBento(){
   const now=new Date();
 
   // ── Period window ──
-  let periodFrom=null;
+  let periodFrom=null, periodTo=null;
   const pLabels={daily:'Today',weekly:'This Week',monthly:'This Month',overall:'All Time'};
   const pLabel=pLabels[dashPeriod]||'All Time';
-  const pSub={daily:'today',weekly:'last 7 days',monthly:'last 30 days',overall:'all time'};
-  if(dashPeriod==='daily') periodFrom=new Date(now.toLocaleDateString('en-CA',{timeZone:US_TZ})+'T00:00:00');
-  else if(dashPeriod==='weekly') periodFrom=new Date(now-7*864e5);
-  else if(dashPeriod==='monthly') periodFrom=new Date(now-30*864e5);
+  const pSub={daily:'today',weekly:'this week',monthly:'this month',overall:'all time'};
+  if(dashPeriod==='daily'){
+    periodFrom=new Date(now.toLocaleDateString('en-CA',{timeZone:US_TZ})+'T00:00:00');
+    periodTo=now;
+  } else if(dashPeriod==='weekly'){
+    // Start of current week (Monday)
+    const day=now.getDay(); // 0=Sun,1=Mon,...
+    const daysToMon=day===0?6:day-1;
+    periodFrom=new Date(now); periodFrom.setDate(now.getDate()-daysToMon); periodFrom.setHours(0,0,0,0);
+    periodTo=now;
+  } else if(dashPeriod==='monthly'){
+    // Start of current calendar month
+    periodFrom=new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+    periodTo=now;
+  }
 
-  // ── Data ──
-  const inPeriod=c=>!periodFrom||(c.start&&new Date(c.start+'T12:00:00')>=periodFrom)||(c.end&&new Date(c.end+'T12:00:00')>=periodFrom)||sumBInPeriod(c,periodFrom,now)>0;
+  // ── Data — inPeriod uses start OR end date only (same logic as report) ──
+  const inPeriod=c=>{
+    if(!periodFrom)return true;
+    const pTo=periodTo||now;
+    if(c.start&&new Date(c.start+'T12:00:00')>=periodFrom&&new Date(c.start+'T12:00:00')<=pTo)return true;
+    if(c.end&&new Date(c.end+'T12:00:00')>=periodFrom&&new Date(c.end+'T12:00:00')<=pTo)return true;
+    return false;
+  };
   const allCases=cases.filter(c=>!c.archived);
   const pCases=periodFrom?allCases.filter(inPeriod):allCases;
   const bySt=s=>(periodFrom?pCases:allCases).filter(c=>c.status===s).length;
   const total=periodFrom?pCases.length:allCases.length;
-  const allB=periodFrom?cases.reduce((s,c)=>s+sumBInPeriod(c,periodFrom,now),0):cases.reduce((s,c)=>s+sumB(c),0);
-  const resolved=periodFrom?cases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=periodFrom):cases.filter(c=>c.status==='Closed'&&c.start&&c.end);
+  const pTo=periodTo||now;
+  const allB=periodFrom?cases.reduce((s,c)=>s+sumBInPeriod(c,periodFrom,pTo),0):cases.reduce((s,c)=>s+sumB(c),0);
+  const resolved=periodFrom?cases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=periodFrom&&new Date(c.end+'T12:00:00')<=pTo):cases.filter(c=>c.status==='Closed'&&c.start&&c.end);
   const avgRes=resolved.length?Math.round(resolved.reduce((s,c)=>s+(new Date(c.end+'T12:00:00')-new Date(c.start+'T12:00:00'))/86400000,0)/resolved.length):null;
   const overdue=allCases.filter(isOD);
   const pastDue=allCases.filter(isPD);
   const dueSoon=allCases.filter(c=>isDS(c)&&!isPD(c));
-  const wa=new Date(now-7*864e5);
-  const wOpened=cases.filter(c=>c.start&&new Date(c.start+'T12:00:00')>=wa).length;
-  const wClosed=cases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=wa).length;
-  const wB=cases.reduce((s,c)=>s+sumBInPeriod(c,wa,now),0);
-  const recent=periodFrom?[...allCases].filter(c=>c.start&&new Date(c.start+'T12:00:00')>=periodFrom).sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6):[...allCases].sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6);
+  // Digest always uses same period window as dashboard selection
+  const wOpened=cases.filter(c=>c.start&&new Date(c.start+'T12:00:00')>=(periodFrom||new Date(0))&&new Date(c.start+'T12:00:00')<=pTo).length;
+  const wClosed=cases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=(periodFrom||new Date(0))&&new Date(c.end+'T12:00:00')<=pTo).length;
+  const wB=cases.reduce((s,c)=>s+sumBInPeriod(c,periodFrom||new Date(0),pTo),0);
+  const recent=periodFrom?[...allCases].filter(c=>inPeriod(c)).sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6):[...allCases].sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6);
 
   const w=dashWidgets;
 
@@ -3049,8 +3067,9 @@ function renderReport(){
     from=new Date(now-7*864e5);
     periodLabel='Last 7 days ('+from.toLocaleDateString('en-US',{timeZone:US_TZ,month:'short',day:'numeric'})+' – '+now.toLocaleDateString('en-US',{timeZone:US_TZ,month:'short',day:'numeric',year:'numeric'})+')';
   } else if(range==='monthly'){
-    from=new Date(now-30*864e5);
-    periodLabel='Last 30 days ('+from.toLocaleDateString('en-US',{timeZone:US_TZ,month:'short',day:'numeric'})+' – '+now.toLocaleDateString('en-US',{timeZone:US_TZ,month:'short',day:'numeric',year:'numeric'})+')';
+    from=new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+    to=now;
+    periodLabel='This Month, '+now.toLocaleDateString('en-US',{timeZone:US_TZ,month:'long',year:'numeric'})+' ('+from.toLocaleDateString('en-US',{timeZone:US_TZ,month:'short',day:'numeric'})+' – '+now.toLocaleDateString('en-US',{timeZone:US_TZ,month:'short',day:'numeric',year:'numeric'})+')';
   } else if(range==='pick-month'){
     const selMonth=parseInt(document.getElementById('rpt-month-sel')?.value||new Date().getMonth());
     const selYear=parseInt(document.getElementById('rpt-year-sel')?.value||new Date().getFullYear());
