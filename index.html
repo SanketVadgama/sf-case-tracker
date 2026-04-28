@@ -1792,7 +1792,7 @@ body.compact .k-card{padding:6px 8px}
               </select>
             </div>
             <div class="settings-row">
-              <div><div class="settings-label">Global SLA Target (days)</div><div class="settings-sub">Default days before a case is considered overdue</div></div>
+              <div><div class="settings-label">SLA Warning Threshold (days)</div><div class="settings-sub">Show overdue warning in SLA bar this many days after the due date is missed</div></div>
               <input type="number" id="sla-days-input" min="1" max="60" style="width:70px;height:30px;font-size:12px;text-align:center" onchange="saveSLADays()">
             </div>
           </div>
@@ -2196,9 +2196,15 @@ function isDS(c){
 }
 // Overdue: past due AND case not done (SLA violation)
 function isOD(c){return isPD(c);}
-function sumB(c){return(c.bannerLog||[]).reduce((s,b)=>s+(parseInt(b.count)||0),0);}
-// Banners logged from a date onwards
+// Only count banners for cases that are done from our side (PYC or Closed)
+const BANNER_STATUSES=['Pending Your Confirmation','Closed'];
+function sumB(c){
+  if(!BANNER_STATUSES.includes(c.status))return 0;
+  return(c.bannerLog||[]).reduce((s,b)=>s+(parseInt(b.count)||0),0);
+}
+// Banners logged in a date range — only for done cases
 function sumBInPeriod(c,from,to){
+  if(!BANNER_STATUSES.includes(c.status))return 0;
   return(c.bannerLog||[]).filter(b=>{
     if(!b.date)return false;
     const bd=isoToDate(b.date);
@@ -2207,8 +2213,9 @@ function sumBInPeriod(c,from,to){
     return true;
   }).reduce((s,b)=>s+(parseInt(b.count)||0),0);
 }
-// Banners logged on a specific date
+// Banners logged on a specific date — only for done cases
 function sumBOnDate(c,dateStr){
+  if(!BANNER_STATUSES.includes(c.status))return 0;
   return(c.bannerLog||[]).filter(b=>b.date===dateStr).reduce((s,b)=>s+(parseInt(b.count)||0),0);
 }
 // All work log entries on a date across all cases
@@ -2356,7 +2363,7 @@ function renderBento(){
   const sections={
     alerts:()=>{
       let h='';
-      if(overdue.length) h+=`<div class="b c12 b-alert danger" style="min-height:auto"><div class="b-alert-dot"></div><div class="b-alert-text"><strong>${overdue.length} case${overdue.length>1?'s':''} overdue</strong> (${slaGlobalDays||7}+ days open): ${overdue.map(c=>c.number||c.name).slice(0,5).join(', ')}${overdue.length>5?` +${overdue.length-5} more`:''}</div></div>`;
+      if(overdue.length) h+=`<div class="b c12 b-alert danger" style="min-height:auto"><div class="b-alert-dot"></div><div class="b-alert-text"><strong>${overdue.length} case${overdue.length>1?'s':''} overdue</strong> (past due date): ${overdue.map(c=>c.number||c.name).slice(0,5).join(', ')}${overdue.length>5?` +${overdue.length-5} more`:''}</div></div>`;
       if(pastDue.length) h+=`<div class="b c12 b-alert warn" style="min-height:auto"><div class="b-alert-dot"></div><div class="b-alert-text"><strong>${pastDue.length} case${pastDue.length>1?'s':''} past due date</strong>: ${pastDue.map(c=>c.number||c.name).slice(0,4).join(', ')}</div></div>`;
       return h;
     },
