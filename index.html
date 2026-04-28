@@ -3128,119 +3128,48 @@ function renderReport(){
 
   if(range==='daily'){
     // ── DAILY ──
+    html+=`<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--border)">Daily Productivity Report</div>`;
     const todayStr=todayUS();
-    const dateLabel=now.toLocaleDateString('en-US',{timeZone:US_TZ,weekday:'long',year:'numeric',month:'long',day:'numeric'});
     const rawEntries=[];
     cases.forEach(c=>{(c.bannerLog||[]).filter(b=>b.date===todayStr).forEach(entry=>{rawEntries.push({c,entry});});});
 
-    // Merge by case id
+    // Merge entries by case id — sum banners, combine notes
     const mergedMap=new Map();
     rawEntries.forEach(({c,entry})=>{
       if(!mergedMap.has(c.id)) mergedMap.set(c.id,{c,banners:0,notes:[],count:0});
       const m=mergedMap.get(c.id);
-      m.banners+=parseInt(entry.count)||0; m.count++;
+      m.banners+=parseInt(entry.count)||0;
+      m.count++;
       if(entry.note&&entry.note!=='—'&&entry.note!=='EOD log') m.notes.push(entry.note);
     });
     const todayMerged=[...mergedMap.values()];
     const totalToday=todayMerged.reduce((s,m)=>s+m.banners,0);
+    const totalEntries=rawEntries.length; // real entry count for footer
+    // Group by type
     const byTypeMerged={};
     todayMerged.forEach(m=>{ const t=m.c.type; if(!byTypeMerged[t])byTypeMerged[t]=[]; byTypeMerged[t].push(m); });
 
-    // Status badge helper for report
-    const sBadge=status=>{
-      const map={'New':'var(--s-new-bg);color:var(--s-new)','In Progress':'var(--s-inp-bg);color:var(--s-inp)','Pending Your Input':'var(--s-pyi-bg);color:var(--s-pyi)','Pending Your Confirmation':'var(--s-pyc-bg);color:var(--s-pyc)','Closed':'var(--s-closed-bg);color:var(--s-closed)'};
-      const style=map[status]||'var(--surface3);color:var(--text2)';
-      const dot={'New':'var(--s-new)','In Progress':'var(--s-inp)','Pending Your Input':'var(--s-pyi)','Pending Your Confirmation':'var(--s-pyc)','Closed':'var(--s-closed)'}[status]||'var(--text3)';
-      return `<span style="display:inline-flex;align-items:center;gap:5px;background:${style.split(';')[0].replace('background:','')};padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap"><span style="width:6px;height:6px;border-radius:50%;background:${dot};flex-shrink:0;display:inline-block"></span>${status}</span>`;
-    };
+    // Auto summary
+    if(todayMerged.length){
+      const summaryText=`Today, logged ${totalToday} banner${totalToday!==1?'s':''} across ${todayMerged.length} case${todayMerged.length!==1?'s':''}.`;
+      html+=`<div class="rpt-summary-box"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:rgba(255,255,255,.4);margin-bottom:6px">Summary</div><div class="rpt-summary-text">${summaryText}</div><button class="rpt-summary-copy" onclick="copyReport()">Copy as Email</button></div>`;
+    }
+    let any=false;
+    TYPES.forEach(type=>{
+      const typeItems=byTypeMerged[type];
+      if(!typeItems?.length)return;
+      any=true;
+      const typeBanners=typeItems.reduce((s,m)=>s+m.banners,0);
+      html+=`<div class="rpt-section-title">${type} <span style="font-weight:400;font-size:9px;color:var(--text3);margin-left:6px">${typeItems.length} case${typeItems.length!==1?'s':''} · ${typeBanners} banners</span></div>
+        <div class="rpt-tbl-wrap"><table class="rpt-tbl">
+          <thead><tr><th style="width:100px">Case #</th><th>Case Name</th><th style="width:130px">Status</th><th style="width:80px;text-align:center">Banners</th><th>Note</th></tr></thead>
+          <tbody>${typeItems.map(({c,banners,notes,count})=>`<tr><td>${numCell(c)}</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name||'—'}</td><td>${bS(c.status)}</td><td style="text-align:center;font-family:var(--mono);font-weight:700">${banners}${count>1?`<span style="font-size:10px;color:var(--text3);font-weight:400;margin-left:4px">(${count}×)</span>`:''}</td><td style="font-size:11px;color:var(--text3)">${notes.length?notes.join('; '):'—'}</td></tr>`).join('')}</tbody>
+        </table></div>`;
+    });
+    if(!any)html+=`<div style="font-size:13px;color:var(--text3);padding:24px 0;text-align:center">No banner work logged for today.<br><span style="font-size:11px">Use the Banners button on a case to log today's work.</span></div>`;
+    else html+=`<div class="rpt-totals" style="margin-top:14px"><div class="rpt-totals-title">Today's Total</div><div class="rpt-total-row"><span class="rpt-total-k">Total Banners Logged Today</span><span class="rpt-total-v">${totalToday}</span></div><div class="rpt-total-row"><span class="rpt-total-k">Cases Worked On</span><span class="rpt-total-v">${todayMerged.length}</span></div><div class="rpt-total-row"><span class="rpt-total-k">Work Entries</span><span class="rpt-total-v">${totalEntries}</span></div></div>`;
 
-    // Type icon/color map
-    const typeColor={'Automotive Content Migration':'#1F3A5F','Automotive Blog Migration':'#FF7319','LeadScience Content Migration':'#1F3A5F','LeadScience Blog Migration':'#FF7319'};
-    const typeIcon=t=>t.includes('Blog')?`<svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>`:`<svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`;
-
-    // Header
-    html+=`
-    <div style="margin-bottom:20px">
-      <div style="font-size:22px;font-weight:800;color:var(--text)">${dateLabel}</div>
-      <div style="font-size:13px;color:var(--text2);margin-top:4px">Please find the daily productivity report below.</div>
-    </div>`;
-
-    if(!todayMerged.length){
-      html+=`<div style="text-align:center;padding:40px 0;color:var(--text3);font-size:14px">No banner work logged for today.<br><span style="font-size:12px">Use the Banners button on a case to log today's work.</span></div>`;
-    } else {
-      // Type sections as cards
-      TYPES.forEach(type=>{
-        const items=byTypeMerged[type];
-        if(!items?.length)return;
-        const typeBanners=items.reduce((s,m)=>s+m.banners,0);
-        const accentColor=typeColor[type]||'#1F3A5F';
-        html+=`
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:16px;overflow:hidden;border-left:4px solid ${accentColor}">
-          <div style="padding:14px 16px;background:var(--surface2);display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)">
-            <div style="width:38px;height:38px;border-radius:50%;background:${accentColor};display:flex;align-items:center;justify-content:center;flex-shrink:0">${typeIcon(type)}</div>
-            <div>
-              <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text)">${type}</div>
-              <div style="font-size:12px;color:var(--text2);margin-top:2px">${items.length} Case${items.length!==1?'s':''} &nbsp;·&nbsp; <span style="color:${accentColor};font-weight:700">${typeBanners} Banner${typeBanners!==1?'s':''}</span></div>
-            </div>
-          </div>
-          <div style="overflow-x:auto">
-          <table style="width:100%;border-collapse:collapse;font-size:12px">
-            <thead>
-              <tr style="background:#1F3A5F">
-                <th style="color:#fff;padding:9px 14px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.05em;white-space:nowrap;width:110px">CASE #</th>
-                <th style="color:#fff;padding:9px 14px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.05em">CASE NAME</th>
-                <th style="color:#fff;padding:9px 14px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.05em;width:200px">STATUS</th>
-                <th style="color:#fff;padding:9px 14px;text-align:center;font-size:11px;font-weight:700;letter-spacing:.05em;width:90px">BANNERS</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${items.map(({c,banners},i)=>`
-              <tr style="border-bottom:1px solid var(--border);${i%2===1?'background:var(--surface2)':''}">
-                <td style="padding:10px 14px;vertical-align:middle">${c.url&&c.number?`<a href="${safeUrl(c.url)}" target="_blank" style="color:#1D5BBF;font-weight:600;font-family:var(--mono);font-size:11px;text-decoration:none">${c.number}</a>`:`<span style="font-family:var(--mono);font-size:11px;color:var(--text2)">${c.number||'—'}</span>`}</td>
-                <td style="padding:10px 14px;vertical-align:middle;font-weight:500;color:var(--text)">${escHtml(c.name)||'—'}</td>
-                <td style="padding:10px 14px;vertical-align:middle">${sBadge(c.status)}</td>
-                <td style="padding:10px 14px;text-align:center;vertical-align:middle;font-family:var(--mono);font-size:16px;font-weight:800;color:var(--text)">${banners}</td>
-              </tr>`).join('')}
-            </tbody>
-          </table>
-          </div>
-        </div>`;
-      });
-
-      // Summary cards at bottom
-      html+=`
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 20px;display:flex;align-items:center;gap:14px">
-          <div style="width:44px;height:44px;border-radius:50%;background:#1F3A5F;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-          </div>
-          <div>
-            <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Total Cases Worked On</div>
-            <div style="font-size:28px;font-weight:800;color:#1F3A5F;line-height:1">${todayMerged.length}</div>
-          </div>
-        </div>
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 20px;display:flex;align-items:center;gap:14px">
-          <div style="width:44px;height:44px;border-radius:50%;background:#16A34A;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          </div>
-          <div>
-            <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Total Banners Logged</div>
-            <div style="font-size:28px;font-weight:800;color:#16A34A;line-height:1">${totalToday}</div>
-          </div>
-        </div>
-      </div>
-      <div style="margin-top:12px;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-lg);text-align:center;color:var(--text3);font-size:11px;font-weight:600;letter-spacing:.04em">
-        Keep up the great work! 🎉
-      </div>
-      <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
-        <button class="btn btn-primary" onclick="copyReport()">
-          <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-          Copy as Email
-        </button>
-      </div>
-    `;}
-
-
+  } else {
     // ── WEEKLY / MONTHLY / CUSTOM ──
     const isWeekly=range==='weekly';
     const title=isWeekly?'Weekly Productivity Report':range==='monthly'?'Monthly Productivity Report':range==='pick-month'?`${periodLabel} Report`:'Custom Range Report';
@@ -4305,87 +4234,53 @@ function copyReport() {
     const totalCases = merged.length;
     const dateLabel = now.toLocaleDateString('en-US', {timeZone: US_TZ, weekday:'long', year:'numeric', month:'long', day:'numeric'});
 
-    // Shared email styles
-    const tStyle = 'border-collapse:collapse;width:100%;font-family:Arial,sans-serif;font-size:13px;margin:0';
-    const thStyle = 'background-color:#1F3A5F;color:#ffffff;padding:9px 14px;text-align:left;font-size:11px;font-weight:bold;letter-spacing:.05em;border:1px solid #1F3A5F';
-    const tdStyle = 'padding:9px 14px;border-bottom:1px solid #E0E6ED;vertical-align:middle;font-family:Arial,sans-serif;font-size:13px;color:#1F3A5F';
-    const tdBold = 'padding:9px 14px;border-bottom:1px solid #E0E6ED;text-align:center;font-weight:800;font-size:16px;font-family:monospace;color:#111';
-
-    const statusColor = {'New':'#93C5FD','In Progress':'#60A5FA','Pending Your Input':'#FCD34D','Pending Your Confirmation':'#C4B5FD','Closed':'#6EE7B7'};
-    const statusBg = {'New':'#EFF6FF','In Progress':'#DBEAFE','Pending Your Input':'#FFFBEB','Pending Your Confirmation':'#F5F3FF','Closed':'#ECFDF5'};
-    const statusText = {'New':'#1D4ED8','In Progress':'#1D4ED8','Pending Your Input':'#92400E','Pending Your Confirmation':'#5B21B6','Closed':'#065F46'};
-    const sBadgeEmail = s => `<span style="display:inline-block;background:${statusBg[s]||'#F3F4F6'};color:${statusText[s]||'#374151'};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid ${statusColor[s]||'#E5E7EB'}">${s}</span>`;
-
-    const typeAccent = t => t.includes('Blog') ? '#FF7319' : '#1F3A5F';
+    // Table styles for email clients
+    const tStyle = 'border-collapse:collapse;width:100%;font-family:Arial,sans-serif;font-size:13px;margin:8px 0 16px';
+    const thStyle = 'background-color:#183358;background:#183358;color:#ffffff;padding:7px 10px;text-align:left;font-size:11px;font-weight:bold;border:1px solid #183358';
+    const tdStyle = 'padding:6px 10px;border:1px solid #ddd;vertical-align:top';
+    const tdNumStyle = 'padding:6px 10px;border:1px solid #ddd;text-align:center;font-weight:bold';
 
     let sectionsHtml = '';
     TYPES.forEach(type => {
       const items = byType[type];
       if (!items?.length) return;
       const typeBanners = items.reduce((s, m) => s + m.banners, 0);
-      const accent = typeAccent(type);
-      const rows = items.map(({c, banners}, i) => {
-        const num = c.url && c.number ? `<a href="${safeUrl(c.url)}" style="color:#1D5BBF;font-weight:600;font-size:11px;font-family:monospace;text-decoration:none">${c.number}</a>` : `<span style="font-family:monospace;font-size:11px">${c.number||'—'}</span>`;
-        return `<tr style="${i%2===1?'background:#F9FAFB':''}">
+      const rows = items.map(({c, banners, notes}) => {
+        const num = c.url && c.number ? `<a href="${safeUrl(c.url)}" style="color:#1D5BBF">${c.number}</a>` : (c.number || '—');
+        const note = notes.length ? notes.join('; ') : '—';
+        return `<tr>
           <td style="${tdStyle}">${num}</td>
-          <td style="${tdStyle};font-weight:500">${c.name||'—'}</td>
-          <td style="${tdStyle}">${sBadgeEmail(c.status)}</td>
-          <td style="${tdBold}">${banners}</td>
+          <td style="${tdStyle}">${c.name||'—'}</td>
+          <td style="${tdStyle}">${c.status}</td>
+          <td style="${tdNumStyle}">${banners}</td>
+          <td style="${tdStyle}">${note}</td>
         </tr>`;
       }).join('');
       sectionsHtml += `
-        <div style="background:#fff;border:1px solid #E0E6ED;border-radius:10px;margin-bottom:16px;overflow:hidden;border-left:4px solid ${accent}">
-          <div style="background:#F5F7FA;padding:13px 16px;border-bottom:1px solid #E0E6ED;display:flex;align-items:center;gap:10px">
-            <div style="background:${accent};width:36px;height:36px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;color:#fff;font-size:13px;flex-shrink:0">${(TSHORT[type]||type.slice(0,3)).toUpperCase()}</div>
-            <div>
-              <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#1F3A5F">${type}</div>
-              <div style="font-size:12px;color:#555;margin-top:2px">${items.length} Case${items.length!==1?'s':''} &nbsp;·&nbsp; <strong style="color:${accent}">${typeBanners} Banner${typeBanners!==1?'s':''}</strong></div>
-            </div>
-          </div>
-          <table style="${tStyle}">
-            <thead><tr>
-              <th style="${thStyle};width:110px">CASE #</th>
-              <th style="${thStyle}">CASE NAME</th>
-              <th style="${thStyle};width:200px">STATUS</th>
-              <th style="${thStyle};text-align:center;width:90px">BANNERS</th>
-            </tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>`;
+        <p style="margin:16px 0 4px;font-family:Arial,sans-serif">
+          <strong style="font-size:12px;letter-spacing:.05em;text-transform:uppercase">${type}</strong>
+          <span style="color:#888;font-size:12px"> — ${items.length} case${items.length!==1?'s':''} · ${typeBanners} banners</span>
+        </p>
+        <table style="${tStyle}">
+          <thead><tr>
+            <th style="${thStyle}">CASE #</th>
+            <th style="${thStyle}">CASE NAME</th>
+            <th style="${thStyle}">STATUS</th>
+            <th style="${thStyle};text-align:center">BANNERS</th>
+            <th style="${thStyle}">NOTE</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
     });
 
-    const html = `<div style="font-family:Arial,sans-serif;background:#F5F7FA;padding:24px;max-width:800px;margin:0 auto">
-      <div style="background:#1F3A5F;border-radius:10px 10px 0 0;padding:20px 24px;display:flex;align-items:center;gap:14px">
-        <div style="background:rgba(255,255,255,.15);width:48px;height:48px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">
-          <span style="font-size:22px">📅</span>
-        </div>
-        <div>
-          <div style="color:#fff;font-size:20px;font-weight:800">${dateLabel}</div>
-          <div style="color:rgba(255,255,255,.7);font-size:13px;margin-top:2px">Daily Productivity Report</div>
-        </div>
-      </div>
-      <div style="background:#fff;border:1px solid #E0E6ED;border-top:none;border-radius:0 0 10px 10px;padding:20px 20px 8px">
-        ${sectionsHtml}
-        <div style="display:flex;gap:12px;margin-top:4px;margin-bottom:16px">
-          <div style="flex:1;background:#F5F7FA;border:1px solid #E0E6ED;border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:12px">
-            <div style="background:#1F3A5F;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">📋</div>
-            <div>
-              <div style="font-size:11px;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Total Cases Worked On</div>
-              <div style="font-size:28px;font-weight:800;color:#1F3A5F;line-height:1.1">${totalCases}</div>
-            </div>
-          </div>
-          <div style="flex:1;background:#F5F7FA;border:1px solid #E0E6ED;border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:12px">
-            <div style="background:#16A34A;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">📄</div>
-            <div>
-              <div style="font-size:11px;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Total Banners Logged</div>
-              <div style="font-size:28px;font-weight:800;color:#16A34A;line-height:1.1">${totalBanners}</div>
-            </div>
-          </div>
-        </div>
-        <div style="background:#F5F7FA;border:1px solid #E0E6ED;border-radius:8px;padding:10px 16px;text-align:center;color:#6B7280;font-size:12px;font-weight:600;margin-bottom:12px">
-          Keep up the great work! 🎉
-        </div>
-      </div>
+    const html = `<div style="font-family:Arial,sans-serif;font-size:14px;color:#111;max-width:800px">
+      <p style="color:#555;font-size:13px;margin:0 0 4px">${dateLabel}</p>
+      <p style="font-size:14px;margin:0 0 16px">Please find the Daily Productivity Report</p>
+      ${sectionsHtml}
+      <table style="border-collapse:collapse;width:260px;margin-top:8px;font-family:Arial,sans-serif;font-size:13px">
+        <tr><td style="padding:5px 12px 5px 0;color:#555">Total Cases Worked on</td><td style="padding:5px 0;font-weight:bold">${totalCases}</td></tr>
+        <tr><td style="padding:5px 12px 5px 0;color:#555">Total Pages Migrated</td><td style="padding:5px 0;font-weight:bold">${totalBanners}</td></tr>
+      </table>
     </div>`;
 
     // Copy as HTML to clipboard (pastes as formatted table in Gmail/Outlook)
