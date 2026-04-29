@@ -4352,11 +4352,11 @@ function copyReport() {
           <span style="color:#9CA3AF;font-size:12px;font-family:Arial,sans-serif"> &nbsp;|&nbsp; ${items.length} Case${items.length!==1?'s':''} &nbsp;|&nbsp; <strong style="color:${accent}">${typeBanners} Banner${typeBanners!==1?'s':''}</strong></span>
         </div>
         <table style="width:100%;border-collapse:collapse">
-          <thead><tr style="background:#1F3A5F">
-            <th style="color:#fff;padding:7px 10px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;font-family:Arial,sans-serif;width:105px">CASE #</th>
-            <th style="color:#fff;padding:7px 10px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;font-family:Arial,sans-serif">CASE NAME</th>
-            <th style="color:#fff;padding:7px 10px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;font-family:Arial,sans-serif;width:195px">STATUS</th>
-            <th style="color:#fff;padding:7px 10px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.06em;font-family:Arial,sans-serif;width:70px">BANNERS</th>
+          <thead><tr style="background:#1F3A5F;background-color:#1F3A5F">
+            <th style="color:#ffffff;background:#1F3A5F;padding:7px 10px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;font-family:Arial,sans-serif;width:105px">CASE #</th>
+            <th style="color:#ffffff;background:#1F3A5F;padding:7px 10px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;font-family:Arial,sans-serif">CASE NAME</th>
+            <th style="color:#ffffff;background:#1F3A5F;padding:7px 10px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;font-family:Arial,sans-serif;width:195px">STATUS</th>
+            <th style="color:#ffffff;background:#1F3A5F;padding:7px 10px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.06em;font-family:Arial,sans-serif;width:70px">BANNERS</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
@@ -4373,19 +4373,15 @@ function copyReport() {
       ${sectionsHtml}
 
       <div style="display:flex;gap:10px;margin-top:4px">
-        <div style="flex:1;background:#fff;border:1px solid #E0E6ED;border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px">
-          <div style="background:#1F3A5F;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">📋</div>
-          <div>
-            <div style="font-size:9px;color:#6B7280;font-weight:700;text-transform:uppercase;letter-spacing:.07em;font-family:Arial,sans-serif">Total Cases Worked On</div>
-            <div style="font-size:24px;font-weight:800;color:#1F3A5F;line-height:1.1;font-family:Arial,sans-serif">${totalCases}</div>
-          </div>
+        <div style="flex:1;background:#fff;border:1px solid #E0E6ED;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:18px">📋</span>
+          <span style="font-size:11px;color:#6B7280;font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-family:Arial,sans-serif">Total Cases Worked On&nbsp;</span>
+          <span style="font-size:20px;font-weight:800;color:#1F3A5F;font-family:Arial,sans-serif">${totalCases}</span>
         </div>
-        <div style="flex:1;background:#fff;border:1px solid #E0E6ED;border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px">
-          <div style="background:#15803D;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">📄</div>
-          <div>
-            <div style="font-size:9px;color:#6B7280;font-weight:700;text-transform:uppercase;letter-spacing:.07em;font-family:Arial,sans-serif">Total Banners Logged</div>
-            <div style="font-size:24px;font-weight:800;color:#15803D;line-height:1.1;font-family:Arial,sans-serif">${totalBanners}</div>
-          </div>
+        <div style="flex:1;background:#fff;border:1px solid #E0E6ED;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:18px">📄</span>
+          <span style="font-size:11px;color:#6B7280;font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-family:Arial,sans-serif">Total Banners Migrated&nbsp;</span>
+          <span style="font-size:20px;font-weight:800;color:#15803D;font-family:Arial,sans-serif">${totalBanners}</span>
         </div>
       </div>
 
