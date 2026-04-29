@@ -1633,11 +1633,17 @@ body.compact .k-card{padding:6px 8px}
           <div class="rpt-controls">
             <select id="rpt-range" onchange="onRptRangeChange()">
               <option value="daily">Daily — Today</option>
+              <option value="pick-day">Pick a Day…</option>
               <option value="weekly" selected>Weekly — Last 7 days</option>
               <option value="monthly">Monthly — This Month</option>
               <option value="pick-month">By Month…</option>
               <option value="custom">Custom Range…</option>
             </select>
+            <!-- Day picker (shown when "Pick a Day" selected) -->
+            <div id="rpt-day-picker" style="display:none;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:4px 8px;box-shadow:var(--sh)">
+              <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--text3);fill:none;stroke-width:2;flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <input type="date" id="rpt-day-sel" onchange="renderReport()" style="height:30px;font-size:12px;width:140px;border:none;background:transparent;color:var(--text);font-family:var(--font)">
+            </div>
             <!-- Month + Year picker (shown when "By Month" selected) -->
             <div id="rpt-month-picker" style="display:none;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:4px 8px;box-shadow:var(--sh)">
               <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--text3);fill:none;stroke-width:2;flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -3071,6 +3077,11 @@ function renderReport(){
   if(range==='daily'){
     from=new Date(now.toLocaleDateString('en-CA',{timeZone:US_TZ})+'T00:00:00');
     periodLabel='Today, '+now.toLocaleDateString('en-US',{timeZone:US_TZ,weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  } else if(range==='pick-day'){
+    const dayVal=document.getElementById('rpt-day-sel')?.value||today();
+    from=new Date(dayVal+'T00:00:00');
+    to=new Date(dayVal+'T23:59:59');
+    periodLabel=from.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
   } else if(range==='weekly'){
     from=new Date(now-7*864e5);
     periodLabel='Last 7 days ('+from.toLocaleDateString('en-US',{timeZone:US_TZ,month:'short',day:'numeric'})+' – '+now.toLocaleDateString('en-US',{timeZone:US_TZ,month:'short',day:'numeric',year:'numeric'})+')';
@@ -3126,10 +3137,17 @@ function renderReport(){
 
   let html=`<div class="rpt-period">${periodLabel} · Generated ${new Date().toLocaleString('en-US',{timeZone:US_TZ,month:'long',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>`;
 
-  if(range==='daily'){
-    // ── DAILY ──
-    html+=`<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--border)">Daily Productivity Report</div>`;
-    const todayStr=todayUS();
+  if(range==='daily'||range==='pick-day'){
+    // ── DAILY / PICK A DAY ──
+    const isPickDay = range==='pick-day';
+    const pickedDateStr = isPickDay
+      ? (document.getElementById('rpt-day-sel')?.value||today())
+      : todayUS();
+    const dayLabel = isPickDay
+      ? new Date(pickedDateStr+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})
+      : new Date().toLocaleDateString('en-US',{timeZone:US_TZ,weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    html+=`<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--border)">${isPickDay?`Daily Report — ${dayLabel}`:'Daily Productivity Report'}</div>`;
+    const todayStr=pickedDateStr;
     const rawEntries=[];
     cases.forEach(c=>{(c.bannerLog||[]).filter(b=>b.date===todayStr).forEach(entry=>{rawEntries.push({c,entry});});});
 
@@ -3150,7 +3168,9 @@ function renderReport(){
 
     // ── CARD VIEW (above existing table) ──
     if(todayMerged.length){
-      const dateLabel=new Date().toLocaleDateString('en-US',{timeZone:US_TZ,weekday:'long',year:'numeric',month:'long',day:'numeric'});
+      const dateLabel= isPickDay
+        ? new Date(pickedDateStr+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})
+        : new Date().toLocaleDateString('en-US',{timeZone:US_TZ,weekday:'long',year:'numeric',month:'long',day:'numeric'});
       const typeAccentDay=t=>(t.includes('Blog')?'#FF7319':'#1F3A5F');
       const typeIconDay=t=>t.includes('Blog')
         ?`<svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>`
@@ -4270,13 +4290,15 @@ function buildAutoSummary(range, periodCases, workedCases, totalBanners, from) {
 
 // ── REPORT: COPY TO CLIPBOARD ──
 function copyReport() {
-  // Build a clean HTML email from the current report data (not from DOM innerText)
   const range = document.getElementById('rpt-range')?.value || 'weekly';
-  const todayStr = todayUS();
   const now = new Date();
 
-  // ── Daily: build from today's banner log entries, merged by case ──
-  if (range === 'daily') {
+  // ── Daily + Pick a Day: build from banner log entries for chosen date ──
+  if (range === 'daily' || range === 'pick-day') {
+    const pickedDateStr = range === 'pick-day'
+      ? (document.getElementById('rpt-day-sel')?.value || todayUS())
+      : todayUS();
+    const todayStr = pickedDateStr;
     const rawEntries = [];
     cases.forEach(c => {
       (c.bannerLog||[]).filter(b => b.date === todayStr).forEach(entry => {
@@ -4308,7 +4330,9 @@ function copyReport() {
 
     const totalBanners = merged.reduce((s, m) => s + m.banners, 0);
     const totalCases = merged.length;
-    const dateLabel = now.toLocaleDateString('en-US', {timeZone: US_TZ, weekday:'long', year:'numeric', month:'long', day:'numeric'});
+    const dateLabel = range === 'pick-day'
+      ? new Date(pickedDateStr+'T12:00:00').toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'})
+      : now.toLocaleDateString('en-US', {timeZone: US_TZ, weekday:'long', year:'numeric', month:'long', day:'numeric'});
 
     const statusStyles = {
       'New':                       {bg:'#EFF6FF',color:'#1D4ED8',border:'#BFDBFE'},
@@ -5048,11 +5072,24 @@ function onRptRangeChange() {
   const v = document.getElementById('rpt-range').value;
   const custom = document.getElementById('rpt-custom-dates');
   const monthPicker = document.getElementById('rpt-month-picker');
+  const dayPicker = document.getElementById('rpt-day-picker');
+
   if (custom) custom.style.display = v === 'custom' ? 'flex' : 'none';
+
+  if (dayPicker) {
+    if (v === 'pick-day') {
+      dayPicker.style.display = 'flex';
+      const sel = document.getElementById('rpt-day-sel');
+      if (sel && !sel.value) sel.value = today();
+      renderReport();
+    } else {
+      dayPicker.style.display = 'none';
+    }
+  }
+
   if (monthPicker) {
     if (v === 'pick-month') {
       monthPicker.style.display = 'flex';
-      // Populate year dropdown with current year ± 3
       const yearSel = document.getElementById('rpt-year-sel');
       if (yearSel && !yearSel.options.length) {
         const curYear = new Date().getFullYear();
@@ -5063,7 +5100,6 @@ function onRptRangeChange() {
           yearSel.appendChild(opt);
         }
       }
-      // Default month select to current month
       const monthSel = document.getElementById('rpt-month-sel');
       if (monthSel && monthSel.value === '0' && new Date().getMonth() !== 0) {
         monthSel.value = new Date().getMonth();
@@ -5073,7 +5109,8 @@ function onRptRangeChange() {
       monthPicker.style.display = 'none';
     }
   }
-  if (v !== 'custom' && v !== 'pick-month') renderReport();
+
+  if (v !== 'custom' && v !== 'pick-month' && v !== 'pick-day') renderReport();
 }
 
 load();
