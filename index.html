@@ -3184,11 +3184,11 @@ function renderReport(){
             </div>
           </div>
           <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
-            <thead><tr style="background:#1F3A5F">
-              <th style="color:#fff;padding:7px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.05em;width:100px">CASE #</th>
-              <th style="color:#fff;padding:7px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.05em">CASE NAME</th>
-              <th style="color:#fff;padding:7px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.05em;width:190px">STATUS</th>
-              <th style="color:#fff;padding:7px 12px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.05em;width:80px">BANNERS</th>
+            <thead><tr>
+              <th style="background:#1F3A5F;color:#ffffff;padding:7px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.05em;width:100px">CASE #</th>
+              <th style="background:#1F3A5F;color:#ffffff;padding:7px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.05em">CASE NAME</th>
+              <th style="background:#1F3A5F;color:#ffffff;padding:7px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.05em;width:190px">STATUS</th>
+              <th style="background:#1F3A5F;color:#ffffff;padding:7px 12px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.05em;width:80px">BANNERS</th>
             </tr></thead>
             <tbody>${items.map(({c,banners},i)=>`
               <tr style="border-bottom:1px solid var(--border);${i%2===1?'background:var(--surface2)':''}">
@@ -4353,10 +4353,10 @@ function copyReport() {
         </div>
         <table style="width:100%;border-collapse:collapse">
           <thead><tr style="background:#1F3A5F;background-color:#1F3A5F">
-            <th style="color:#ffffff;background:#1F3A5F;padding:7px 10px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;font-family:Arial,sans-serif;width:105px">CASE #</th>
-            <th style="color:#ffffff;background:#1F3A5F;padding:7px 10px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;font-family:Arial,sans-serif">CASE NAME</th>
-            <th style="color:#ffffff;background:#1F3A5F;padding:7px 10px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;font-family:Arial,sans-serif;width:195px">STATUS</th>
-            <th style="color:#ffffff;background:#1F3A5F;padding:7px 10px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.06em;font-family:Arial,sans-serif;width:70px">BANNERS</th>
+            <th style="color:#ffffff;background:#1F3A5F;background-color:#1F3A5F;padding:7px 10px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;font-family:Arial,sans-serif;width:105px"><font color="#ffffff">CASE #</font></th>
+            <th style="color:#ffffff;background:#1F3A5F;background-color:#1F3A5F;padding:7px 10px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;font-family:Arial,sans-serif"><font color="#ffffff">CASE NAME</font></th>
+            <th style="color:#ffffff;background:#1F3A5F;background-color:#1F3A5F;padding:7px 10px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;font-family:Arial,sans-serif;width:195px"><font color="#ffffff">STATUS</font></th>
+            <th style="color:#ffffff;background:#1F3A5F;background-color:#1F3A5F;padding:7px 10px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.06em;font-family:Arial,sans-serif;width:70px"><font color="#ffffff">BANNERS</font></th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
