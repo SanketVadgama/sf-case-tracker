@@ -4377,10 +4377,10 @@ function copyReport() {
           </td>
         </tr>
         <tr>
-          <td width="110" bgcolor="#1F3A5F" style="background:#1F3A5F;padding:7px 10px;font-family:Arial,Helvetica,sans-serif"><span style="color:#ffffff;font-size:10px;font-weight:700;letter-spacing:.06em">CASE #</span></td>
-          <td bgcolor="#1F3A5F" style="background:#1F3A5F;padding:7px 10px;font-family:Arial,Helvetica,sans-serif"><span style="color:#ffffff;font-size:10px;font-weight:700;letter-spacing:.06em">CASE NAME</span></td>
-          <td width="185" bgcolor="#1F3A5F" style="background:#1F3A5F;padding:7px 10px;font-family:Arial,Helvetica,sans-serif"><span style="color:#ffffff;font-size:10px;font-weight:700;letter-spacing:.06em">STATUS</span></td>
-          <td width="70" bgcolor="#1F3A5F" align="center" style="background:#1F3A5F;padding:7px 10px;font-family:Arial,Helvetica,sans-serif;text-align:center"><span style="color:#ffffff;font-size:10px;font-weight:700;letter-spacing:.06em">BANNERS</span></td>
+          <td width="110" bgcolor="#1F3A5F" style="background:#1F3A5F;background-color:#1F3A5F;padding:7px 10px;font-family:Arial,Helvetica,sans-serif"><font color="#FFFFFF" face="Arial"><b style="font-size:10px;letter-spacing:.06em">CASE #</b></font></td>
+          <td bgcolor="#1F3A5F" style="background:#1F3A5F;background-color:#1F3A5F;padding:7px 10px;font-family:Arial,Helvetica,sans-serif"><font color="#FFFFFF" face="Arial"><b style="font-size:10px;letter-spacing:.06em">CASE NAME</b></font></td>
+          <td width="185" bgcolor="#1F3A5F" style="background:#1F3A5F;background-color:#1F3A5F;padding:7px 10px;font-family:Arial,Helvetica,sans-serif"><font color="#FFFFFF" face="Arial"><b style="font-size:10px;letter-spacing:.06em">STATUS</b></font></td>
+          <td width="70" bgcolor="#1F3A5F" align="center" style="background:#1F3A5F;background-color:#1F3A5F;padding:7px 10px;font-family:Arial,Helvetica,sans-serif;text-align:center"><font color="#FFFFFF" face="Arial"><b style="font-size:10px;letter-spacing:.06em">BANNERS</b></font></td>
         </tr>
         ${rows}
       </table>`;
@@ -4391,9 +4391,19 @@ function copyReport() {
 
         <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:14px">
           <tr>
-            <td bgcolor="#1F3A5F" style="background:#1F3A5F;padding:14px 16px;border-radius:8px">
-              <div style="color:#ffffff;font-size:16px;font-weight:700;font-family:Arial,Helvetica,sans-serif;margin-bottom:4px">📅 &nbsp;${dateLabel}</div>
-              <div style="color:#93C5FD;font-size:12px;font-family:Arial,Helvetica,sans-serif">Please find the Daily Productivity Report below</div>
+            <td bgcolor="#1F3A5F" style="background-color:#1F3A5F;padding:14px 16px;border-radius:8px">
+              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+                <tr>
+                  <td style="font-size:16px;font-weight:700;font-family:Arial,Helvetica,sans-serif;padding-bottom:4px;color:#ffffff">
+                    <font color="#FFFFFF" face="Arial" style="font-size:16px;font-weight:bold">📅 &nbsp;${dateLabel}</font>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-size:12px;font-family:Arial,Helvetica,sans-serif;color:#93C5FD">
+                    <font color="#93C5FD" face="Arial" style="font-size:12px">Please find the Daily Productivity Report below</font>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
         </table>
