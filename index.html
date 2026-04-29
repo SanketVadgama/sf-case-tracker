@@ -4319,7 +4319,7 @@ function copyReport() {
     };
     const sBadge = status => {
       const s = statusStyles[status]||{bg:'#F3F4F6',color:'#374151',border:'#E5E7EB'};
-      return `<span style="display:inline-block;background-color:${s.bg};color:${s.color};border:1px solid ${s.border};padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;font-family:Arial,Helvetica,sans-serif;white-space:nowrap">${status}</span>`;
+      return `<table cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr><td style="background:${s.bg};border:1px solid ${s.border};border-radius:20px;padding:3px 10px;font-size:11px;color:${s.color};font-weight:700;font-family:Arial,Helvetica,sans-serif;white-space:nowrap">${status}</td></tr></table>`;
     };
 
     const typeAccent = t => t.includes('Blog') ? '#FF7319' : '#1F3A5F';
@@ -4333,60 +4333,73 @@ function copyReport() {
 
       const rows = items.map(({c, banners}, i) => {
         const num = c.url && c.number
-          ? `<a href="${safeUrl(c.url)}" style="color:#1D4ED8;font-weight:700;font-family:Courier New,Courier,monospace;font-size:12px;text-decoration:none">${c.number}</a>`
+          ? `<a href="${safeUrl(c.url)}" style="color:#FF7319;font-weight:700;font-family:Courier New,Courier,monospace;font-size:12px;text-decoration:none">${c.number}</a>`
           : `<span style="color:#6B7280;font-family:Courier New,Courier,monospace;font-size:12px">${c.number||'—'}</span>`;
-        const rowBg = i%2===1 ? '#F9FAFB' : '#FFFFFF';
-        return `<tr style="background-color:${rowBg}">
-          <td style="width:110px;padding:8px 10px;border-bottom:1px solid #E5E7EB;font-family:Arial,Helvetica,sans-serif;vertical-align:middle">${num}</td>
-          <td style="padding:8px 10px;border-bottom:1px solid #E5E7EB;color:#111827;font-size:12px;font-weight:500;font-family:Arial,Helvetica,sans-serif;vertical-align:middle">${c.name||'—'}</td>
-          <td style="width:185px;padding:8px 10px;border-bottom:1px solid #E5E7EB;font-family:Arial,Helvetica,sans-serif;vertical-align:middle">${sBadge(c.status)}</td>
-          <td style="width:70px;padding:8px 10px;border-bottom:1px solid #E5E7EB;text-align:center;font-weight:800;font-size:15px;color:#111827;font-family:Courier New,Courier,monospace;vertical-align:middle">${banners}</td>
+        const rowBg = i%2===1 ? '#F9FAFB' : '#ffffff';
+        return `<tr>
+          <td width="110" bgcolor="${rowBg}" style="padding:8px 10px;border-bottom:1px solid #E5E7EB;font-family:Arial,Helvetica,sans-serif">${num}</td>
+          <td bgcolor="${rowBg}" style="padding:8px 10px;border-bottom:1px solid #E5E7EB;font-size:12px;color:#111827;font-weight:500;font-family:Arial,Helvetica,sans-serif">${c.name||'—'}</td>
+          <td width="185" bgcolor="${rowBg}" style="padding:8px 10px;border-bottom:1px solid #E5E7EB;font-family:Arial,Helvetica,sans-serif">${sBadge(c.status)}</td>
+          <td width="70" bgcolor="${rowBg}" align="center" style="padding:8px 10px;border-bottom:1px solid #E5E7EB;font-size:15px;font-weight:700;color:#111827;font-family:Courier New,Courier,monospace;text-align:center">${banners}</td>
         </tr>`;
       }).join('');
 
       sectionsHtml += `
-      <div style="margin-bottom:12px;border:1px solid #E0E6ED;border-left:4px solid ${accent};border-radius:6px;overflow:hidden">
-        <div style="background-color:#F5F7FA;padding:8px 12px;border-bottom:1px solid #E0E6ED">
-          <span style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#1F3A5F;font-family:Arial,Helvetica,sans-serif">${type}</span><span style="font-size:12px;color:#9CA3AF;font-family:Arial,Helvetica,sans-serif">&nbsp;&nbsp;|&nbsp;&nbsp;${items.length} Case${items.length!==1?'s':''}&nbsp;&nbsp;|&nbsp;&nbsp;<span style="color:${accent};font-weight:700">${typeBanners} Banner${typeBanners!==1?'s':''}</span></span>
-        </div>
-        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%">
-          <tr>
-            <td width="110" style="padding:7px 10px;background-color:#1F3A5F;color:#FFFFFF;font-size:10px;font-weight:700;letter-spacing:.06em;font-family:Arial,Helvetica,sans-serif"><span style="color:#FFFFFF;font-family:Arial,Helvetica,sans-serif;font-size:10px">CASE #</span></td>
-            <td style="padding:7px 10px;background-color:#1F3A5F;color:#FFFFFF;font-size:10px;font-weight:700;letter-spacing:.06em;font-family:Arial,Helvetica,sans-serif"><span style="color:#FFFFFF;font-family:Arial,Helvetica,sans-serif;font-size:10px">CASE NAME</span></td>
-            <td width="185" style="padding:7px 10px;background-color:#1F3A5F;color:#FFFFFF;font-size:10px;font-weight:700;letter-spacing:.06em;font-family:Arial,Helvetica,sans-serif"><span style="color:#FFFFFF;font-family:Arial,Helvetica,sans-serif;font-size:10px">STATUS</span></td>
-            <td width="70" align="center" style="padding:7px 10px;background-color:#1F3A5F;color:#FFFFFF;font-size:10px;font-weight:700;letter-spacing:.06em;font-family:Arial,Helvetica,sans-serif;text-align:center"><span style="color:#FFFFFF;font-family:Arial,Helvetica,sans-serif;font-size:10px">BANNERS</span></td>
-          </tr>
-          ${rows}
-        </table>
-      </div>`;
-    });
-
-    const html = `<div style="font-family:Arial,Helvetica,sans-serif;background-color:#F5F7FA;padding:16px">
-
-      <div style="background-color:#1F3A5F;border-radius:8px;padding:14px 18px;margin-bottom:14px">
-        <div style="color:#FFFFFF;font-size:18px;font-weight:800;font-family:Arial,Helvetica,sans-serif;margin-bottom:4px">📅 &nbsp;${dateLabel}</div>
-        <div style="color:#93C5FD;font-size:12px;font-family:Arial,Helvetica,sans-serif">Please find the Daily Productivity Report below</div>
-      </div>
-
-      ${sectionsHtml}
-
-      <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:6px">
+      <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #E0E6ED;border-left:4px solid ${accent};border-radius:6px;margin-bottom:12px">
         <tr>
-          <td width="49%" style="background-color:#FFFFFF;border:1px solid #E0E6ED;border-radius:6px;padding:10px 14px">
-            <span style="font-size:18px">📋</span>&nbsp;&nbsp;
-            <span style="font-size:10px;color:#6B7280;font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-family:Arial,Helvetica,sans-serif">Total Cases Worked On &nbsp;</span>
-            <span style="font-size:20px;font-weight:800;color:#1F3A5F;font-family:Arial,Helvetica,sans-serif">${totalCases}</span>
-          </td>
-          <td width="2%"></td>
-          <td width="49%" style="background-color:#FFFFFF;border:1px solid #E0E6ED;border-radius:6px;padding:10px 14px">
-            <span style="font-size:18px">📄</span>&nbsp;&nbsp;
-            <span style="font-size:10px;color:#6B7280;font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-family:Arial,Helvetica,sans-serif">Total Banners Migrated &nbsp;</span>
-            <span style="font-size:20px;font-weight:800;color:#15803D;font-family:Arial,Helvetica,sans-serif">${totalBanners}</span>
+          <td colspan="4" bgcolor="#F5F7FA" style="padding:8px 12px;border-bottom:1px solid #E0E6ED;font-family:Arial,Helvetica,sans-serif">
+            <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#1F3A5F;font-family:Arial,Helvetica,sans-serif">${type}</span>
+            <span style="font-size:11px;color:#9CA3AF;font-family:Arial,Helvetica,sans-serif">&nbsp;&nbsp;|&nbsp;&nbsp;${items.length} Case${items.length!==1?'s':''}&nbsp;&nbsp;|&nbsp;&nbsp;</span><span style="font-size:11px;font-weight:700;color:${accent};font-family:Arial,Helvetica,sans-serif">${typeBanners} Banner${typeBanners!==1?'s':''}</span>
           </td>
         </tr>
-      </table>
+        <tr>
+          <td width="110" bgcolor="#1F3A5F" style="background:#1F3A5F;padding:7px 10px;font-family:Arial,Helvetica,sans-serif"><span style="color:#ffffff;font-size:10px;font-weight:700;letter-spacing:.06em">CASE #</span></td>
+          <td bgcolor="#1F3A5F" style="background:#1F3A5F;padding:7px 10px;font-family:Arial,Helvetica,sans-serif"><span style="color:#ffffff;font-size:10px;font-weight:700;letter-spacing:.06em">CASE NAME</span></td>
+          <td width="185" bgcolor="#1F3A5F" style="background:#1F3A5F;padding:7px 10px;font-family:Arial,Helvetica,sans-serif"><span style="color:#ffffff;font-size:10px;font-weight:700;letter-spacing:.06em">STATUS</span></td>
+          <td width="70" bgcolor="#1F3A5F" align="center" style="background:#1F3A5F;padding:7px 10px;font-family:Arial,Helvetica,sans-serif;text-align:center"><span style="color:#ffffff;font-size:10px;font-weight:700;letter-spacing:.06em">BANNERS</span></td>
+        </tr>
+        ${rows}
+      </table>`;
+    });
 
-    </div>`;
+    const html = `<table width="100%" cellpadding="0" cellspacing="0" bgcolor="#F5F7FA" style="border-collapse:collapse;background:#F5F7FA">
+      <tr><td style="padding:16px">
+
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:14px">
+          <tr>
+            <td bgcolor="#1F3A5F" style="background:#1F3A5F;padding:14px 16px;border-radius:8px">
+              <div style="color:#ffffff;font-size:16px;font-weight:700;font-family:Arial,Helvetica,sans-serif;margin-bottom:4px">📅 &nbsp;${dateLabel}</div>
+              <div style="color:#93C5FD;font-size:12px;font-family:Arial,Helvetica,sans-serif">Please find the Daily Productivity Report below</div>
+            </td>
+          </tr>
+        </table>
+
+        ${sectionsHtml}
+
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+          <tr>
+            <td width="49%" style="border:2px solid #FF7319;border-radius:8px;padding:10px 14px;background:#ffffff">
+              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+                <tr>
+                  <td style="font-size:13px;color:#111827;font-family:Arial,Helvetica,sans-serif">📋 &nbsp;TOTAL CASES WORKED ON</td>
+                  <td align="right" style="font-size:22px;font-weight:700;color:#1F3A5F;font-family:Arial,Helvetica,sans-serif;text-align:right">${totalCases}</td>
+                </tr>
+              </table>
+            </td>
+            <td width="2%" style="padding:0 5px"></td>
+            <td width="49%" style="border:2px solid #FF7319;border-radius:8px;padding:10px 14px;background:#ffffff">
+              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+                <tr>
+                  <td style="font-size:13px;color:#111827;font-family:Arial,Helvetica,sans-serif">📄 &nbsp;TOTAL BANNERS MIGRATED</td>
+                  <td align="right" style="font-size:22px;font-weight:700;color:#15803D;font-family:Arial,Helvetica,sans-serif;text-align:right">${totalBanners}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+      </td></tr>
+    </table>`;
 
     // Copy as HTML to clipboard (pastes as formatted table in Gmail/Outlook)
     try {
