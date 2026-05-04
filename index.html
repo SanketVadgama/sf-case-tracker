@@ -2412,8 +2412,16 @@ function renderBento(){
   const bySt=s=>(periodFrom?pCases:allCases).filter(c=>c.status===s).length;
   const total=periodFrom?pCases.length:allCases.length;
   const pTo=periodTo||now;
-  // Sum banners only from cases IN the period (same as report: periodCases.reduce bInP)
-  const allB=periodFrom?pCases.reduce((s,c)=>s+sumBInPeriod(c,periodFrom,pTo),0):allCases.reduce((s,c)=>s+sumB(c),0);
+
+  // pLabel sub — handle pick-month explicitly
+  const pSubLabel = dashPeriod==='pick-month' ? pLabel : (pSub[dashPeriod]||'this period');
+
+  // Banners: sum from ALL non-archived cases with banners logged in the period window
+  // (same logic as report — use allCases not just pCases, so carry-forward cases with
+  //  banner logs inside the period are included)
+  const allB=periodFrom
+    ? allCases.reduce((s,c)=>s+sumBInPeriod(c,periodFrom,pTo),0)
+    : allCases.reduce((s,c)=>s+sumB(c),0);
   const resolved=periodFrom?allCases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=periodFrom&&new Date(c.end+'T12:00:00')<=pTo):allCases.filter(c=>c.status==='Closed'&&c.start&&c.end);
   const avgRes=resolved.length?Math.round(resolved.reduce((s,c)=>s+(new Date(c.end+'T12:00:00')-new Date(c.start+'T12:00:00'))/86400000,0)/resolved.length):null;
   const overdue=allCases.filter(isOD);
@@ -2436,7 +2444,7 @@ function renderBento(){
       return h;
     },
     stats:()=>`<div class="b c12" style="padding:0;display:grid;grid-template-columns:repeat(6,1fr);gap:0;border:none;background:transparent;box-shadow:none">
-      <div class="b bp b-dark"><div class="b-lbl">${pLabel} — Cases</div><div class="b-num">${total}</div><div class="b-sub">${pSub[dashPeriod]}</div></div>
+      <div class="b bp b-dark"><div class="b-lbl">${pLabel} — Cases</div><div class="b-num">${total}</div><div class="b-sub">${pSubLabel}</div></div>
       <div class="b bp"><div class="b-lbl">New</div><div class="b-num" style="color:var(--s-new)">${bySt('New')}</div><div class="b-sub">awaiting</div></div>
       <div class="b bp"><div class="b-lbl">In Progress</div><div class="b-num" style="color:var(--s-inp)">${bySt('In Progress')}</div><div class="b-sub">active</div></div>
       <div class="b bp"><div class="b-lbl">Pend. Input</div><div class="b-num" style="color:var(--s-pyi)">${bySt('Pending Your Input')}</div><div class="b-sub">needs info</div></div>
@@ -2444,8 +2452,8 @@ function renderBento(){
       <div class="b bp"><div class="b-lbl">Closed</div><div class="b-num" style="color:var(--s-closed)">${bySt('Closed')}</div><div class="b-sub">in period</div></div>
     </div>`,
     metrics:()=>`<div class="b c12" style="padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:none;background:transparent;box-shadow:none">
-      <div class="b bp"><div class="b-lbl">Banners — ${pLabel}</div><div class="b-num">${allB}</div><div class="b-sub">${pSub[dashPeriod]}</div></div>
-      <div class="b bp"><div class="b-lbl">Avg Resolution</div><div class="b-num" style="font-size:${avgRes!==null?'26':'18'}px">${avgRes!==null?avgRes+'d':'—'}</div><div class="b-sub">${pSub[dashPeriod]}</div></div>
+      <div class="b bp"><div class="b-lbl">Banners — ${pLabel}</div><div class="b-num">${allB}</div><div class="b-sub">${pSubLabel}</div></div>
+      <div class="b bp"><div class="b-lbl">Avg Resolution</div><div class="b-num" style="font-size:${avgRes!==null?'26':'18'}px">${avgRes!==null?avgRes+'d':'—'}</div><div class="b-sub">${pSubLabel}</div></div>
       <div class="b bp"><div class="b-lbl">Due Soon</div><div class="b-num" style="color:${dueSoon.length?'var(--s-pyi)':'var(--text)'}">${dueSoon.length}</div><div class="b-sub">within 2 days</div></div>
       <div class="b bp"><div class="b-lbl">Past Due</div><div class="b-num" style="color:${pastDue.length?'var(--p-critical)':'var(--text)'}">${pastDue.length}</div><div class="b-sub">missed deadline</div></div>
     </div>`,
@@ -2486,7 +2494,7 @@ function renderBento(){
     </div>`,
     digest:()=>`<div class="b c12 b-digest">
       <div class="b-lbl">${pLabel} Digest</div>
-      <div style="font-size:9.5px;color:rgba(255,255,255,.25);font-family:var(--mono);margin-bottom:8px">${pSub[dashPeriod]}</div>
+      <div style="font-size:9.5px;color:rgba(255,255,255,.25);font-family:var(--mono);margin-bottom:8px">${pSubLabel}</div>
       <div class="drow"><span class="drow-k">Opened</span><span class="drow-v ${wOpened>wClosed?'warn':''}">${wOpened}</span></div>
       <div class="drow"><span class="drow-k">Closed</span><span class="drow-v ok">${wClosed}</span></div>
       <div class="drow"><span class="drow-k">Banners</span><span class="drow-v">${wB}</span></div>
