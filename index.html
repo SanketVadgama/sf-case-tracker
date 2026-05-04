@@ -2395,17 +2395,32 @@ function renderBento(){
     pLabel=periodFrom.toLocaleDateString('en-US',{month:'long',year:'numeric'});
   }
 
-  // ── Data — inPeriod: start/end in period OR carry-forward (active case started before period) ──
+  // ── Data — inPeriod: start/end in period OR carry-forward OR moved to done in period ──
   const inPeriod=c=>{
     if(!periodFrom)return true;
     const pTo=periodTo||now;
     // Started in period
     if(c.start&&new Date(c.start+'T12:00:00')>=periodFrom&&new Date(c.start+'T12:00:00')<=pTo)return true;
-    // Closed/completed in period
+    // Closed/completed in period (end date set in period)
     if(c.end&&new Date(c.end+'T12:00:00')>=periodFrom&&new Date(c.end+'T12:00:00')<=pTo)return true;
+    // Moved to PYC or Closed in period (via statusHistory)
+    if(WORKED.includes(c.status)&&(c.statusHistory||[]).some(h=>WORKED.includes(h.to)&&h.ts&&new Date(h.ts)>=periodFrom&&new Date(h.ts)<=pTo))return true;
     // Carry-forward: still active (New/IP/PYI) and started before this period
     if(CARRY_STATUSES.includes(c.status)&&c.start&&new Date(c.start+'T12:00:00')<periodFrom)return true;
     return false;
+  };
+
+  // Banner counting helper — if case ended in period use full sumB, else use sumBInPeriod
+  // This ensures cases closed this month count ALL their banners, not just ones logged this month
+  const bForPeriod=c=>{
+    if(!periodFrom)return sumB(c);
+    const pTo=periodTo||now;
+    // Case end date falls in this period → count all banners (work was completed this period)
+    if(c.end&&new Date(c.end+'T12:00:00')>=periodFrom&&new Date(c.end+'T12:00:00')<=pTo)return sumB(c);
+    // Case moved to PYC/Closed in period via statusHistory → count all banners
+    if(WORKED.includes(c.status)&&(c.statusHistory||[]).some(h=>WORKED.includes(h.to)&&h.ts&&new Date(h.ts)>=periodFrom&&new Date(h.ts)<=pTo))return sumB(c);
+    // Otherwise only count banners logged in the period window
+    return sumBInPeriod(c,periodFrom,pTo);
   };
   const allCases=cases.filter(c=>!c.archived);
   const pCases=periodFrom?allCases.filter(inPeriod):allCases;
@@ -2416,11 +2431,9 @@ function renderBento(){
   // pLabel sub — handle pick-month explicitly
   const pSubLabel = dashPeriod==='pick-month' ? pLabel : (pSub[dashPeriod]||'this period');
 
-  // Banners: sum from ALL non-archived cases with banners logged in the period window
-  // (same logic as report — use allCases not just pCases, so carry-forward cases with
-  //  banner logs inside the period are included)
+  // Banners: use bForPeriod which counts full sumB for cases completed this period
   const allB=periodFrom
-    ? allCases.reduce((s,c)=>s+sumBInPeriod(c,periodFrom,pTo),0)
+    ? allCases.reduce((s,c)=>s+bForPeriod(c),0)
     : allCases.reduce((s,c)=>s+sumB(c),0);
   const resolved=periodFrom?allCases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=periodFrom&&new Date(c.end+'T12:00:00')<=pTo):allCases.filter(c=>c.status==='Closed'&&c.start&&c.end);
   const avgRes=resolved.length?Math.round(resolved.reduce((s,c)=>s+(new Date(c.end+'T12:00:00')-new Date(c.start+'T12:00:00'))/86400000,0)/resolved.length):null;
@@ -3183,17 +3196,21 @@ function renderReport(){
     periodLabel=fmtD(fv)+' – '+fmtD(tv);
   }
 
-  const bInP=c=>sumBInPeriod(c,from,to);
+  // ── Banner counting helper — full sumB for cases completed this period ──
+  const bForPeriod=c=>{
+    if(!from)return sumB(c);
+    if(c.end&&new Date(c.end+'T12:00:00')>=from&&new Date(c.end+'T12:00:00')<=to)return sumB(c);
+    if(WORKED.includes(c.status)&&(c.statusHistory||[]).some(h=>WORKED.includes(h.to)&&h.ts&&new Date(h.ts)>=from&&new Date(h.ts)<=to))return sumB(c);
+    return sumBInPeriod(c,from,to);
+  };
+  const bInP=c=>bForPeriod(c);
 
-  // ── Case inclusion: start/end in period OR carry-forward active cases ──
-
+  // ── Case inclusion: start/end in period OR moved to done in period OR carry-forward ──
   const inPeriod=c=>{
     if(!from)return true;
-    // Started in period
     if(c.start&&new Date(c.start+'T12:00:00')>=from&&new Date(c.start+'T12:00:00')<=to)return true;
-    // Completed in period
     if(c.end&&new Date(c.end+'T12:00:00')>=from&&new Date(c.end+'T12:00:00')<=to)return true;
-    // Carry-forward: still active (New/IP/PYI), started before period — being worked on during it
+    if(WORKED.includes(c.status)&&(c.statusHistory||[]).some(h=>WORKED.includes(h.to)&&h.ts&&new Date(h.ts)>=from&&new Date(h.ts)<=to))return true;
     if(CARRY_STATUSES.includes(c.status)&&c.start&&new Date(c.start+'T12:00:00')<from)return true;
     return false;
   };
