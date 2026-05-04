@@ -2320,21 +2320,23 @@ function renderBento(){
   // ── Period window ──
   let periodFrom=null, periodTo=null;
   const pLabels={daily:'Today',weekly:'This Week',monthly:'This Month',overall:'All Time'};
-  const pLabel=pLabels[dashPeriod]||'All Time';
+  let pLabel=pLabels[dashPeriod]||'All Time';
   const pSub={daily:'today',weekly:'this week',monthly:'this month',overall:'all time'};
   if(dashPeriod==='daily'){
     periodFrom=new Date(now.toLocaleDateString('en-CA',{timeZone:US_TZ})+'T00:00:00');
     periodTo=now;
   } else if(dashPeriod==='weekly'){
-    // Start of current week (Monday)
-    const day=now.getDay(); // 0=Sun,1=Mon,...
+    const day=now.getDay();
     const daysToMon=day===0?6:day-1;
     periodFrom=new Date(now); periodFrom.setDate(now.getDate()-daysToMon); periodFrom.setHours(0,0,0,0);
     periodTo=now;
   } else if(dashPeriod==='monthly'){
-    // Start of current calendar month
     periodFrom=new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
     periodTo=now;
+  } else if(dashPeriod==='pick-month'&&dashPickMonth){
+    periodFrom=new Date(dashPickMonth.year, dashPickMonth.month, 1, 0, 0, 0, 0);
+    periodTo=new Date(dashPickMonth.year, dashPickMonth.month+1, 0, 23, 59, 59, 999);
+    pLabel=periodFrom.toLocaleDateString('en-US',{month:'long',year:'numeric'});
   }
 
   // ── Data — inPeriod uses start OR end date only (same logic as report) ──
@@ -2446,13 +2448,20 @@ function renderBento(){
   };
 
   // ── Period bar (always first, not orderable) ──
-  let html=`<div class="b c12" style="padding:8px 14px;display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-color:var(--border)">
+  const pickMonthVal = dashPickMonth ? `${dashPickMonth.year}-${String(dashPickMonth.month+1).padStart(2,'0')}` : '';
+  let html=`<div class="b c12" style="padding:8px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;background:var(--surface2);border-color:var(--border)">
     <div style="font-size:11px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:8px">
       <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Dashboard — <span style="color:var(--accent);margin-left:2px">${pLabel}</span>
     </div>
-    <div style="display:flex;gap:0;border:1px solid var(--border2);border-radius:var(--r);overflow:hidden">
-      ${['daily','weekly','monthly','overall'].map(p=>`<button onclick="setDashPeriod('${p}')" style="padding:4px 10px;font-size:10px;font-weight:700;border:none;border-right:${p!=='overall'?'1px solid var(--border2)':'none'};background:${dashPeriod===p?'var(--accent)':'var(--surface)'};color:${dashPeriod===p?'var(--accent-inv)':'var(--text2)'};cursor:pointer;font-family:var(--font);transition:all .12s">${p==='daily'?'Day':p==='weekly'?'Week':p==='monthly'?'Month':'All Time'}</button>`).join('')}
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <div style="display:flex;gap:0;border:1px solid var(--border2);border-radius:var(--r);overflow:hidden">
+        ${['daily','weekly','monthly','overall'].map(p=>`<button onclick="setDashPeriod('${p}')" style="padding:4px 10px;font-size:10px;font-weight:700;border:none;border-right:${p!=='overall'?'1px solid var(--border2)':'none'};background:${dashPeriod===p?'var(--accent)':'var(--surface)'};color:${dashPeriod===p?'var(--accent-inv)':'var(--text2)'};cursor:pointer;font-family:var(--font);transition:all .12s">${p==='daily'?'Day':p==='weekly'?'Week':p==='monthly'?'Month':'All Time'}</button>`).join('')}
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;background:${dashPeriod==='pick-month'?'var(--accent)':'var(--surface)'};border:1px solid var(--border2);border-radius:var(--r);overflow:hidden;padding:0 2px 0 6px">
+        <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:${dashPeriod==='pick-month'?'var(--accent-inv)':'var(--text3)'};fill:none;stroke-width:2;flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <input type="month" id="dash-month-input" value="${pickMonthVal}" onchange="setDashPickMonth(this.value)" style="height:26px;font-size:10px;font-weight:700;border:none;background:transparent;color:${dashPeriod==='pick-month'?'var(--accent-inv)':'var(--text2)'};font-family:var(--font);cursor:pointer;width:110px;padding:0 4px" title="Pick a specific month">
+      </div>
     </div>
   </div>`;
 
@@ -3302,11 +3311,33 @@ function renderReport(){
       html+=`<div style="font-size:13px;color:var(--text3);padding:24px 0;text-align:center">No cases for this period.</div>`;
     }
 
-    // Carry-over cases
-    const carryOver=cases.filter(c=>!isDone(c)&&!c.archived&&c.start&&new Date(c.start+'T12:00:00')<(from||new Date(0)));
-    if(carryOver.length){
-      html+=`<div class="rpt-section-title">Carry-Over Cases <span style="font-weight:400;font-size:9px;color:var(--text3)">(started before this period, still open)</span></div>`;
-      html+=carryOver.map(c=>`<div class="rpt-carry-row"><span style="font-family:var(--mono);font-size:10.5px;color:var(--text3);width:90px;flex-shrink:0">${c.number||'—'}</span><span class="rpt-carry-name">${c.name}</span>${bS(c.status)}<span class="rpt-carry-age" style="margin-left:8px">${dSince(c.start)}d old</span></div>`).join('');
+    // Carry-forward: New, In Progress, Pending Your Input cases from before this period
+    const ACTIVE_STATUSES=['New','In Progress','Pending Your Input'];
+    const carryForward=cases.filter(c=>ACTIVE_STATUSES.includes(c.status)&&!c.archived&&c.start&&new Date(c.start+'T12:00:00')<(from||new Date(0)));
+    const carryOther=cases.filter(c=>!isDone(c)&&!ACTIVE_STATUSES.includes(c.status)&&!c.archived&&c.start&&new Date(c.start+'T12:00:00')<(from||new Date(0)));
+
+    if(carryForward.length){
+      html+=`<div class="rpt-section-title" style="color:var(--s-pyi)">↩ Carried Forward <span style="font-weight:400;font-size:9px;color:var(--text3)">(New / In Progress / Pending Input — started before this period)</span></div>`;
+      html+=`<div class="rpt-tbl-wrap"><table class="rpt-tbl">
+        <thead><tr>
+          <th style="width:100px">Case #</th>
+          <th>Case Name</th>
+          <th style="width:140px">Status</th>
+          <th style="width:80px">Started</th>
+          <th style="width:60px">Age</th>
+        </tr></thead>
+        <tbody>${carryForward.map(c=>`<tr>
+          <td>${numCell(c)}</td>
+          <td>${escHtml(c.name)}</td>
+          <td>${bS(c.status)}</td>
+          <td style="font-family:var(--mono);font-size:11px">${c.start?fmtD(c.start):'—'}</td>
+          <td style="font-family:var(--mono);font-weight:700;color:var(--s-pyi)">${dSince(c.start)}d</td>
+        </tr>`).join('')}</tbody>
+      </table></div>`;
+    }
+    if(carryOther.length){
+      html+=`<div class="rpt-section-title">Other Open Cases <span style="font-weight:400;font-size:9px;color:var(--text3)">(started before this period, still open)</span></div>`;
+      html+=carryOther.map(c=>`<div class="rpt-carry-row"><span style="font-family:var(--mono);font-size:10.5px;color:var(--text3);width:90px;flex-shrink:0">${c.number||'—'}</span><span class="rpt-carry-name">${c.name}</span>${bS(c.status)}<span class="rpt-carry-age" style="margin-left:8px">${dSince(c.start)}d old</span></div>`).join('');
     }
 
     // PYC aging
@@ -3846,7 +3877,8 @@ let lastExportDate = null;
 let autosaveTimer = null;
 let dashWidgets = {alerts:true,stats:true,metrics:true,activecases:true,recent:true,quickadd:true,digest:true,focus:true,goal:true,streak:true};
 let dashWidgetOrder = ['alerts','stats','metrics','activecases','recent','quickadd','digest','focus','goal','streak'];
-let dashPeriod = 'overall'; // 'daily' | 'weekly' | 'monthly' | 'overall'
+let dashPeriod = 'overall'; // 'daily' | 'weekly' | 'monthly' | 'overall' | 'pick-month'
+let dashPickMonth = null; // {month:0-11, year:YYYY} — set when dashPeriod='pick-month'
 const SETTINGS_STORE = 'sf_settings_v1';
 
 // loadSettings and saveSettings defined in Phase 2-4 section below
@@ -4742,6 +4774,7 @@ function loadSettings() {
     if (s.dashWidgets) { dashWidgets = {...dashWidgets, ...s.dashWidgets}; }
     if (s.dashWidgetOrder) { dashWidgetOrder = s.dashWidgetOrder; }
     if (s.dashPeriod) { dashPeriod = s.dashPeriod; }
+    if (s.dashPickMonth) { dashPickMonth = s.dashPickMonth; }
     if (s.kanbanCollapsed) { kanbanCollapsed = s.kanbanCollapsed; }
     if (s.customTypes) { customTypes = s.customTypes; rebuildTypes(); }
   } catch(e){}
@@ -4751,7 +4784,7 @@ function saveSettings() {
     localStorage.setItem(SETTINGS_STORE, JSON.stringify({
       pinned: [...pinnedCases], savedFilters, lastExportDate,
       dailyGoal, slaDays: slaGlobalDays, densityCompact, reminderEnabled,
-      defaultSort: sortKey, dashWidgets, dashWidgetOrder, dashPeriod, customTypes, kanbanCollapsed
+      defaultSort: sortKey, dashWidgets, dashWidgetOrder, dashPeriod, dashPickMonth, customTypes, kanbanCollapsed
     }));
   } catch(e){}
 }
@@ -5059,22 +5092,26 @@ function toggleDashWidget(key) {
 // ── DASHBOARD PERIOD ──
 function setDashPeriod(period) {
   dashPeriod = period;
+  if(period !== 'pick-month') dashPickMonth = null;
   saveSettings();
-  // Update period buttons in settings if visible
   document.querySelectorAll('.dash-period-btn').forEach(btn => {
     const isActive = btn.dataset.period === period;
     btn.style.background = isActive ? 'var(--accent)' : 'var(--surface)';
     btn.style.color = isActive ? 'var(--accent-inv)' : 'var(--text2)';
   });
-  // Re-render dashboard immediately
-  if (document.getElementById('tab-dashboard').classList.contains('active')) {
-    renderBento();
-  } else {
-    // Re-render even if not on dashboard so next visit shows correct period
-    // (no re-render needed, renderBento reads dashPeriod fresh each time)
-  }
+  if (document.getElementById('tab-dashboard').classList.contains('active')) renderBento();
   const labels = {daily:'Day',weekly:'Week',monthly:'Month',overall:'All Time'};
   toast(`Dashboard: ${labels[period] || period}`);
+}
+
+function setDashPickMonth(val) {
+  if (!val) return;
+  const [year, month] = val.split('-').map(Number);
+  dashPickMonth = {year, month: month-1};
+  dashPeriod = 'pick-month';
+  saveSettings();
+  if (document.getElementById('tab-dashboard').classList.contains('active')) renderBento();
+  toast(`Dashboard: ${new Date(year, month-1, 1).toLocaleDateString('en-US',{month:'long',year:'numeric'})}`);
 }
 
 // ── REPORT: CUSTOM DATE RANGE ──
