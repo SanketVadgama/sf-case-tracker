@@ -2407,10 +2407,10 @@ function renderBento(){
     if(!periodFrom)return true;
     // Completed this period — Completion Date in range
     if(c.end&&new Date(c.end+'T12:00:00')>=periodFrom&&new Date(c.end+'T12:00:00')<=pTo)return true;
-    // Carry-forward — no completion date yet, still active
-    if(!c.end&&!DONE_STATUSES.includes(c.status))return true;
-    // PYC with no end date — done from our side, waiting on client
-    if(!c.end&&c.status==='Pending Your Confirmation')return true;
+    // Carry-forward — no completion date, still active, started on or before period end
+    if(!c.end&&!DONE_STATUSES.includes(c.status)&&c.start&&new Date(c.start+'T12:00:00')<=pTo)return true;
+    // PYC with no end — started on or before period end
+    if(!c.end&&c.status==='Pending Your Confirmation'&&c.start&&new Date(c.start+'T12:00:00')<=pTo)return true;
     return false;
   };
 
@@ -3206,10 +3206,10 @@ function renderReport(){
     if(!from)return true;
     // Completed this period — Completion Date in range
     if(c.end&&new Date(c.end+'T12:00:00')>=from&&new Date(c.end+'T12:00:00')<=to)return true;
-    // Carry-forward — no completion date, still active (not done yet)
-    if(!c.end&&!DONE_STATUSES.includes(c.status))return true;
-    // PYC with no end — done from our side, waiting on client
-    if(!c.end&&c.status==='Pending Your Confirmation')return true;
+    // Carry-forward — no completion date, still active, AND started on or before period end
+    if(!c.end&&!DONE_STATUSES.includes(c.status)&&c.start&&new Date(c.start+'T12:00:00')<=to)return true;
+    // PYC with no end — done from our side, waiting on client, started on or before period end
+    if(!c.end&&c.status==='Pending Your Confirmation'&&c.start&&new Date(c.start+'T12:00:00')<=to)return true;
     return false;
   };
 
@@ -3419,10 +3419,10 @@ function renderReport(){
       html+=`<div style="font-size:13px;color:var(--text3);padding:24px 0;text-align:center">No cases for this period.</div>`;
     }
 
-    // Carry-forward: cases with NO completion date (still being worked on)
+    // Carry-forward: cases with NO completion date, still active, started on or before period end
     const ACTIVE_STATUSES=['New','In Progress','Pending Your Input'];
-    const carryForward=allNonArchived.filter(c=>!c.end&&ACTIVE_STATUSES.includes(c.status));
-    const carryOther=allNonArchived.filter(c=>!c.end&&c.status==='Pending Your Confirmation');
+    const carryForward=allNonArchived.filter(c=>!c.end&&ACTIVE_STATUSES.includes(c.status)&&c.start&&new Date(c.start+'T12:00:00')<=to);
+    const carryOther=allNonArchived.filter(c=>!c.end&&c.status==='Pending Your Confirmation'&&c.start&&new Date(c.start+'T12:00:00')<=to);
 
     if(carryForward.length){
       html+=`<div class="rpt-section-title" style="color:var(--s-pyi)">↩ Carried Forward <span style="font-weight:400;font-size:9px;color:var(--text3)">(New / In Progress / Pending Input — started before this period)</span></div>`;
