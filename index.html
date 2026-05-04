@@ -2395,14 +2395,18 @@ function renderBento(){
     pLabel=periodFrom.toLocaleDateString('en-US',{month:'long',year:'numeric'});
   }
 
-  // ── Data — inPeriod: start/end in period OR moved to done in period OR carry-forward ──
+  // ── Data — inPeriod: ONLY start date in period OR carry-forward ──
+  // End date not used — old cases closed this month shouldn't flood the dashboard
   const inPeriod=c=>{
     if(!periodFrom)return true;
     const pTo=periodTo||now;
+    // Started in period
     if(c.start&&new Date(c.start+'T12:00:00')>=periodFrom&&new Date(c.start+'T12:00:00')<=pTo)return true;
-    if(c.end&&new Date(c.end+'T12:00:00')>=periodFrom&&new Date(c.end+'T12:00:00')<=pTo)return true;
-    if(WORKED.includes(c.status)&&(c.statusHistory||[]).some(h=>WORKED.includes(h.to)&&h.ts&&new Date(h.ts)>=periodFrom&&new Date(h.ts)<=pTo))return true;
+    // Carry-forward: still active (New/IP/PYI) AND started before period
     if(CARRY_STATUSES.includes(c.status)&&c.start&&new Date(c.start+'T12:00:00')<periodFrom)return true;
+    // PYC carry-forward: started before period, moved to PYC this period
+    if(c.status==='Pending Your Confirmation'&&c.start&&new Date(c.start+'T12:00:00')<periodFrom&&
+       (c.statusHistory||[]).some(h=>h.to==='Pending Your Confirmation'&&h.ts&&new Date(h.ts)>=periodFrom&&new Date(h.ts)<=pTo))return true;
     return false;
   };
   const allCases=cases.filter(c=>!c.archived);
@@ -3183,13 +3187,19 @@ function renderReport(){
   // Banners always counted by when they were logged (date-filtered), not when case was closed
   const bInP=c=>sumBInPeriod(c,from,to);
 
-  // ── Case inclusion: start/end in period OR moved to done in period OR carry-forward ──
+  // ── Case inclusion: ONLY start date in period OR carry-forward active cases ──
+  // End date / statusHistory are NOT used for case inclusion — that caused old cases
+  // started months ago to flood the report just because they were closed this month.
+  // movedToWorked (below) handles "completed this period" counting separately.
   const inPeriod=c=>{
     if(!from)return true;
+    // Started in period
     if(c.start&&new Date(c.start+'T12:00:00')>=from&&new Date(c.start+'T12:00:00')<=to)return true;
-    if(c.end&&new Date(c.end+'T12:00:00')>=from&&new Date(c.end+'T12:00:00')<=to)return true;
-    if(WORKED.includes(c.status)&&(c.statusHistory||[]).some(h=>WORKED.includes(h.to)&&h.ts&&new Date(h.ts)>=from&&new Date(h.ts)<=to))return true;
+    // Carry-forward: still active (New/IP/PYI) AND started before period
     if(CARRY_STATUSES.includes(c.status)&&c.start&&new Date(c.start+'T12:00:00')<from)return true;
+    // PYC carry-forward: started before period, moved to PYC in period (work done this period)
+    if(c.status==='Pending Your Confirmation'&&c.start&&new Date(c.start+'T12:00:00')<from&&
+       (c.statusHistory||[]).some(h=>h.to==='Pending Your Confirmation'&&h.ts&&new Date(h.ts)>=from&&new Date(h.ts)<=to))return true;
     return false;
   };
   const periodCases=cases.filter(inPeriod);
