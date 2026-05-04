@@ -2136,6 +2136,7 @@ body.compact .k-card{padding:6px 8px}
 const STORE = 'sf_cases_v6';
 const STATUSES = ['New','In Progress','Pending Your Input','Pending Your Confirmation','Closed'];
 const WORKED = ['Pending Your Confirmation','Closed']; // counted in totals
+const CARRY_STATUSES = ['New','In Progress','Pending Your Input']; // carried forward each month
 const BUILTIN_TYPES = ['Automotive Content Migration','Automotive Blog Migration','LeadScience Content Migration','LeadScience Blog Migration'];
 const BUILTIN_TSHORT = {'Automotive Content Migration':'ACM','Automotive Blog Migration':'ABM','LeadScience Content Migration':'LCM','LeadScience Blog Migration':'LBM'};
 const BUILTIN_TCLASS = {'Automotive Content Migration':'t-acm','Automotive Blog Migration':'t-abm','LeadScience Content Migration':'t-lcm','LeadScience Blog Migration':'t-lbm'};
@@ -2395,7 +2396,6 @@ function renderBento(){
   }
 
   // ── Data — inPeriod: start/end in period OR carry-forward (active case started before period) ──
-  const CARRY_STATUSES=['New','In Progress','Pending Your Input'];
   const inPeriod=c=>{
     if(!periodFrom)return true;
     const pTo=periodTo||now;
