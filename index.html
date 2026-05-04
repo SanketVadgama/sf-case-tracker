@@ -2339,12 +2339,17 @@ function renderBento(){
     pLabel=periodFrom.toLocaleDateString('en-US',{month:'long',year:'numeric'});
   }
 
-  // ── Data — inPeriod uses start OR end date only (same logic as report) ──
+  // ── Data — inPeriod: start/end in period OR carry-forward (active case started before period) ──
+  const CARRY_STATUSES=['New','In Progress','Pending Your Input'];
   const inPeriod=c=>{
     if(!periodFrom)return true;
     const pTo=periodTo||now;
+    // Started in period
     if(c.start&&new Date(c.start+'T12:00:00')>=periodFrom&&new Date(c.start+'T12:00:00')<=pTo)return true;
+    // Closed/completed in period
     if(c.end&&new Date(c.end+'T12:00:00')>=periodFrom&&new Date(c.end+'T12:00:00')<=pTo)return true;
+    // Carry-forward: still active (New/IP/PYI) and started before this period
+    if(CARRY_STATUSES.includes(c.status)&&c.start&&new Date(c.start+'T12:00:00')<periodFrom)return true;
     return false;
   };
   const allCases=cases.filter(c=>!c.archived);
@@ -3114,14 +3119,16 @@ function renderReport(){
 
   const bInP=c=>sumBInPeriod(c,from,to);
 
-  // ── Case inclusion: start OR end date falls in period (NOT banner log dates) ──
-  // bInP is used only for banner COUNTS inside the table, not for inclusion.
-  // This prevents old closed cases with late-corrected banner entries
-  // from bleeding into months they don't belong to.
+  // ── Case inclusion: start/end in period OR carry-forward active cases ──
+  const CARRY_STATUSES_RPT=['New','In Progress','Pending Your Input'];
   const inPeriod=c=>{
     if(!from)return true;
+    // Started in period
     if(c.start&&new Date(c.start+'T12:00:00')>=from&&new Date(c.start+'T12:00:00')<=to)return true;
+    // Completed in period
     if(c.end&&new Date(c.end+'T12:00:00')>=from&&new Date(c.end+'T12:00:00')<=to)return true;
+    // Carry-forward: still active (New/IP/PYI), started before period — being worked on during it
+    if(CARRY_STATUSES_RPT.includes(c.status)&&c.start&&new Date(c.start+'T12:00:00')<from)return true;
     return false;
   };
   const periodCases=cases.filter(inPeriod);
@@ -5004,6 +5011,7 @@ function archiveFromDetail() {
 function renderActiveCasesPanel() {
   const countsEl = document.getElementById('acp-cases-counts');
   const bodyEl = document.getElementById('acp-cases-body');
+  const iconEl = document.getElementById('acp-cases-icon');
   if (!countsEl || !bodyEl) return;
   const newC = cases.filter(c=>c.status==='New'&&!c.archived);
   const ipC = cases.filter(c=>c.status==='In Progress'&&!c.archived);
@@ -5026,15 +5034,21 @@ function renderActiveCasesPanel() {
       </div>`).join('');
   });
   bodyEl.innerHTML = html || '<div class="acp-empty">No active cases</div>';
+  // Respect persistent collapsed state — default is collapsed (acpCasesOpen = false)
+  bodyEl.classList.toggle('open', acpCasesOpen);
+  if (iconEl) iconEl.classList.toggle('open', acpCasesOpen);
 }
 
-// ── TOGGLE ACP (Accordion) ──
+let acpCasesOpen = false; // ACP in All Cases starts collapsed
+
 function toggleACP(id) {
   const body = document.getElementById(id+'-body');
   const icon = document.getElementById(id+'-icon');
   if (!body) return;
   const isOpen = body.classList.toggle('open');
   if (icon) icon.classList.toggle('open', isOpen);
+  // Persist state for the All Cases panel
+  if (id === 'acp-cases') acpCasesOpen = isOpen;
 }
 
 // ── DASHBOARD WIDGET SETTINGS ──
