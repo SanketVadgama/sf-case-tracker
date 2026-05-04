@@ -3141,6 +3141,7 @@ function renderHeatmap(){
 
 // ── REPORTS ──
 function renderReport(){
+  try {
   const range=document.getElementById('rpt-range')?.value||'weekly';
   const now=new Date();
   let from=null,to=now,periodLabel='';
@@ -3309,18 +3310,23 @@ function renderReport(){
           </div>
           <div><div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Total Banners Logged</div><div style="font-size:26px;font-weight:800;color:#15803D;line-height:1">${totalToday}</div></div>
         </div>
-      </div>
-      <div style="border-top:2px solid var(--border);margin-bottom:16px;padding-top:14px">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:10px">Detailed View</div>`;}
+      </div>`;
+    }
 
-    // ── CUSTOM SECTIONS builder (daily/pick-day only, below card view) ──
+    // ── CUSTOM SECTIONS builder (daily/pick-day only) ──
     html+=`<div id="crs-container"></div>
     <button class="crs-add-section-btn" onclick="crsAddSection()">
       <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Add Custom Section
     </button>`;
 
-    // ── EXISTING TABLE + TOTALS (kept as-is) ──
+    // ── DETAILED VIEW divider + existing table ──
+    if(todayMerged.length){
+      html+=`<div style="border-top:2px solid var(--border);margin:16px 0;padding-top:14px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:10px">Detailed View</div>`;
+    }
+
+    // ── EXISTING TABLE + TOTALS ──
     // Auto summary
     if(todayMerged.length){
       const summaryText=`Today, logged ${totalToday} banner${totalToday!==1?'s':''} across ${todayMerged.length} case${todayMerged.length!==1?'s':''}.`;
@@ -3338,11 +3344,14 @@ function renderReport(){
           <tbody>${typeItems.map(({c,banners,notes,count})=>`<tr><td>${numCell(c)}</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name||'—'}</td><td>${bS(c.status)}</td><td style="text-align:center;font-family:var(--mono);font-weight:700">${banners}${count>1?`<span style="font-size:10px;color:var(--text3);font-weight:400;margin-left:4px">(${count}×)</span>`:''}</td><td style="font-size:11px;color:var(--text3)">${notes.length?notes.join('; '):'—'}</td></tr>`).join('')}</tbody>
         </table></div>`;
     });
-    if(!any)html+=`<div style="font-size:13px;color:var(--text3);padding:24px 0;text-align:center">No banner work logged for today.<br><span style="font-size:11px">Use the Banners button on a case to log today's work.</span></div>`;
-    else{
+    if(!any&&todayMerged.length===0){
+      // nothing — card view already shows empty state
+    } else if(!any){
+      html+=`<div style="font-size:13px;color:var(--text3);padding:24px 0;text-align:center">No banner work logged for today.<br><span style="font-size:11px">Use the Banners button on a case to log today's work.</span></div>`;
+    } else {
       html+=`<div class="rpt-totals" style="margin-top:14px"><div class="rpt-totals-title">Today's Total</div><div class="rpt-total-row"><span class="rpt-total-k">Total Banners Logged Today</span><span class="rpt-total-v">${totalToday}</span></div><div class="rpt-total-row"><span class="rpt-total-k">Cases Worked On</span><span class="rpt-total-v">${todayMerged.length}</span></div><div class="rpt-total-row"><span class="rpt-total-k">Work Entries</span><span class="rpt-total-v">${totalEntries}</span></div></div>`;
-      if(todayMerged.length) html+=`</div>`; // close Detailed View wrapper
     }
+    if(todayMerged.length) html+=`</div>`; // close Detailed View wrapper
 
   } else {
     // ── WEEKLY / MONTHLY / CUSTOM ──
@@ -3440,6 +3449,14 @@ function renderReport(){
 
   document.getElementById('report-body').innerHTML=html;
   if(range==='daily'||range==='pick-day') renderCustomSections();
+  } catch(err) {
+    console.error('renderReport error:', err);
+    const rb = document.getElementById('report-body');
+    if(rb) rb.innerHTML = `<div style="padding:20px;color:var(--p-critical);font-size:13px;background:var(--p-critical-bg);border-radius:var(--r);border:1px solid var(--p-critical)">
+      <strong>Report Error:</strong> ${err.message}<br>
+      <span style="font-size:11px;color:var(--text3)">Check browser console for details. Try refreshing or switching report type.</span>
+    </div>`;
+  }
 }
 
 // ── EXPORT ──
