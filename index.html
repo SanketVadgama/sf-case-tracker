@@ -1261,7 +1261,24 @@ body.compact tbody td{padding:4px 10px}
 body.compact thead th{padding:5px 10px}
 body.compact .rc-row{padding:3px 0}
 
-/* ── CUSTOM REPORT SECTIONS ── */
+/* ── WORK LOG ── */
+.wl-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:12px}
+.wl-item:last-child{border-bottom:none}
+.wl-item:hover .wl-actions{opacity:1}
+.wl-date{flex-shrink:0;width:76px;color:var(--text3);font-size:11px;margin-top:1px}
+.wl-body{flex:1;min-width:0}
+.wl-atype{display:inline-block;background:var(--surface3);color:var(--text2);border-radius:20px;padding:1px 8px;font-size:10px;font-weight:600;margin-bottom:4px}
+.wl-desc{color:var(--text2);font-size:12px;line-height:1.4;word-break:break-word}
+.wl-actions{display:flex;gap:4px;opacity:0;transition:opacity .15s;flex-shrink:0}
+.wl-action-btn{width:22px;height:22px;border-radius:4px;border:1px solid var(--border2);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:11px;padding:0;transition:all .12s}
+.wl-action-btn:hover{background:var(--surface3);color:var(--text)}
+.wl-action-btn.del:hover{background:var(--p-critical-bg);color:var(--p-critical);border-color:var(--p-critical)}
+.wl-add-form{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);padding:10px;margin-top:10px;display:flex;flex-direction:column;gap:8px}
+.wl-form-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.wl-atype-sel{height:30px;font-size:12px;flex:1;min-width:140px}
+.wl-date-inp{height:30px;font-size:12px;width:130px}
+.wl-desc-inp{width:100%;min-height:54px;font-size:12px;resize:vertical;line-height:1.4}
+.wl-edit-form{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);padding:8px;margin:4px 0;display:flex;flex-direction:column;gap:6px}
 .crs-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:12px;overflow:hidden;border-left:4px solid #6366F1}
 .crs-head{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface2);border-bottom:1px solid var(--border)}
 .crs-title-input{flex:1;font-size:13px;font-weight:700;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--font)}
@@ -1616,6 +1633,7 @@ body.compact .k-card{padding:6px 8px}
             <button class="d-tab" onclick="switchDTab('comments',this)">Comments</button>
             <button class="d-tab" onclick="switchDTab('history',this)">History</button>
             <button class="d-tab" onclick="switchDTab('banners',this)">Banners</button>
+            <button class="d-tab" onclick="switchDTab('worklog',this)">Work Log</button>
           </div>
           <div class="d-body" id="d-body"></div>
           <div class="d-foot">
@@ -2529,7 +2547,7 @@ function quickAdd(){
   document.getElementById('qa-name').value='';
   toast('Case added — open it to fill in URL and due date');
 }
-function newCase(o){return{id:Date.now().toString()+Math.random().toString(36).slice(2,5),number:'',name:'',url:'',type:TYPES[0],status:'New',priority:'Medium',start:'',end:'',dueDate:'',notes:'',bannerLog:[],comments:[],statusHistory:[],totalBanners:0,...o};}
+function newCase(o){return{id:Date.now().toString()+Math.random().toString(36).slice(2,5),number:'',name:'',url:'',type:TYPES[0],status:'New',priority:'Medium',start:'',end:'',dueDate:'',notes:'',bannerLog:[],workLog:[],comments:[],statusHistory:[],totalBanners:0,...o};}
 
 // ── TABLE ──
 function clearFilters(){
@@ -2777,9 +2795,11 @@ function renderDTab(tab){
           <div style="font-size:9px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.06em">Remaining</div>
         </div>
       </div>
-      <div class="d-sec-title">Work Log</div>
+      <div class="d-sec-title">Banner History</div>
       ${log.length?log.map(b=>`<div class="bl-item"><div class="bl-date">${fmtDateUS(b.date)}</div><div class="bl-note">${b.note||'—'}</div><div class="bl-cnt" style="font-family:var(--mono);font-weight:700;color:var(--s-inp)">−${b.count}</div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:5px 0">No work logged yet. Use the Banners button below.</div>'}
     </div>`;
+  } else if(tab==='worklog'){
+    renderWorkLogTab(c);
   }
 }
 function addComment(){
@@ -3157,7 +3177,7 @@ function renderReport(){
   const bInP=c=>sumBInPeriod(c,from,to);
 
   // ── Case inclusion: start/end in period OR carry-forward active cases ──
-  const CARRY_STATUSES_RPT=['New','In Progress','Pending Your Input'];
+
   const inPeriod=c=>{
     if(!from)return true;
     // Started in period
@@ -3165,7 +3185,7 @@ function renderReport(){
     // Completed in period
     if(c.end&&new Date(c.end+'T12:00:00')>=from&&new Date(c.end+'T12:00:00')<=to)return true;
     // Carry-forward: still active (New/IP/PYI), started before period — being worked on during it
-    if(CARRY_STATUSES_RPT.includes(c.status)&&c.start&&new Date(c.start+'T12:00:00')<from)return true;
+    if(CARRY_STATUSES.includes(c.status)&&c.start&&new Date(c.start+'T12:00:00')<from)return true;
     return false;
   };
   const periodCases=cases.filter(inPeriod);
@@ -3432,7 +3452,7 @@ function exportCSV(){
   a.download='sf_cases_'+today()+'.csv';a.click();
   lastExportDate=today();saveSettings();
   renderNotifications();
-  toast('CSV exported!');
+  toast('CSV exported — Note: Work Log entries not included. Use JSON Backup to preserve all data.');
 }
 
 // ── IMPORT ──
@@ -4944,6 +4964,10 @@ function clearAllData() {
   cases=[]; auditLog=[];
   pinnedCases=new Set(); savedFilters=[]; lastExportDate=null;
   dismissedNotifs=new Set();
+  dashPickMonth=null;
+  customReportSections=[];
+  acpCasesOpen=false;
+  kanbanCollapsed={'Closed':true};
   dashWidgets={alerts:true,stats:true,metrics:true,activecases:true,recent:true,quickadd:true,digest:true,focus:true,goal:true,streak:true};
   dashPeriod='overall';
   customTypes=[]; rebuildTypes();
@@ -5218,7 +5242,7 @@ function onRptRangeChange() {
   }
 
   if (v !== 'custom' && v !== 'pick-month' && v !== 'pick-day') renderReport();
-  // Clear custom sections when switching away from daily report
+  // Clear custom sections when switching away from daily/pick-day
   if (v !== 'daily' && v !== 'pick-day') customReportSections = [];
 }
 
@@ -5230,7 +5254,7 @@ const CRS_TEMPLATES = [
     id:'migration',
     icon:'🚗',
     name:'Content Migration Work',
-    desc:'Case # | Case Name | Activity Type | Count',
+    desc:'Case # · Case Name · Activity Type · Count',
     title:'Content Migration Work',
     columns:['Case #','Case Name','Activity Type','Count'],
     hasSummary:true
@@ -5239,27 +5263,27 @@ const CRS_TEMPLATES = [
     id:'revision',
     icon:'✏️',
     name:'Revision / Rework',
-    desc:'Case # | Case Name | Changes Made | Status',
+    desc:'Auto-pulls from your banner log notes for the selected date',
     title:'Revision / Rework',
     columns:['Case #','Case Name','Changes Made','Status'],
-    hasSummary:true
+    hasSummary:false
   },
   {
     id:'support',
     icon:'🛠️',
     name:'Support / Internal Tasks',
-    desc:'Task | Description | Time Spent',
+    desc:'Task · Description',
     title:'Support / Internal Tasks',
-    columns:['Task','Description','Time Spent'],
+    columns:['Task','Description'],
     hasSummary:true
   },
   {
     id:'blank',
     icon:'📋',
     name:'Blank Table',
-    desc:'Fully custom — define your own columns',
+    desc:'Fully custom — add your own columns',
     title:'',
-    columns:['Column 1','Column 2','Column 3'],
+    columns:[],
     hasSummary:false
   }
 ];
@@ -5293,15 +5317,54 @@ function crsShowTemplatePicker(){
 function crsPickTemplate(tplId){
   document.getElementById('crs-tpl-overlay')?.remove();
   const tpl=CRS_TEMPLATES.find(t=>t.id===tplId)||CRS_TEMPLATES[3];
+
+  if(tplId==='revision'){
+    // Auto-pull from work log entries for the selected date
+    const dateStr = document.getElementById('rpt-day-sel')?.value || todayUS();
+    const entries=[];
+    cases.forEach(c=>{
+      (c.workLog||[]).filter(e=>e.date===dateStr).forEach(e=>{
+        entries.push({cells:[c.number||'—', c.name||'—', e.activityType||'—', e.description||'—', c.status], summary:'', summaryOpen:false});
+      });
+    });
+    // Update columns to include Activity Type + Description
+    customReportSections.push({
+      id:crsId(), title:'Revision / Rework', template:tplId, hasSummary:false,
+      columns:['Case #','Case Name','Activity Type','Description','Status'],
+      rows: entries.length ? entries : [{cells:['','','','',''], summary:'', summaryOpen:false}]
+    });
+    renderCustomSections();
+    if(entries.length) toast(`Pulled ${entries.length} work log entr${entries.length!==1?'ies':'y'} for ${dateStr}`);
+    else toast('No work log entries for this date — add rows manually or log work on a case');
+    return;
+  }
+
+  const cols=[...tpl.columns];
+  const emptyRow={cells:new Array(Math.max(cols.length,0)).fill(''), summary:'', summaryOpen:false};
   customReportSections.push({
-    id: crsId(),
-    title: tpl.title,
-    template: tpl.id,
-    hasSummary: tpl.hasSummary,
-    columns: [...tpl.columns],
-    rows: [{cells: new Array(tpl.columns.length).fill(''), summary:'', summaryOpen:false}]
+    id:crsId(), title:tpl.title, template:tplId,
+    hasSummary:tpl.hasSummary,
+    columns:cols,
+    rows:[emptyRow]
   });
   renderCustomSections();
+}
+
+function crsRefreshRevision(id){
+  crsSync();
+  const sec=customReportSections.find(s=>s.id===id); if(!sec)return;
+  const dateStr=document.getElementById('rpt-day-sel')?.value||todayUS();
+  const entries=[];
+  cases.forEach(c=>{
+    (c.workLog||[]).filter(e=>e.date===dateStr).forEach(e=>{
+      entries.push({cells:[c.number||'—',c.name||'—',e.activityType||'—',e.description||'—',c.status],summary:'',summaryOpen:false});
+    });
+  });
+  if(!entries.length){toast('No work log entries for this date');return;}
+  sec.rows=entries;
+  sec.columns=['Case #','Case Name','Activity Type','Description','Status'];
+  renderCustomSections();
+  toast(`Refreshed — ${entries.length} entr${entries.length!==1?'ies':'y'} pulled`);
 }
 
 // Keep old crsAddSection pointing to picker
@@ -5317,7 +5380,7 @@ function crsAddColumn(id){
   crsSync();
   const s=customReportSections.find(x=>x.id===id); if(!s)return;
   s.columns.push('Column');
-  s.rows.forEach(r=>r.cells.push(''));
+  s.rows.forEach(r=>{if(!r.cells)r.cells=[];r.cells.push('');});
   renderCustomSections();
 }
 
@@ -5332,7 +5395,7 @@ function crsRemoveColumn(id, ci){
 function crsAddRow(id){
   crsSync();
   const s=customReportSections.find(x=>x.id===id); if(!s)return;
-  s.rows.push({cells: new Array(s.columns.length).fill(''), summary:'', summaryOpen:false});
+  s.rows.push({cells:new Array(s.columns.length).fill(''),summary:'',summaryOpen:false});
   renderCustomSections();
 }
 
@@ -5390,28 +5453,37 @@ function renderCustomSections(){
   container.innerHTML=customReportSections.map(sec=>{
     const isActivityCol = ci => sec.template==='migration' && sec.columns[ci]==='Activity Type';
     const isStatusCol   = ci => sec.template==='revision'  && sec.columns[ci]==='Status';
+    const isRevision    = sec.template==='revision';
 
-    const headerRow = sec.columns.map((col,ci)=>`
-      <th>
+    // Accent by template
+    const accentMap={migration:'#1F3A5F',revision:'#FF7319',support:'#059669',blank:'#6366F1'};
+    const accent=accentMap[sec.template]||'#6366F1';
+    const tpl=CRS_TEMPLATES.find(t=>t.id===sec.template);
+
+    const hasColumns = sec.columns.length > 0;
+
+    const headerRow = hasColumns ? sec.columns.map((col,ci)=>`
+      <th style="background:#1F3A5F;padding:7px 10px">
         <div style="display:flex;align-items:center;gap:4px">
-          <input class="crs-col-input" value="${escHtml(col)}" placeholder="Column">
-          ${sec.columns.length>1?`<button class="crs-col-del" onclick="crsRemoveColumn('${sec.id}',${ci})" title="Remove column">×</button>`:''}
+          <input class="crs-col-input" value="${escHtml(col)}" placeholder="Column" style="color:#ffffff;background:transparent;border:none;outline:none;font-size:10px;font-weight:700;letter-spacing:.05em;font-family:var(--font);width:90px">
+          ${sec.columns.length>1?`<button class="crs-col-del" onclick="crsRemoveColumn('${sec.id}',${ci})" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,.5);font-size:14px;padding:0 0 0 4px" title="Remove column">×</button>`:''}
         </div>
-      </th>`).join('');
+      </th>`).join('') : '';
 
-    const dataRows = sec.rows.map((row,ri)=>{
+    const dataRows = hasColumns ? sec.rows.map((row,ri)=>{
+      const rowBg = ri%2===1?'background:var(--surface2)':'';
       const cells = row.cells.map((cell,ci)=>{
-        if(isActivityCol(ci)) return `<td>${crsActivityTypeCell(sec.id,ri,ci,cell)}</td>`;
-        if(isStatusCol(ci))   return `<td><select class="crs-cell-input" style="cursor:pointer" onchange="crsSync()">
+        if(isActivityCol(ci)) return `<td style="padding:6px 10px;border-bottom:1px solid var(--border)">${crsActivityTypeCell(sec.id,ri,ci,cell)}</td>`;
+        if(isStatusCol(ci))   return `<td style="padding:6px 10px;border-bottom:1px solid var(--border)"><select class="crs-cell-input" style="cursor:pointer;color:var(--text)" onchange="crsSync()">
           <option value="">— select —</option>
           ${['New','In Progress','Pending Your Input','Pending Your Confirmation','Closed'].map(s=>`<option value="${s}"${cell===s?' selected':''}>${s}</option>`).join('')}
         </select></td>`;
-        return `<td><input class="crs-cell-input" placeholder="—" value="${escHtml(cell)}"></td>`;
+        return `<td style="padding:6px 10px;border-bottom:1px solid var(--border)"><input class="crs-cell-input" placeholder="—" value="${escHtml(cell)}" style="color:var(--text);background:transparent;border:none;outline:none;font-size:12px;font-family:var(--font);width:100%;min-width:60px"></td>`;
       }).join('');
 
       const summaryRow = row.summaryOpen ? `
         <tr class="crs-summary-row">
-          <td colspan="${sec.columns.length+1}">
+          <td colspan="${sec.columns.length+1}" style="background:var(--surface2);padding:4px 10px 8px 28px;border-bottom:1px solid var(--border)">
             <div style="display:flex;align-items:flex-start;gap:6px">
               <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:var(--text3);fill:none;stroke-width:2;flex-shrink:0;margin-top:4px"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
               <textarea id="crs-summary-${sec.id}-${ri}" class="crs-summary-input" rows="2" placeholder="Describe the work done — e.g. Replaced outdated homepage banner, fixed spacing on mobile…">${escHtml(row.summary)}</textarea>
@@ -5420,31 +5492,38 @@ function renderCustomSections(){
         </tr>` : '';
 
       return `
-        <tr class="crs-data-row" style="${ri%2===1?'background:var(--surface2)':''}">
+        <tr class="crs-data-row" style="${rowBg}">
           ${cells}
-          <td style="text-align:center;width:60px;white-space:nowrap">
+          <td style="padding:6px 10px;border-bottom:1px solid var(--border);text-align:center;width:60px;white-space:nowrap">
             ${sec.hasSummary!==false?`<button class="crs-summary-btn${row.summaryOpen?' open':''}" onclick="crsToggleSummary('${sec.id}',${ri})" title="${row.summaryOpen?'Hide':'Add'} work summary">✎</button> `:''}
             <button class="crs-row-del" onclick="crsRemoveRow('${sec.id}',${ri})" title="Remove row">×</button>
           </td>
         </tr>${summaryRow}`;
-    }).join('');
+    }).join('') : '';
 
-    // Section accent by template
-    const accentMap={migration:'#1F3A5F',revision:'#FF7319',support:'#059669',blank:'#6366F1'};
-    const accent=accentMap[sec.template]||'#6366F1';
-    const tpl=CRS_TEMPLATES.find(t=>t.id===sec.template);
+    const blankHint = !hasColumns ? `
+      <tr><td colspan="2" style="padding:16px;text-align:center;color:var(--text3);font-size:12px">
+        Click <strong>+ Column</strong> below to add columns, then <strong>+ Row</strong> to add data.
+      </td></tr>` : '';
+
+    const revisionNote = isRevision ? `
+      <div style="padding:6px 12px;background:rgba(255,115,25,.08);border-bottom:1px solid var(--border);font-size:10px;color:var(--text2)">
+        <svg viewBox="0 0 24 24" style="width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;display:inline;margin-right:4px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Auto-pulled from the <strong>Work Log</strong> entries for this date. Edit cells directly as needed.
+      </div>` : '';
 
     return `
     <div class="crs-card" data-id="${sec.id}" style="border-left-color:${accent}">
       <div class="crs-head">
         <span style="font-size:16px;flex-shrink:0">${tpl?.icon||'📋'}</span>
-        <input class="crs-title-input" placeholder="Section title" value="${escHtml(sec.title)}">
+        <input class="crs-title-input" placeholder="Section title" value="${escHtml(sec.title)}" style="color:var(--text)">
         <button class="crs-remove-btn" onclick="crsRemoveSection('${sec.id}')" title="Remove section">×</button>
       </div>
+      ${revisionNote}
       <div class="crs-table-wrap">
-        <table class="crs-table">
-          <thead><tr>${headerRow}<th style="width:60px;background:#1F3A5F"></th></tr></thead>
-          <tbody>${dataRows}</tbody>
+        <table class="crs-table" style="width:100%;border-collapse:collapse;font-size:12px">
+          ${hasColumns?`<thead><tr>${headerRow}<th style="width:60px;background:#1F3A5F"></th></tr></thead>`:''}
+          <tbody>${dataRows}${blankHint}</tbody>
         </table>
       </div>
       <div class="crs-footer">
@@ -5454,10 +5533,130 @@ function renderCustomSections(){
         <button class="btn btn-sm btn-ghost" onclick="crsSync();crsAddRow('${sec.id}')">
           <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Row
         </button>
+        ${isRevision?`<button class="btn btn-sm btn-ghost" onclick="crsRefreshRevision('${sec.id}')">
+          <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg> Refresh from log
+        </button>`:''}
         ${sec.hasSummary!==false?`<span style="font-size:10px;color:var(--text3);margin-left:auto;align-self:center">✎ = add work summary per row</span>`:''}
       </div>
     </div>`;
   }).join('');
+}
+
+// ── WORK LOG ──
+function renderWorkLogTab(c){
+  const body=document.getElementById('d-body');if(!body)return;
+  const log=[...(c.workLog||[])].sort((a,b)=>b.ts-a.ts);
+  const atypeOpts=ACTIVITY_TYPES.map(a=>`<option value="${a}">${a}</option>`).join('');
+
+  body.innerHTML=`<div class="d-sec">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="d-sec-title" style="margin-bottom:0">Work Log</div>
+      <button class="btn btn-sm btn-primary" onclick="wlShowAddForm()">+ Log Work</button>
+    </div>
+    <div id="wl-add-wrap"></div>
+    <div id="wl-list">
+      ${log.length ? log.map(entry=>`
+        <div class="wl-item" id="wl-entry-${entry.id}">
+          <div class="wl-date">${fmtDateUS(entry.date)}</div>
+          <div class="wl-body">
+            <div class="wl-atype">${entry.activityType||'Work'}</div>
+            <div class="wl-desc">${escHtml(entry.description)||'—'}</div>
+          </div>
+          <div class="wl-actions">
+            <button class="wl-action-btn" onclick="wlEdit('${entry.id}')" title="Edit">✏</button>
+            <button class="wl-action-btn del" onclick="wlDelete('${entry.id}')" title="Delete">×</button>
+          </div>
+        </div>`).join('')
+      : `<div style="font-size:12px;color:var(--text3);padding:12px 0;text-align:center">
+          No work logged yet.<br>
+          <span style="font-size:11px">Click "+ Log Work" to add an entry.</span>
+        </div>`}
+    </div>
+  </div>`;
+}
+
+function wlShowAddForm(){
+  const wrap=document.getElementById('wl-add-wrap');if(!wrap)return;
+  if(wrap.innerHTML){wrap.innerHTML='';return;} // toggle
+  const atypeOpts=ACTIVITY_TYPES.map(a=>`<option value="${a}">${a}</option>`).join('');
+  wrap.innerHTML=`<div class="wl-add-form">
+    <div class="wl-form-row">
+      <select id="wl-atype" class="wl-atype-sel">
+        <option value="">— Activity Type —</option>
+        ${atypeOpts}
+      </select>
+      <input type="date" id="wl-date" class="wl-date-inp" value="${todayUS()}">
+    </div>
+    <textarea id="wl-desc" class="wl-desc-inp" placeholder="What did you do? e.g. Fixed broken image links, updated mobile layout, corrected SEO tags…"></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-sm btn-ghost" onclick="document.getElementById('wl-add-wrap').innerHTML=''">Cancel</button>
+      <button class="btn btn-sm btn-primary" onclick="wlSaveNew()">Save</button>
+    </div>
+  </div>`;
+  setTimeout(()=>document.getElementById('wl-atype')?.focus(),30);
+}
+
+function wlSaveNew(){
+  const c=cases.find(x=>x.id===openDetailId);if(!c)return;
+  const atype=document.getElementById('wl-atype')?.value;
+  const date=document.getElementById('wl-date')?.value||todayUS();
+  const desc=document.getElementById('wl-desc')?.value.trim();
+  if(!atype){toast('Select an activity type');return;}
+  if(!desc){toast('Add a description');return;}
+  if(!c.workLog)c.workLog=[];
+  const entry={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5), date, activityType:atype, description:desc, ts:Date.now()};
+  c.workLog.push(entry);
+  logAudit('worklog', c.number, c.name, `Work logged: ${atype} — ${desc.slice(0,60)}`);
+  save();
+  renderWorkLogTab(c);
+  toast('Work logged');
+}
+
+function wlDelete(entryId){
+  const c=cases.find(x=>x.id===openDetailId);if(!c||!c.workLog)return;
+  const entry=c.workLog.find(e=>e.id===entryId);if(!entry)return;
+  if(!confirm(`Delete this work log entry?\n${entry.activityType} — ${entry.description.slice(0,60)}`))return;
+  c.workLog=c.workLog.filter(e=>e.id!==entryId);
+  logAudit('worklog', c.number, c.name, `Work log deleted: ${entry.activityType}`);
+  save();
+  renderWorkLogTab(c);
+  toast('Entry deleted');
+}
+
+function wlEdit(entryId){
+  const c=cases.find(x=>x.id===openDetailId);if(!c||!c.workLog)return;
+  const entry=c.workLog.find(e=>e.id===entryId);if(!entry)return;
+  const el=document.getElementById(`wl-entry-${entryId}`);if(!el)return;
+  const atypeOpts=ACTIVITY_TYPES.map(a=>`<option value="${a}"${a===entry.activityType?' selected':''}>${a}</option>`).join('');
+  el.outerHTML=`<div class="wl-edit-form" id="wl-edit-${entryId}">
+    <div class="wl-form-row">
+      <select id="wl-edit-atype-${entryId}" class="wl-atype-sel">
+        <option value="">— Activity Type —</option>${atypeOpts}
+      </select>
+      <input type="date" id="wl-edit-date-${entryId}" class="wl-date-inp" value="${entry.date}">
+    </div>
+    <textarea id="wl-edit-desc-${entryId}" class="wl-desc-inp">${escHtml(entry.description)}</textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-sm btn-ghost" onclick="renderDTab('worklog')">Cancel</button>
+      <button class="btn btn-sm btn-primary" onclick="wlSaveEdit('${entryId}')">Save</button>
+    </div>
+  </div>`;
+  setTimeout(()=>document.getElementById(`wl-edit-desc-${entryId}`)?.focus(),30);
+}
+
+function wlSaveEdit(entryId){
+  const c=cases.find(x=>x.id===openDetailId);if(!c||!c.workLog)return;
+  const entry=c.workLog.find(e=>e.id===entryId);if(!entry)return;
+  const atype=document.getElementById(`wl-edit-atype-${entryId}`)?.value;
+  const date=document.getElementById(`wl-edit-date-${entryId}`)?.value||entry.date;
+  const desc=document.getElementById(`wl-edit-desc-${entryId}`)?.value.trim();
+  if(!atype){toast('Select an activity type');return;}
+  if(!desc){toast('Add a description');return;}
+  entry.activityType=atype; entry.date=date; entry.description=desc;
+  logAudit('worklog', c.number, c.name, `Work log updated: ${atype}`);
+  save();
+  renderWorkLogTab(c);
+  toast('Entry updated');
 }
 
 function crsToEmailHtml(){
@@ -5465,7 +5664,7 @@ function crsToEmailHtml(){
   if(!customReportSections.length) return '';
   const accentMap={migration:'#1F3A5F',revision:'#FF7319',support:'#059669',blank:'#6366F1'};
 
-  return customReportSections.filter(s=>s.title||s.rows.some(r=>r.cells.some(c=>c))).map(sec=>{
+  return customReportSections.filter(s=>(s.title||s.rows.some(r=>r.cells.some(c=>c)))&&s.columns.length>0).map(sec=>{
     const accent=accentMap[sec.template]||'#6366F1';
     const colCount=sec.columns.length;
 
