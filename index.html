@@ -2388,7 +2388,7 @@ function renderBento(){
     periodTo=now;
   } else if(dashPeriod==='monthly'){
     periodFrom=new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-    periodTo=now;
+    periodTo=new Date(now.getFullYear(), now.getMonth()+1, 0, 23, 59, 59, 999);
   } else if(dashPeriod==='pick-month'&&dashPickMonth){
     periodFrom=new Date(dashPickMonth.year, dashPickMonth.month, 1, 0, 0, 0, 0);
     periodTo=new Date(dashPickMonth.year, dashPickMonth.month+1, 0, 23, 59, 59, 999);
@@ -3181,8 +3181,8 @@ function renderReport(){
     periodLabel='Last 7 days ('+from.toLocaleDateString('en-US',{timeZone:US_TZ,month:'short',day:'numeric'})+' – '+now.toLocaleDateString('en-US',{timeZone:US_TZ,month:'short',day:'numeric',year:'numeric'})+')';
   } else if(range==='monthly'){
     from=new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-    to=now;
-    periodLabel='This Month, '+now.toLocaleDateString('en-US',{timeZone:US_TZ,month:'long',year:'numeric'})+' ('+from.toLocaleDateString('en-US',{timeZone:US_TZ,month:'short',day:'numeric'})+' – '+now.toLocaleDateString('en-US',{timeZone:US_TZ,month:'short',day:'numeric',year:'numeric'})+')';
+    to=new Date(now.getFullYear(), now.getMonth()+1, 0, 23, 59, 59, 999);
+    periodLabel='This Month, '+now.toLocaleDateString('en-US',{timeZone:US_TZ,month:'long',year:'numeric'})+' ('+from.toLocaleDateString('en-US',{timeZone:US_TZ,month:'short',day:'numeric'})+' – '+to.toLocaleDateString('en-US',{timeZone:US_TZ,month:'short',day:'numeric',year:'numeric'})+')';
   } else if(range==='pick-month'){
     const selMonth=parseInt(document.getElementById('rpt-month-sel')?.value||new Date().getMonth());
     const selYear=parseInt(document.getElementById('rpt-year-sel')?.value||new Date().getFullYear());
