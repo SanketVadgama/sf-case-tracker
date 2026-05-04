@@ -2395,43 +2395,56 @@ function renderBento(){
     pLabel=periodFrom.toLocaleDateString('en-US',{month:'long',year:'numeric'});
   }
 
-  // ── Data — inPeriod: ONLY start date in period OR carry-forward ──
-  // End date not used — old cases closed this month shouldn't flood the dashboard
+  // ── COMPLETION DATE IS THE SINGLE SOURCE OF TRUTH ──
+  // A case belongs to the month its Completion Date (c.end) falls in.
+  // Carry-forwards (no end date, still active) show in every period until completed.
+  // Banners = sumB(c) for completed cases (all banners count in completion month).
+  // Carry-forwards show with 0 banners — work not done yet.
+  const allCases=cases.filter(c=>!c.archived);
+  const pTo=periodTo||now;
+
   const inPeriod=c=>{
     if(!periodFrom)return true;
-    const pTo=periodTo||now;
-    // Started in period
-    if(c.start&&new Date(c.start+'T12:00:00')>=periodFrom&&new Date(c.start+'T12:00:00')<=pTo)return true;
-    // Carry-forward: still active (New/IP/PYI) AND started before period
-    if(CARRY_STATUSES.includes(c.status)&&c.start&&new Date(c.start+'T12:00:00')<periodFrom)return true;
-    // PYC carry-forward: started before period, moved to PYC this period
-    if(c.status==='Pending Your Confirmation'&&c.start&&new Date(c.start+'T12:00:00')<periodFrom&&
-       (c.statusHistory||[]).some(h=>h.to==='Pending Your Confirmation'&&h.ts&&new Date(h.ts)>=periodFrom&&new Date(h.ts)<=pTo))return true;
+    // Completed this period — Completion Date in range
+    if(c.end&&new Date(c.end+'T12:00:00')>=periodFrom&&new Date(c.end+'T12:00:00')<=pTo)return true;
+    // Carry-forward — no completion date yet, still active
+    if(!c.end&&!DONE_STATUSES.includes(c.status))return true;
+    // PYC with no end date — done from our side, waiting on client
+    if(!c.end&&c.status==='Pending Your Confirmation')return true;
     return false;
   };
-  const allCases=cases.filter(c=>!c.archived);
+
+  // Banners: sumB (all banners) for completed cases, 0 for carry-forwards
+  const bForCase=c=>{
+    if(!periodFrom)return sumB(c);
+    if(c.end&&new Date(c.end+'T12:00:00')>=periodFrom&&new Date(c.end+'T12:00:00')<=pTo)return sumB(c);
+    return 0;
+  };
+
   const pCases=periodFrom?allCases.filter(inPeriod):allCases;
-  const bySt=s=>(periodFrom?pCases:allCases).filter(c=>c.status===s).length;
-  const total=periodFrom?pCases.length:allCases.length;
-  const pTo=periodTo||now;
+  const completedCases=periodFrom?pCases.filter(c=>c.end&&new Date(c.end+'T12:00:00')>=periodFrom&&new Date(c.end+'T12:00:00')<=pTo):pCases;
+  const bySt=s=>pCases.filter(c=>c.status===s).length;
+  const total=pCases.length;
 
   // pLabel sub — handle pick-month explicitly
   const pSubLabel = dashPeriod==='pick-month' ? pLabel : (pSub[dashPeriod]||'this period');
 
-  // Banners: count only banners logged within the period window (date-filtered)
-  // Banners always belong to the period they were logged, not when case was closed
+  // Total banners = sum of all banners from completed cases in this period
   const allB=periodFrom
-    ? allCases.reduce((s,c)=>s+sumBInPeriod(c,periodFrom,pTo),0)
+    ? allCases.filter(c=>c.end&&new Date(c.end+'T12:00:00')>=periodFrom&&new Date(c.end+'T12:00:00')<=pTo).reduce((s,c)=>s+sumB(c),0)
     : allCases.reduce((s,c)=>s+sumB(c),0);
-  const resolved=periodFrom?allCases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=periodFrom&&new Date(c.end+'T12:00:00')<=pTo):allCases.filter(c=>c.status==='Closed'&&c.start&&c.end);
+
+  const resolved=completedCases.filter(c=>c.start&&c.end);
   const avgRes=resolved.length?Math.round(resolved.reduce((s,c)=>s+(new Date(c.end+'T12:00:00')-new Date(c.start+'T12:00:00'))/86400000,0)/resolved.length):null;
   const overdue=allCases.filter(isOD);
   const pastDue=allCases.filter(isPD);
   const dueSoon=allCases.filter(c=>isDS(c)&&!isPD(c));
   // Digest always uses same period window as dashboard selection
   const wOpened=allCases.filter(c=>c.start&&new Date(c.start+'T12:00:00')>=(periodFrom||new Date(0))&&new Date(c.start+'T12:00:00')<=pTo).length;
-  const wClosed=allCases.filter(c=>c.status==='Closed'&&c.end&&new Date(c.end+'T12:00:00')>=(periodFrom||new Date(0))&&new Date(c.end+'T12:00:00')<=pTo).length;
-  const wB=allCases.reduce((s,c)=>s+sumBInPeriod(c,periodFrom||new Date(0),pTo),0);
+  const wClosed=allCases.filter(c=>c.end&&new Date(c.end+'T12:00:00')>=(periodFrom||new Date(0))&&new Date(c.end+'T12:00:00')<=pTo).length;
+  const wB=periodFrom
+    ? allCases.filter(c=>c.end&&new Date(c.end+'T12:00:00')>=periodFrom&&new Date(c.end+'T12:00:00')<=pTo).reduce((s,c)=>s+sumB(c),0)
+    : allCases.reduce((s,c)=>s+sumB(c),0);
   const recent=periodFrom?[...allCases].filter(c=>inPeriod(c)).sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6):[...allCases].sort((a,b)=>(b.start||'').localeCompare(a.start||'')).slice(0,6);
 
   const w=dashWidgets;
@@ -3184,35 +3197,38 @@ function renderReport(){
     periodLabel=fmtD(fv)+' – '+fmtD(tv);
   }
 
-  // Banners always counted by when they were logged (date-filtered), not when case was closed
-  const bInP=c=>sumBInPeriod(c,from,to);
+  // ── COMPLETION DATE IS THE SINGLE SOURCE OF TRUTH ──
+  // A case belongs to the period its Completion Date (c.end) falls in.
+  // Carry-forwards (no end date, still active) show in every period until completed.
+  // Banners = sumB(c) for completed cases. Carry-forwards = 0 banners.
 
-  // ── Case inclusion: ONLY start date in period OR carry-forward active cases ──
-  // End date / statusHistory are NOT used for case inclusion — that caused old cases
-  // started months ago to flood the report just because they were closed this month.
-  // movedToWorked (below) handles "completed this period" counting separately.
   const inPeriod=c=>{
     if(!from)return true;
-    // Started in period
-    if(c.start&&new Date(c.start+'T12:00:00')>=from&&new Date(c.start+'T12:00:00')<=to)return true;
-    // Carry-forward: still active (New/IP/PYI) AND started before period
-    if(CARRY_STATUSES.includes(c.status)&&c.start&&new Date(c.start+'T12:00:00')<from)return true;
-    // PYC carry-forward: started before period, moved to PYC in period (work done this period)
-    if(c.status==='Pending Your Confirmation'&&c.start&&new Date(c.start+'T12:00:00')<from&&
-       (c.statusHistory||[]).some(h=>h.to==='Pending Your Confirmation'&&h.ts&&new Date(h.ts)>=from&&new Date(h.ts)<=to))return true;
+    // Completed this period — Completion Date in range
+    if(c.end&&new Date(c.end+'T12:00:00')>=from&&new Date(c.end+'T12:00:00')<=to)return true;
+    // Carry-forward — no completion date, still active (not done yet)
+    if(!c.end&&!DONE_STATUSES.includes(c.status))return true;
+    // PYC with no end — done from our side, waiting on client
+    if(!c.end&&c.status==='Pending Your Confirmation')return true;
     return false;
   };
-  const periodCases=cases.filter(inPeriod);
 
-  // Cases that MOVED to a done status IN the period — scoped to periodCases only
-  const movedToWorked=periodCases.filter(c=>{
-    if(!WORKED.includes(c.status))return false;
-    if(!from)return true;
-    const changes=(c.statusHistory||[]).filter(h=>WORKED.includes(h.to)&&h.ts&&new Date(h.ts)>=from&&new Date(h.ts)<=to);
-    return changes.length>0;
-  });
+  // Banners: all banners (sumB) for completed cases, 0 for carry-forwards
+  const bInP=c=>{
+    if(!from)return sumB(c);
+    if(c.end&&new Date(c.end+'T12:00:00')>=from&&new Date(c.end+'T12:00:00')<=to)return sumB(c);
+    return 0;
+  };
 
-  // Totals — all use same periodCases set with bInP so they're fully consistent
+  const allNonArchived=cases.filter(c=>!c.archived);
+  const periodCases=from?allNonArchived.filter(inPeriod):allNonArchived;
+
+  // "Worked On" = cases with Completion Date in the period (actually completed)
+  const movedToWorked=from
+    ? allNonArchived.filter(c=>c.end&&new Date(c.end+'T12:00:00')>=from&&new Date(c.end+'T12:00:00')<=to)
+    : allNonArchived.filter(c=>DONE_STATUSES.includes(c.status));
+
+  // Totals — use bInP (sumB for completed, 0 for carry-forwards)
   const totalBanners=periodCases.reduce((s,c)=>s+bInP(c),0);
   const totalBlogs=periodCases.filter(c=>c.type==='Automotive Blog Migration'||c.type==='LeadScience Blog Migration').reduce((s,c)=>s+bInP(c),0);
   const totalPages=periodCases.filter(c=>c.type==='Automotive Content Migration'||c.type==='LeadScience Content Migration').reduce((s,c)=>s+bInP(c),0);
@@ -3403,10 +3419,10 @@ function renderReport(){
       html+=`<div style="font-size:13px;color:var(--text3);padding:24px 0;text-align:center">No cases for this period.</div>`;
     }
 
-    // Carry-forward: New, In Progress, Pending Your Input cases from before this period
+    // Carry-forward: cases with NO completion date (still being worked on)
     const ACTIVE_STATUSES=['New','In Progress','Pending Your Input'];
-    const carryForward=cases.filter(c=>ACTIVE_STATUSES.includes(c.status)&&!c.archived&&c.start&&new Date(c.start+'T12:00:00')<(from||new Date(0)));
-    const carryOther=cases.filter(c=>!isDone(c)&&!ACTIVE_STATUSES.includes(c.status)&&!c.archived&&c.start&&new Date(c.start+'T12:00:00')<(from||new Date(0)));
+    const carryForward=allNonArchived.filter(c=>!c.end&&ACTIVE_STATUSES.includes(c.status));
+    const carryOther=allNonArchived.filter(c=>!c.end&&c.status==='Pending Your Confirmation');
 
     if(carryForward.length){
       html+=`<div class="rpt-section-title" style="color:var(--s-pyi)">↩ Carried Forward <span style="font-weight:400;font-size:9px;color:var(--text3)">(New / In Progress / Pending Input — started before this period)</span></div>`;
