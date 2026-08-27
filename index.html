@@ -2322,32 +2322,165 @@ let openDetailId=null, openDTab='info', curView='table', pendingImport=null;
 let charts={};
 
 // ── INIT ──
+// ── SUPABASE DATA LAYER ──
+// Loads from Supabase, caches in localStorage for instant subsequent loads
+// Saves to both Supabase (source of truth) and localStorage (local cache)
+
+async function loadFromSupabase() {
+  if(!currentUser) return false;
+  try {
+    // Load cases
+    const { data: casesData, error: casesErr } = await supa
+      .from('cases')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false });
+    if(casesErr) throw casesErr;
+
+    // Load all nested data in parallel
+    const caseIds = casesData.map(c => c.id);
+    if(!caseIds.length){ cases = []; return true; }
+
+    const [bannersRes, workRes, commentsRes, statusRes] = await Promise.all([
+      supa.from('banner_log').select('*').in('case_id', caseIds),
+      supa.from('work_log').select('*').in('case_id', caseIds),
+      supa.from('comments').select('*').in('case_id', caseIds),
+      supa.from('status_history').select('*').in('case_id', caseIds),
+    ]);
+
+    // Build lookup maps
+    const bannerMap = {}, workMap = {}, commentMap = {}, statusMap = {};
+    (bannersRes.data||[]).forEach(b => { if(!bannerMap[b.case_id]) bannerMap[b.case_id]=[]; bannerMap[b.case_id].push(b); });
+    (workRes.data||[]).forEach(w =>   { if(!workMap[w.case_id])   workMap[w.case_id]=[]; workMap[w.case_id].push(w); });
+    (commentsRes.data||[]).forEach(c=>{ if(!commentMap[c.case_id]) commentMap[c.case_id]=[]; commentMap[c.case_id].push(c); });
+    (statusRes.data||[]).forEach(s => { if(!statusMap[s.case_id]) statusMap[s.case_id]=[]; statusMap[s.case_id].push(s); });
+
+    // Assemble cases into app format
+    cases = casesData.map(c => ({
+      id:            c.id,
+      number:        c.number || '',
+      name:          c.name || '',
+      type:          c.type || TYPES[0],
+      status:        c.status || 'New',
+      priority:      c.priority || 'Medium',
+      start:         c.start_date || '',
+      end:           c.end_date || '',
+      dueDate:       c.due_date || '',
+      notes:         c.notes || '',
+      url:           c.sf_url || '',
+      bannerTarget:  parseInt(c.banner_target) || 0,
+      archived:      !!c.archived,
+      bannerLog:    (bannerMap[c.id]||[]).map(b=>({id:b.id, count:parseInt(b.count)||0, date:b.log_date||'', note:b.note||'', ts:b.ts||Date.now()})),
+      workLog:      (workMap[c.id]||[]).map(w=>({id:w.id, activityType:w.activity_type||'', description:w.description||'', date:w.work_date||'', ts:w.ts||Date.now()})),
+      comments:     (commentMap[c.id]||[]).map(cm=>({id:cm.id, author:cm.author||'You', text:cm.text||'', ts:cm.ts||Date.now()})),
+      statusHistory:(statusMap[c.id]||[]).map(sh=>({from:sh.from_status||'', to:sh.to_status||'', ts:sh.ts||Date.now()})),
+      totalBanners: 0, // computed below
+      assignee:      '',
+    }));
+
+    // Compute derived fields
+    cases.forEach(c => { c.totalBanners = sumB(c); });
+
+    // Load audit log from Supabase
+    const { data: auditData } = await supa
+      .from('audit_log')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false })
+      .limit(500);
+    if(auditData) {
+      auditLog = auditData.map(a => ({
+        id: a.id, type: a.action, action: a.action,
+        caseNum: a.case_number, caseName: a.case_name,
+        detail: a.detail, ts: a.ts || Date.now()
+      }));
+    }
+
+    // Cache to localStorage for next load
+    try { localStorage.setItem(STORE, JSON.stringify(cases)); } catch(e){}
+    try { localStorage.setItem(AUDIT_STORE, JSON.stringify(auditLog)); } catch(e){}
+
+    return true;
+  } catch(err) {
+    console.error('Supabase load error:', err);
+    return false;
+  }
+}
+
+async function saveToSupabase(c) {
+  // Save a single case to Supabase (called after every local save)
+  if(!currentUser || !c) return;
+  try {
+    await supa.from('cases').upsert({
+      id: c.id, user_id: currentUser.id,
+      number: c.number||'', name: c.name||'',
+      type: c.type||'', status: c.status||'New',
+      priority: c.priority||'Medium',
+      start_date: c.start||null, end_date: c.end||null,
+      due_date: c.dueDate||null, notes: c.notes||'',
+      sf_url: c.url||'', banner_target: parseInt(c.bannerTarget)||0,
+      archived: !!c.archived, updated_at: new Date().toISOString()
+    }, { onConflict: 'id' });
+
+    // Upsert banner log
+    if(c.bannerLog?.length) {
+      await supa.from('banner_log').upsert(
+        c.bannerLog.map(b=>({ id:b.id||(c.id+'_b_'+b.ts), case_id:c.id, user_id:currentUser.id, count:parseInt(b.count)||0, log_date:b.date||null, note:b.note||'', ts:b.ts||Date.now() })),
+        { onConflict: 'id' }
+      );
+    }
+    // Upsert work log
+    if(c.workLog?.length) {
+      await supa.from('work_log').upsert(
+        c.workLog.map(w=>({ id:w.id||(c.id+'_w_'+w.ts), case_id:c.id, user_id:currentUser.id, activity_type:w.activityType||'', description:w.description||'', work_date:w.date||null, ts:w.ts||Date.now() })),
+        { onConflict: 'id' }
+      );
+    }
+    // Upsert comments
+    if(c.comments?.length) {
+      await supa.from('comments').upsert(
+        c.comments.map(cm=>({ id:cm.id||(c.id+'_c_'+cm.ts), case_id:c.id, user_id:currentUser.id, author:cm.author||'You', text:cm.text||'', ts:cm.ts||Date.now() })),
+        { onConflict: 'id' }
+      );
+    }
+    // Upsert status history
+    if(c.statusHistory?.length) {
+      await supa.from('status_history').upsert(
+        c.statusHistory.map(h=>({ id:c.id+'_sh_'+(h.ts||Math.random()), case_id:c.id, from_status:h.from||'', to_status:h.to||'', ts:h.ts||Date.now() })),
+        { onConflict: 'id' }
+      );
+    }
+  } catch(err) {
+    console.error('Supabase save error:', err);
+  }
+}
+
+async function deleteFromSupabase(caseId) {
+  if(!currentUser || !caseId) return;
+  try { await supa.from('cases').delete().eq('id', caseId); } catch(e){}
+}
+
+async function saveAuditToSupabase(entry) {
+  if(!currentUser || !entry) return;
+  try {
+    await supa.from('audit_log').insert({
+      id: entry.id || (currentUser.id+'_a_'+Date.now()),
+      user_id: currentUser.id,
+      action: entry.type || entry.action || '',
+      case_number: entry.caseNum || '',
+      case_name: entry.caseName || '',
+      detail: entry.detail || '',
+      ts: entry.ts || Date.now()
+    });
+  } catch(e){}
+}
+
 function load() {
   loadAuditLog();
+  // Load from localStorage cache first (instant)
   try { const d=localStorage.getItem(STORE); if(d) cases=JSON.parse(d); } catch(e){}
   loadSettings();
-  // Migrate old data
-  cases.forEach(c=>{
-    if(!c.bannerLog) c.bannerLog=[];
-    if(!c.comments) c.comments=[];
-    if(!c.statusHistory) c.statusHistory=[];
-    if(c.bannerTarget===undefined||c.bannerTarget===null){
-      const seedEntry=c.bannerLog.find(b=>b.note==='Initial count'||b.note==='Count adjusted');
-      if(seedEntry){
-        c.bannerTarget=parseInt(seedEntry.count)||0;
-        c.bannerLog=c.bannerLog.filter(b=>b.note!=='Initial count'&&b.note!=='Count adjusted');
-      } else if(c.banners||c.totalBanners){
-        c.bannerTarget=parseInt(c.totalBanners||c.banners)||0;
-        c.bannerLog=[];
-      } else { c.bannerTarget=0; }
-    }
-    c.totalBanners=sumB(c);
-    const sm={'Open':'New','In progress':'In Progress','Pending':'Pending Your Input','Closed':'Closed'};
-    if(sm[c.status]) c.status=sm[c.status];
-    const tm={'Bug':'Automotive Content Migration','Feature':'Automotive Blog Migration','Query':'LeadScience Content Migration','Config':'LeadScience Blog Migration'};
-    if(tm[c.type]) c.type=tm[c.type];
-    if(!c.assignee) c.assignee='';
-  });
+  migrateLegacyData();
   const th=localStorage.getItem('sf_theme')||'light';
   applyTheme(th);
   if(localStorage.getItem('sb_collapsed')==='1'){document.querySelector('.sidebar').classList.add('collapsed');}
@@ -2358,15 +2491,47 @@ function load() {
   renderNotifications();
   populateTypeSelects();
   renderAll();
+  // Then load fresh from Supabase in background
+  loadFromSupabase().then(ok => {
+    if(ok) {
+      renderAll();
+      toast('✅ Data loaded from Supabase');
+    }
+  });
 }
+
+function migrateLegacyData() {
+  cases.forEach(c=>{
+    if(!c.bannerLog) c.bannerLog=[];
+    if(!c.comments) c.comments=[];
+    if(!c.statusHistory) c.statusHistory=[];
+    if(!c.workLog) c.workLog=[];
+    if(c.bannerTarget===undefined||c.bannerTarget===null){
+      const seedEntry=c.bannerLog.find(b=>b.note==='Initial count'||b.note==='Count adjusted');
+      if(seedEntry){ c.bannerTarget=parseInt(seedEntry.count)||0; c.bannerLog=c.bannerLog.filter(b=>b.note!=='Initial count'&&b.note!=='Count adjusted'); }
+      else if(c.banners||c.totalBanners){ c.bannerTarget=parseInt(c.totalBanners||c.banners)||0; c.bannerLog=[]; }
+      else { c.bannerTarget=0; }
+    }
+    c.totalBanners=sumB(c);
+    const sm={'Open':'New','In progress':'In Progress','Pending':'Pending Your Input','Closed':'Closed'};
+    if(sm[c.status]) c.status=sm[c.status];
+    if(!c.assignee) c.assignee='';
+  });
+}
+
 function save(){
+  // Save to localStorage immediately (fast, instant UI)
   try{
     localStorage.setItem(STORE,JSON.stringify(cases));
     markSaved();
   }catch(e){
     if(e.name==='QuotaExceededError'||e.code===22){
-      toast('⚠ Storage full — export a CSV backup and delete old cases');
+      toast('⚠ Storage full — export a JSON backup');
     }
+  }
+  // Sync to Supabase in background (all cases)
+  if(currentUser) {
+    cases.forEach(c => saveToSupabase(c));
   }
 }
 
@@ -4054,6 +4219,7 @@ function deleteCase(id){
   save();renderAll();
   renderNotifications();
   pushUndo('delete',{index:idx,case:caseData});
+  deleteFromSupabase(id); // remove from Supabase
 }
 
 // ── CALENDAR STATE ──
@@ -5002,10 +5168,11 @@ const AUDIT_STORE = 'sf_audit_v1';
 
 // ── AUDIT LOG ──
 function logAudit(action, caseNum, caseName, detail) {
-  const entry = { ts: Date.now(), action, caseNum: caseNum||'', caseName: caseName||'', detail: detail||'' };
+  const entry = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,5), ts: Date.now(), action, caseNum: caseNum||'', caseName: caseName||'', detail: detail||'' };
   auditLog.unshift(entry);
   if (auditLog.length > 200) auditLog.splice(200);
   try { localStorage.setItem(AUDIT_STORE, JSON.stringify(auditLog)); } catch(e){}
+  saveAuditToSupabase(entry); // sync to Supabase in background
 }
 function loadAuditLog() {
   try { const d = localStorage.getItem(AUDIT_STORE); if(d) auditLog = JSON.parse(d); } catch(e){}
