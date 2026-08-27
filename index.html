@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Salesforce Case Tracker & Report</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -1401,9 +1402,124 @@ body.compact .k-card{padding:6px 8px}
   .tab-scroll,.cases-layout,.list-pane{overflow:visible}
   body{background:#fff}
 }
+
+/* ── AUTH SCREEN ── */
+#auth-screen{
+  display:none;position:fixed;inset:0;z-index:99999;
+  background:linear-gradient(135deg,#0D1117 0%,#111827 50%,#0D1117 100%);
+  align-items:center;justify-content:center;
+}
+#auth-screen.show{display:flex;}
+.auth-card{
+  background:#161B22;border:1px solid rgba(255,255,255,0.1);
+  border-radius:16px;padding:40px;width:100%;max-width:400px;
+  box-shadow:0 24px 64px rgba(0,0,0,0.5);
+}
+.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px;}
+.auth-logo-icon{width:36px;height:36px;background:#FF6B2C;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.auth-logo-text{font-size:15px;font-weight:700;color:#F0F6FC;font-family:'Inter',sans-serif;}
+.auth-logo-sub{font-size:11px;color:#8B949E;font-family:'Inter',sans-serif;}
+.auth-title{font-size:22px;font-weight:700;color:#F0F6FC;margin-bottom:6px;font-family:'Inter',sans-serif;}
+.auth-sub{font-size:13px;color:#8B949E;margin-bottom:28px;font-family:'Inter',sans-serif;}
+.auth-field{margin-bottom:16px;}
+.auth-field label{display:block;font-size:11px;font-weight:600;color:#8B949E;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;font-family:'Inter',sans-serif;}
+.auth-field input{width:100%;padding:10px 14px;background:#0D1117;border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#F0F6FC;font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:border-color .15s;}
+.auth-field input:focus{border-color:#FF6B2C;}
+.auth-btn{width:100%;padding:11px;background:#FF6B2C;border:none;border-radius:8px;color:#fff;font-size:14px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;transition:background .15s;margin-top:4px;}
+.auth-btn:hover{background:#e85c1f;}
+.auth-btn:disabled{background:#444;cursor:not-allowed;}
+.auth-error{background:rgba(255,75,75,0.12);border:1px solid rgba(255,75,75,0.25);border-radius:8px;padding:10px 14px;margin-bottom:16px;color:#FF6B6B;font-size:12px;font-family:'Inter',sans-serif;display:none;}
+.auth-success{background:rgba(0,201,167,0.12);border:1px solid rgba(0,201,167,0.25);border-radius:8px;padding:10px 14px;margin-bottom:16px;color:#00C9A7;font-size:12px;font-family:'Inter',sans-serif;display:none;}
+.auth-switch{text-align:center;margin-top:20px;font-size:12px;color:#8B949E;font-family:'Inter',sans-serif;}
+.auth-switch a{color:#FF6B2C;cursor:pointer;text-decoration:none;font-weight:600;}
+.auth-switch a:hover{text-decoration:underline;}
+.auth-user-badge{display:none;align-items:center;gap:8px;padding:5px 10px;background:rgba(255,107,44,0.1);border:1px solid rgba(255,107,44,0.2);border-radius:8px;cursor:pointer;transition:background .15s;}
+.auth-user-badge:hover{background:rgba(255,107,44,0.18);}
+.auth-user-badge.show{display:flex;}
+.auth-avatar{width:24px;height:24px;border-radius:50%;background:#FF6B2C;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
+.auth-uname{font-size:12px;font-weight:600;color:var(--text);}
+.role-chip{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:1px 6px;border-radius:20px;}
+.role-super_admin{background:rgba(255,107,44,0.15);color:#FF6B2C;}
+.role-admin{background:rgba(79,195,247,0.15);color:#4FC3F7;}
+.role-employee{background:rgba(0,201,167,0.15);color:#00C9A7;}
+.auth-loading{position:fixed;inset:0;background:#0D1117;z-index:99998;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+.auth-loading.hidden{display:none;}
+.auth-spinner{width:32px;height:32px;border:3px solid rgba(255,107,44,0.2);border-top-color:#FF6B2C;border-radius:50%;animation:authspin .8s linear infinite;}
+@keyframes authspin{to{transform:rotate(360deg)}}
+.auth-loading-text{font-size:13px;color:#8B949E;font-family:'Inter',sans-serif;}
 </style>
 </head>
 <body>
+
+<!-- ── AUTH LOADING ── -->
+<div class="auth-loading" id="auth-loading">
+  <div class="auth-spinner"></div>
+  <div class="auth-loading-text">Loading SF Case Tracker…</div>
+</div>
+
+<!-- ── AUTH SCREEN ── -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">📋</div>
+      <div>
+        <div class="auth-logo-text">SF Case Tracker</div>
+        <div class="auth-logo-sub">DealerOn · LeadScience</div>
+      </div>
+    </div>
+
+    <!-- SIGN IN FORM -->
+    <div id="auth-signin-form">
+      <div class="auth-title">Welcome back</div>
+      <div class="auth-sub">Sign in to your account to continue</div>
+      <div class="auth-error" id="signin-error"></div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="signin-email" placeholder="you@dealeron.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="signin-password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="auth-btn" id="signin-btn" onclick="authSignIn()">Sign In</button>
+      <div class="auth-switch">
+        Forgot your password? <a onclick="showForgotForm()">Reset it</a>
+      </div>
+    </div>
+
+    <!-- FORGOT PASSWORD FORM -->
+    <div id="auth-forgot-form" style="display:none">
+      <div class="auth-title">Reset Password</div>
+      <div class="auth-sub">We'll send a reset link to your email</div>
+      <div class="auth-error" id="forgot-error"></div>
+      <div class="auth-success" id="forgot-success"></div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="forgot-email" placeholder="you@dealeron.com">
+      </div>
+      <button class="auth-btn" id="forgot-btn" onclick="authForgotPassword()">Send Reset Link</button>
+      <div class="auth-switch"><a onclick="showSignInForm()">← Back to Sign In</a></div>
+    </div>
+
+    <!-- RESET PASSWORD FORM (after clicking email link) -->
+    <div id="auth-reset-form" style="display:none">
+      <div class="auth-title">Set New Password</div>
+      <div class="auth-sub">Choose a strong password for your account</div>
+      <div class="auth-error" id="reset-error"></div>
+      <div class="auth-field">
+        <label>New Password</label>
+        <input type="password" id="reset-password" placeholder="Min 8 characters">
+      </div>
+      <div class="auth-field">
+        <label>Confirm Password</label>
+        <input type="password" id="reset-confirm" placeholder="Repeat password">
+      </div>
+      <button class="auth-btn" id="reset-btn" onclick="authUpdatePassword()">Update Password</button>
+    </div>
+
+  </div>
+</div>
+
 <div class="shell">
 
 <!-- ── SIDEBAR ── -->
@@ -1503,6 +1619,12 @@ body.compact .k-card{padding:6px 8px}
         <svg viewBox="0 0 24 24" style="stroke-width:2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         New Case
       </button>
+      <!-- User Badge -->
+      <div class="auth-user-badge" id="auth-user-badge" onclick="authSignOut()" title="Click to sign out">
+        <div class="auth-avatar" id="auth-avatar">?</div>
+        <div class="auth-uname" id="auth-uname">User</div>
+        <span class="role-chip" id="auth-role-chip"></span>
+      </div>
     </div>
   </div>
 
@@ -5987,7 +6109,168 @@ function crsToEmailHtml(){
   }).join('');
 }
 
-load();
+// ── SUPABASE AUTH ──
+const SUPA_URL = 'https://janazasbsaykpljsijnf.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImphbmF6YXNic2F5a3BsanNpam5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NDk4MTMsImV4cCI6MjEwMzQyNTgxM30.psjefBp2K2uS4hq7mXeAVtYS8wULEL3oqsVX9HTNXG8';
+const supa = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+
+let currentUser = null;
+let currentUserRole = null;
+
+// ── AUTH INIT — runs before anything else ──
+async function authInit() {
+  const loading = document.getElementById('auth-loading');
+  const authScreen = document.getElementById('auth-screen');
+
+  // Check if this is a password reset redirect
+  const hash = window.location.hash;
+  if(hash.includes('type=recovery')) {
+    loading.classList.add('hidden');
+    showResetForm();
+    authScreen.classList.add('show');
+    return;
+  }
+
+  // Check existing session
+  const { data: { session } } = await supa.auth.getSession();
+  if(session?.user) {
+    await authSetUser(session.user);
+    loading.classList.add('hidden');
+    load(); // load app normally
+  } else {
+    loading.classList.add('hidden');
+    authScreen.classList.add('show');
+  }
+
+  // Listen for auth changes (sign in / sign out)
+  supa.auth.onAuthStateChange(async (event, session) => {
+    if(event === 'SIGNED_IN' && session?.user) {
+      await authSetUser(session.user);
+      authScreen.classList.remove('show');
+      load();
+    }
+    if(event === 'SIGNED_OUT') {
+      currentUser = null;
+      currentUserRole = null;
+      authScreen.classList.add('show');
+      document.getElementById('auth-user-badge').classList.remove('show');
+    }
+    if(event === 'PASSWORD_RECOVERY') {
+      authScreen.classList.add('show');
+      showResetForm();
+    }
+  });
+}
+
+async function authSetUser(user) {
+  currentUser = user;
+  // Role stored in user_metadata — set when creating user in Supabase dashboard
+  currentUserRole = user.user_metadata?.role || 'employee';
+  const name = user.user_metadata?.name || user.email?.split('@')[0] || 'User';
+  const initial = name[0].toUpperCase();
+
+  // Update topbar badge
+  const badge = document.getElementById('auth-user-badge');
+  document.getElementById('auth-avatar').textContent = initial;
+  document.getElementById('auth-uname').textContent = name;
+  const chip = document.getElementById('auth-role-chip');
+  const roleLabels = { super_admin: 'Super Admin', admin: 'Admin', employee: 'Employee' };
+  chip.textContent = roleLabels[currentUserRole] || currentUserRole;
+  chip.className = 'role-chip role-' + currentUserRole;
+  badge.classList.add('show');
+}
+
+async function authSignIn() {
+  const email = document.getElementById('signin-email').value.trim();
+  const password = document.getElementById('signin-password').value;
+  const errEl = document.getElementById('signin-error');
+  const btn = document.getElementById('signin-btn');
+  errEl.style.display = 'none';
+  if(!email || !password) { showAuthError('signin-error', 'Please enter your email and password.'); return; }
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  const { error } = await supa.auth.signInWithPassword({ email, password });
+  btn.disabled = false; btn.textContent = 'Sign In';
+  if(error) showAuthError('signin-error', error.message);
+}
+
+async function authSignOut() {
+  if(!confirm('Sign out of SF Case Tracker?')) return;
+  await supa.auth.signOut();
+  cases = []; auditLog = [];
+  toast('Signed out successfully');
+}
+
+async function authForgotPassword() {
+  const email = document.getElementById('forgot-email').value.trim();
+  const btn = document.getElementById('forgot-btn');
+  if(!email) { showAuthError('forgot-error', 'Enter your email address.'); return; }
+  btn.disabled = true; btn.textContent = 'Sending…';
+  const { error } = await supa.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.href
+  });
+  btn.disabled = false; btn.textContent = 'Send Reset Link';
+  if(error) { showAuthError('forgot-error', error.message); }
+  else {
+    document.getElementById('forgot-success').style.display = 'block';
+    document.getElementById('forgot-success').textContent = `Reset link sent to ${email}. Check your inbox.`;
+    document.getElementById('forgot-error').style.display = 'none';
+  }
+}
+
+async function authUpdatePassword() {
+  const pw = document.getElementById('reset-password').value;
+  const cf = document.getElementById('reset-confirm').value;
+  const btn = document.getElementById('reset-btn');
+  if(!pw || pw.length < 8) { showAuthError('reset-error', 'Password must be at least 8 characters.'); return; }
+  if(pw !== cf) { showAuthError('reset-error', 'Passwords do not match.'); return; }
+  btn.disabled = true; btn.textContent = 'Updating…';
+  const { error } = await supa.auth.updateUser({ password: pw });
+  btn.disabled = false; btn.textContent = 'Update Password';
+  if(error) { showAuthError('reset-error', error.message); }
+  else {
+    showResetForm(); // hide form
+    showSignInForm();
+    setTimeout(() => toast('Password updated! Please sign in.'), 300);
+    window.location.hash = '';
+  }
+}
+
+function showAuthError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg; el.style.display = 'block';
+}
+
+function showSignInForm() {
+  document.getElementById('auth-signin-form').style.display = '';
+  document.getElementById('auth-forgot-form').style.display = 'none';
+  document.getElementById('auth-reset-form').style.display = 'none';
+  document.getElementById('auth-screen').classList.add('show');
+}
+
+function showForgotForm() {
+  document.getElementById('auth-signin-form').style.display = 'none';
+  document.getElementById('auth-forgot-form').style.display = '';
+  document.getElementById('auth-reset-form').style.display = 'none';
+}
+
+function showResetForm() {
+  document.getElementById('auth-signin-form').style.display = 'none';
+  document.getElementById('auth-forgot-form').style.display = 'none';
+  document.getElementById('auth-reset-form').style.display = '';
+}
+
+// Enter key support on auth forms
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Enter') return;
+  const screen = document.getElementById('auth-screen');
+  if(!screen.classList.contains('show')) return;
+  if(document.getElementById('auth-signin-form').style.display !== 'none') authSignIn();
+  else if(document.getElementById('auth-forgot-form').style.display !== 'none') authForgotPassword();
+  else if(document.getElementById('auth-reset-form').style.display !== 'none') authUpdatePassword();
+});
+
+// ── START ── Auth gate runs first, calls load() after sign-in confirmed
+authInit();
 </script>
 </body>
 </html>
