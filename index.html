@@ -2746,6 +2746,8 @@ function switchTab(name,el){
   if(name==='archive')renderArchive();
   if(name==='audit')renderAuditLog();
   if(name==='settings')renderSettingsUI();
+  if(name==='team')loadTeamData();
+  if(name==='admin')loadAdminData();
 }
 
 // ── RENDER ALL ──
@@ -6566,13 +6568,6 @@ async function sendInvite() {
   setTimeout(() => loadAdminData(), 500);
 }
 
-// ── UPDATE switchTab to handle team/admin ──
-const _origSwitchTab = switchTab;
-function switchTab(name, el) {
-  _origSwitchTab(name, el);
-  if(name === 'team')  loadTeamData();
-  if(name === 'admin') loadAdminData();
-}
 const SUPA_URL = 'https://janazasbsaykpljsijnf.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImphbmF6YXNic2F5a3BsanNpam5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NDk4MTMsImV4cCI6MjEwMzQyNTgxM30.psjefBp2K2uS4hq7mXeAVtYS8wULEL3oqsVX9HTNXG8';
 const supa = window.supabase.createClient(SUPA_URL, SUPA_KEY);
