@@ -1403,7 +1403,28 @@ body.compact .k-card{padding:6px 8px}
   body{background:#fff}
 }
 
-/* ── AUTH SCREEN ── */
+/* ── ADMIN / TEAM PANEL ── */
+.admin-tab-btn{background:none;border:none;border-bottom:2px solid transparent;padding:8px 14px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;font-family:var(--font);transition:all .15s;margin-bottom:-1px}
+.admin-tab-btn:hover{color:var(--text)}
+.admin-tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.team-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 18px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:default;transition:border-color .15s}
+.team-card:hover{border-color:var(--border2)}
+.team-avatar{width:38px;height:38px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0}
+.team-info{flex:1;min-width:0}
+.team-name{font-size:13px;font-weight:600;color:var(--text)}
+.team-email{font-size:11px;color:var(--text3)}
+.team-stats{display:flex;gap:14px;align-items:center}
+.team-stat{text-align:center}
+.team-stat-val{font-size:16px;font-weight:700;color:var(--accent);font-family:var(--mono)}
+.team-stat-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.user-row{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.user-row:hover{border-color:var(--border2)}
+.user-role-sel{height:28px;font-size:11px;padding:0 8px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer}
+.invite-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;max-width:440px}
+.prod-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.prod-row:last-child{border-bottom:none}
+.prod-bar-wrap{flex:1;background:var(--surface2);border-radius:20px;height:6px;overflow:hidden}
+.prod-bar-fill{height:100%;border-radius:20px;background:var(--accent);transition:width .4s}
 #auth-screen{
   display:none;position:fixed;inset:0;z-index:99999;
   background:linear-gradient(135deg,#0D1117 0%,#111827 50%,#0D1117 100%);
@@ -1580,6 +1601,17 @@ body.compact .k-card{padding:6px 8px}
     <button class="sb-item" onclick="openImportModal()">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
       <span>Import CSV</span><span class="sb-tooltip">Import CSV</span>
+    </button>
+    <!-- Team + Admin — shown based on role after auth -->
+    <div class="sb-sep sb-admin-only" style="display:none"></div>
+    <div class="sb-grp sb-admin-only" style="display:none">Management</div>
+    <button class="sb-item sb-admin-only" id="sb-team-btn" style="display:none" onclick="switchTab('team',this)" data-tab="team">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      <span>Team</span><span class="sb-tooltip">Team</span>
+    </button>
+    <button class="sb-item sb-superadmin-only" id="sb-admin-btn" style="display:none" onclick="switchTab('admin',this)" data-tab="admin">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span>Admin</span><span class="sb-tooltip">Admin</span>
     </button>
   </nav>
   <div class="sb-footer">
@@ -2084,6 +2116,45 @@ body.compact .k-card{padding:6px 8px}
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ── TEAM TAB (Admin + Super Admin) ── -->
+  <div id="tab-team" class="section">
+    <div style="padding:20px 24px 0">
+      <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px">Team Overview</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:20px">All employees · productivity · cases</div>
+      <!-- Period selector -->
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap">
+        <select id="team-period-sel" onchange="renderTeamTab()" style="height:32px;font-size:12px;padding:0 10px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface);color:var(--text)">
+          <option value="this_month">This Month</option>
+          <option value="last_month">Last Month</option>
+          <option value="this_year">This Year</option>
+          <option value="all_time">All Time</option>
+        </select>
+        <button class="btn btn-sm btn-ghost" onclick="loadTeamData()">
+          <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+    <div id="team-body" style="padding:0 24px 24px">
+      <div style="text-align:center;padding:48px;color:var(--text3);font-size:13px">Loading team data…</div>
+    </div>
+  </div>
+
+  <!-- ── ADMIN TAB (Super Admin only) ── -->
+  <div id="tab-admin" class="section">
+    <div style="padding:20px 24px 0">
+      <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px">Admin Panel</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:20px">User management · roles · system</div>
+      <div style="display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:0">
+        <button class="admin-tab-btn active" onclick="switchAdminTab('users',this)">👥 Users</button>
+        <button class="admin-tab-btn" onclick="switchAdminTab('invite',this)">✉️ Invite User</button>
+      </div>
+    </div>
+    <div id="admin-body" style="padding:0 24px 24px">
+      <div style="text-align:center;padding:48px;color:var(--text3);font-size:13px">Loading…</div>
     </div>
   </div>
 
@@ -2659,7 +2730,7 @@ function updateThemeBtn(t){
 }
 
 // ── TABS ──
-const TAB_TITLES={dashboard:'Dashboard',cases:'All Cases',kanban:'Kanban',analytics:'Analytics',reports:'Reports',calendar:'Work Calendar',archive:'Archive',audit:'Audit Log',settings:'Settings'};
+const TAB_TITLES={dashboard:'Dashboard',cases:'All Cases',kanban:'Kanban',analytics:'Analytics',reports:'Reports',calendar:'Work Calendar',archive:'Archive',audit:'Audit Log',settings:'Settings',team:'Team Overview',admin:'Admin Panel'};
 function switchTab(name,el){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(t=>t.classList.remove('active'));
@@ -6276,7 +6347,232 @@ function crsToEmailHtml(){
   }).join('');
 }
 
-// ── SUPABASE AUTH ──
+// ── ROLE-BASED SIDEBAR ──
+function applyRoleUI() {
+  const role = currentUserRole;
+  // Show Team tab for admin + super_admin
+  if(role === 'admin' || role === 'super_admin') {
+    document.querySelectorAll('.sb-admin-only').forEach(el => el.style.display = '');
+    document.getElementById('sb-team-btn').style.display = '';
+  }
+  // Show Admin tab for super_admin only
+  if(role === 'super_admin') {
+    document.querySelectorAll('.sb-superadmin-only').forEach(el => el.style.display = '');
+    document.getElementById('sb-admin-btn').style.display = '';
+  }
+}
+
+// ── TEAM TAB ──
+let allProfiles = [], allTeamCases = [];
+
+async function loadTeamData() {
+  const body = document.getElementById('team-body');
+  if(!body) return;
+  body.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);font-size:13px">Loading team data…</div>';
+
+  // Load all profiles
+  const { data: profiles, error: pErr } = await supa.from('profiles').select('*').order('name');
+  if(pErr){ body.innerHTML = `<div style="color:var(--p-critical);padding:16px">Error: ${pErr.message}</div>`; return; }
+  allProfiles = profiles || [];
+
+  // Load all cases (RLS allows admin/super_admin to see all)
+  const { data: casesData, error: cErr } = await supa.from('cases').select('*, banner_log(*)');
+  if(cErr){ body.innerHTML = `<div style="color:var(--p-critical);padding:16px">Error: ${cErr.message}</div>`; return; }
+  allTeamCases = casesData || [];
+
+  renderTeamTab();
+}
+
+function renderTeamTab() {
+  const body = document.getElementById('team-body');
+  if(!body || !allProfiles.length) return;
+
+  const period = document.getElementById('team-period-sel')?.value || 'this_month';
+  const now = new Date();
+  let pFrom = null, pTo = new Date(now.getFullYear(), now.getMonth()+1, 0, 23, 59, 59);
+
+  if(period === 'this_month')  { pFrom = new Date(now.getFullYear(), now.getMonth(), 1); }
+  else if(period === 'last_month') { pFrom = new Date(now.getFullYear(), now.getMonth()-1, 1); pTo = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59); }
+  else if(period === 'this_year')  { pFrom = new Date(now.getFullYear(), 0, 1); }
+
+  // Group cases by user
+  const byUser = {};
+  allTeamCases.forEach(c => {
+    if(!byUser[c.user_id]) byUser[c.user_id] = [];
+    byUser[c.user_id].push(c);
+  });
+
+  // Only show employees + super_admin (not pure admins)
+  const workers = allProfiles.filter(p => p.role !== 'admin');
+
+  const rows = workers.map(p => {
+    const userCases = byUser[p.id] || [];
+    // Filter by period using completion date
+    const periodCases = pFrom
+      ? userCases.filter(c => c.end_date && new Date(c.end_date+'T12:00:00') >= pFrom && new Date(c.end_date+'T12:00:00') <= pTo)
+      : userCases;
+    const totalBanners = periodCases.reduce((s, c) => s + (c.banner_log||[]).reduce((bs, b) => bs + (parseInt(b.count)||0), 0), 0);
+    const closedCases = periodCases.filter(c => c.status === 'Closed').length;
+    const pycCases = periodCases.filter(c => c.status === 'Pending Your Confirmation').length;
+    const activeCases = userCases.filter(c => !['Closed'].includes(c.status) && !c.archived).length;
+    const initial = (p.name||p.email||'?')[0].toUpperCase();
+    const roleLabel = {super_admin:'Super Admin', admin:'Admin', employee:'Employee'}[p.role]||p.role;
+
+    return `<div class="team-card">
+      <div class="team-avatar" style="background:${p.role==='super_admin'?'#FF6B2C':p.role==='admin'?'#4FC3F7':'#00C9A7'}">${initial}</div>
+      <div class="team-info">
+        <div class="team-name">${escHtml(p.name||p.email||'Unknown')}</div>
+        <div class="team-email">${escHtml(p.email||'')} · <span class="role-chip role-${p.role}">${roleLabel}</span></div>
+      </div>
+      <div class="team-stats">
+        <div class="team-stat"><div class="team-stat-val">${periodCases.length}</div><div class="team-stat-lbl">Cases</div></div>
+        <div class="team-stat"><div class="team-stat-val">${totalBanners}</div><div class="team-stat-lbl">Banners</div></div>
+        <div class="team-stat"><div class="team-stat-val">${closedCases}</div><div class="team-stat-lbl">Closed</div></div>
+        <div class="team-stat"><div class="team-stat-val" style="color:var(--s-pyi)">${activeCases}</div><div class="team-stat-lbl">Active</div></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Overall totals
+  const totalPeriodCases = allTeamCases.filter(c => pFrom
+    ? (c.end_date && new Date(c.end_date+'T12:00:00') >= pFrom && new Date(c.end_date+'T12:00:00') <= pTo)
+    : true).length;
+  const totalPeriodBanners = allTeamCases.filter(c => pFrom
+    ? (c.end_date && new Date(c.end_date+'T12:00:00') >= pFrom && new Date(c.end_date+'T12:00:00') <= pTo)
+    : true).reduce((s,c) => s + (c.banner_log||[]).reduce((bs,b)=>bs+(parseInt(b.count)||0),0), 0);
+
+  body.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
+      <div class="b bp"><div class="b-lbl">Team Members</div><div class="b-num">${workers.length}</div></div>
+      <div class="b bp"><div class="b-lbl">Cases (Period)</div><div class="b-num">${totalPeriodCases}</div></div>
+      <div class="b bp"><div class="b-lbl">Banners (Period)</div><div class="b-num" style="color:var(--accent)">${totalPeriodBanners}</div></div>
+    </div>
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:10px">Individual Productivity</div>
+    ${rows || '<div style="color:var(--text3);font-size:13px;padding:16px 0">No team members found.</div>'}`;
+}
+
+// ── ADMIN TAB ──
+let adminActiveTab = 'users';
+
+function switchAdminTab(tab, el) {
+  adminActiveTab = tab;
+  document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderAdminTab();
+}
+
+async function loadAdminData() {
+  if(!allProfiles.length) {
+    const { data } = await supa.from('profiles').select('*').order('name');
+    allProfiles = data || [];
+  }
+  renderAdminTab();
+}
+
+function renderAdminTab() {
+  const body = document.getElementById('admin-body');
+  if(!body) return;
+  if(adminActiveTab === 'users') renderAdminUsers(body);
+  else if(adminActiveTab === 'invite') renderAdminInvite(body);
+}
+
+function renderAdminUsers(body) {
+  if(!allProfiles.length){ body.innerHTML='<div style="color:var(--text3);padding:16px">No users found.</div>'; return; }
+  const rows = allProfiles.map(p => {
+    const initial = (p.name||p.email||'?')[0].toUpperCase();
+    return `<div class="user-row">
+      <div class="team-avatar" style="width:32px;height:32px;font-size:13px;background:${p.role==='super_admin'?'#FF6B2C':p.role==='admin'?'#4FC3F7':'#00C9A7'}">${initial}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(p.name||'—')}</div>
+        <div style="font-size:11px;color:var(--text3)">${escHtml(p.email||'')}</div>
+      </div>
+      <select class="user-role-sel" data-uid="${p.id}" onchange="updateUserRole('${p.id}',this.value)"
+        ${p.id === currentUser?.id ? 'disabled title="Cannot change your own role"' : ''}>
+        <option value="employee" ${p.role==='employee'?'selected':''}>Employee</option>
+        <option value="admin"    ${p.role==='admin'?'selected':''}>Admin</option>
+        <option value="super_admin" ${p.role==='super_admin'?'selected':''}>Super Admin</option>
+      </select>
+    </div>`;
+  }).join('');
+  body.innerHTML = `
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:12px">${allProfiles.length} Users</div>
+    ${rows}
+    <div style="margin-top:16px;font-size:11px;color:var(--text3)">💡 To invite a new user, use the <strong>Invite User</strong> tab. Role changes take effect on next sign-in.</div>`;
+}
+
+async function updateUserRole(userId, newRole) {
+  // Update in profiles table
+  const { error } = await supa.from('profiles').update({ role: newRole }).eq('id', userId);
+  if(error){ toast('❌ Failed to update role: ' + error.message); return; }
+  // Also update auth user metadata via admin function
+  // (Supabase RLS allows super_admin to update profiles — metadata sync happens on next login)
+  allProfiles = allProfiles.map(p => p.id === userId ? {...p, role: newRole} : p);
+  toast(`✅ Role updated to ${newRole}`);
+  renderAdminTab();
+}
+
+function renderAdminInvite(body) {
+  body.innerHTML = `
+    <div class="invite-form">
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">Invite a New User</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:16px">They'll receive an email to set their password and access the app.</div>
+      <div class="fg"><label>Full Name</label><input type="text" id="invite-name" placeholder="John Smith" style="margin-bottom:10px"></div>
+      <div class="fg"><label>Email Address</label><input type="email" id="invite-email" placeholder="john@company.com" style="margin-bottom:10px"></div>
+      <div class="fg" style="margin-bottom:16px">
+        <label>Role</label>
+        <select id="invite-role" style="height:34px;font-size:13px;width:100%;padding:0 10px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface);color:var(--text)">
+          <option value="employee">Employee</option>
+          <option value="admin">Admin</option>
+          <option value="super_admin">Super Admin</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="sendInvite()">Send Invite Email</button>
+      <div id="invite-result" style="margin-top:12px;font-size:12px"></div>
+    </div>`;
+}
+
+async function sendInvite() {
+  const name  = document.getElementById('invite-name')?.value.trim();
+  const email = document.getElementById('invite-email')?.value.trim();
+  const role  = document.getElementById('invite-role')?.value;
+  const result = document.getElementById('invite-result');
+  if(!email){ result.innerHTML='<span style="color:var(--p-critical)">Enter an email address</span>'; return; }
+
+  result.innerHTML = '<span style="color:var(--text3)">Sending invite…</span>';
+
+  // Use Supabase Admin API via edge function or direct signUp with email confirm
+  // For now: create user with a temp password and force password reset
+  const tempPassword = Math.random().toString(36).slice(2,10) + 'Aa1!';
+  const { data, error } = await supa.auth.admin?.inviteUserByEmail
+    ? await supa.auth.admin.inviteUserByEmail(email, { data: { name: name||email.split('@')[0], role } })
+    : { data: null, error: { message: 'Admin API not available on client side' } };
+
+  if(error) {
+    // Fallback: show instructions to use Supabase dashboard
+    result.innerHTML = `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:12px;font-size:11px;color:var(--text2)">
+      <strong style="color:var(--text)">To invite ${email}:</strong><br><br>
+      1. Go to <a href="https://supabase.com/dashboard" target="_blank" style="color:var(--accent)">Supabase Dashboard</a><br>
+      2. Authentication → Users → Add User → Invite<br>
+      3. Enter email: <strong>${email}</strong><br>
+      4. Then come back here and set their role to <strong>${role}</strong>
+    </div>`;
+    return;
+  }
+
+  // Create profile entry
+  await supa.from('profiles').upsert({ id: data.user.id, email, name: name||email.split('@')[0], role }, { onConflict: 'id' });
+  result.innerHTML = `<span style="color:var(--teal)">✅ Invite sent to ${email}!</span>`;
+  allProfiles = [];
+  setTimeout(() => loadAdminData(), 500);
+}
+
+// ── UPDATE switchTab to handle team/admin ──
+const _origSwitchTab = switchTab;
+function switchTab(name, el) {
+  _origSwitchTab(name, el);
+  if(name === 'team')  loadTeamData();
+  if(name === 'admin') loadAdminData();
+}
 const SUPA_URL = 'https://janazasbsaykpljsijnf.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImphbmF6YXNic2F5a3BsanNpam5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NDk4MTMsImV4cCI6MjEwMzQyNTgxM30.psjefBp2K2uS4hq7mXeAVtYS8wULEL3oqsVX9HTNXG8';
 const supa = window.supabase.createClient(SUPA_URL, SUPA_KEY);
@@ -6345,6 +6641,7 @@ async function authSetUser(user) {
   chip.textContent = roleLabels[currentUserRole] || currentUserRole;
   chip.className = 'role-chip role-' + currentUserRole;
   badge.classList.add('show');
+  applyRoleUI();
 }
 
 async function authSignIn() {
