@@ -1909,10 +1909,25 @@ body.compact .k-card{padding:6px 8px}
             <div id="health-results" style="margin-top:14px"></div>
           </div>
           <div class="settings-section">
-            <div class="settings-section-title">Data</div>
+            <div class="settings-section-title">Data Backup & Restore</div>
             <div class="settings-row">
-              <div><div class="settings-label">Export CSV Backup</div><div class="settings-sub">Last export: <span id="last-export-lbl">Never</span></div></div>
-              <button class="btn btn-sm" onclick="exportCSV()">Export Now</button>
+              <div>
+                <div class="settings-label">📦 JSON Full Backup <span style="background:var(--teal);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;font-weight:700;margin-left:4px">RECOMMENDED</span></div>
+                <div class="settings-sub">Exports everything — cases, banner logs, work logs, comments, history, settings</div>
+              </div>
+              <button class="btn btn-sm btn-primary" onclick="exportJSON()">Export JSON</button>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-label">📥 Restore from JSON Backup</div>
+                <div class="settings-sub">Restores all data from a previous JSON backup. Replaces current data.</div>
+              </div>
+              <button class="btn btn-sm" onclick="document.getElementById('json-restore-file').click()">Restore JSON</button>
+              <input type="file" id="json-restore-file" accept=".json" style="display:none" onchange="importJSON(this.files[0]);this.value=''">
+            </div>
+            <div class="settings-row">
+              <div><div class="settings-label">📄 Export CSV</div><div class="settings-sub">Basic export — cases only. Last export: <span id="last-export-lbl">Never</span></div></div>
+              <button class="btn btn-sm btn-ghost" onclick="exportCSV()">Export CSV</button>
             </div>
             <div class="settings-row" style="border-bottom:none">
               <div><div class="settings-label" style="color:var(--p-critical)">Clear All Data</div><div class="settings-sub">Permanently delete all cases and settings</div></div>
@@ -3499,6 +3514,88 @@ function exportCSV(){
   lastExportDate=today();saveSettings();
   renderNotifications();
   toast('CSV exported — Note: Work Log entries not included. Use JSON Backup to preserve all data.');
+}
+
+function exportJSON(){
+  // Full backup — includes ALL data: cases, bannerLog, workLog, comments, statusHistory, settings, audit
+  const backup={
+    version: 2,
+    exportedAt: new Date().toISOString(),
+    exportedBy: 'SF Case Tracker',
+    data:{
+      cases: cases,
+      auditLog: auditLog,
+      settings:{
+        sortKey, sortDir, curView, dashWidgets, dashWidgetOrder,
+        dashPeriod, dashPickMonth, customTypes,
+        pinnedCases: [...pinnedCases],
+        savedFilters, lastExportDate,
+        dismissedNotifs: [...dismissedNotifs],
+        kanbanCollapsed, acpCasesOpen
+      }
+    }
+  };
+  const json=JSON.stringify(backup, null, 2);
+  const a=document.createElement('a');
+  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(json);
+  a.download='sf_case_tracker_backup_'+today()+'.json';
+  a.click();
+  lastExportDate=today();saveSettings();
+  toast(`✅ Full backup exported — ${cases.length} cases, all logs and settings included`);
+}
+
+function importJSON(file){
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const backup=JSON.parse(e.target.result);
+      // Support both v1 (raw array) and v2 (structured backup)
+      let importedCases, importedAudit, importedSettings;
+      if(Array.isArray(backup)){
+        // v1: raw cases array
+        importedCases=backup;
+      } else if(backup.data){
+        // v2: full structured backup
+        importedCases=backup.data.cases||[];
+        importedAudit=backup.data.auditLog||[];
+        importedSettings=backup.data.settings||null;
+      } else {
+        toast('❌ Unrecognised backup format'); return;
+      }
+      if(!importedCases.length){toast('❌ No cases found in backup'); return;}
+
+      // Ensure all cases have required fields
+      importedCases=importedCases.map(c=>({
+        ...newCase(),
+        ...c,
+        bannerLog: c.bannerLog||[],
+        workLog: c.workLog||[],
+        comments: c.comments||[],
+        statusHistory: c.statusHistory||[],
+      }));
+
+      const exportedAt=backup.exportedAt?new Date(backup.exportedAt).toLocaleString('en-US'):'unknown date';
+      const msg=`Restore backup from ${exportedAt}?\n\n${importedCases.length} cases will be restored.\n\n⚠️ This will REPLACE all current data.\nYour current data will be lost.\n\nContinue?`;
+      if(!confirm(msg))return;
+
+      // Restore everything
+      cases=importedCases;
+      if(importedAudit) auditLog=importedAudit;
+      if(importedSettings){
+        if(importedSettings.pinnedCases) pinnedCases=new Set(importedSettings.pinnedCases);
+        if(importedSettings.dismissedNotifs) dismissedNotifs=new Set(importedSettings.dismissedNotifs);
+        if(importedSettings.dashPeriod) dashPeriod=importedSettings.dashPeriod;
+        if(importedSettings.dashPickMonth) dashPickMonth=importedSettings.dashPickMonth;
+        if(importedSettings.customTypes) customTypes=importedSettings.customTypes;
+        if(importedSettings.kanbanCollapsed) kanbanCollapsed=importedSettings.kanbanCollapsed;
+      }
+      save();saveSettings();renderAll();
+      toast(`✅ Restored ${cases.length} cases from backup — all logs and data included`);
+    }catch(err){
+      toast('❌ Invalid backup file: '+err.message);
+    }
+  };
+  r.readAsText(file);
 }
 
 // ── IMPORT ──
