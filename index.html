@@ -1403,7 +1403,36 @@ body.compact .k-card{padding:6px 8px}
   body{background:#fff}
 }
 
-/* ── ADMIN / TEAM PANEL ── */
+/* ── VIEWING AS (admin viewing employee workspace) ── */
+#viewing-as-banner{
+  display:none;position:sticky;top:0;z-index:500;
+  background:linear-gradient(90deg,#1F3A5F,#2D5A8E);
+  border-bottom:2px solid var(--accent);
+  padding:8px 20px;
+  align-items:center;gap:10px;flex-wrap:wrap;
+}
+#viewing-as-banner.show{display:flex;}
+.viewing-as-name{font-size:13px;font-weight:700;color:#fff;}
+.viewing-as-sub{font-size:11px;color:rgba(255,255,255,.6);}
+.viewing-as-back{
+  margin-left:auto;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+  color:#fff;font-size:12px;font-weight:600;padding:5px 14px;border-radius:var(--r);
+  cursor:pointer;transition:background .15s;font-family:var(--font);
+}
+.viewing-as-back:hover{background:rgba(255,255,255,.25);}
+.readonly-overlay{
+  position:absolute;inset:0;z-index:10;cursor:not-allowed;
+}
+/* Team report employee selector */
+.team-rpt-bar{
+  display:none;align-items:center;gap:8px;padding:6px 0;flex-wrap:wrap;
+}
+.team-rpt-bar.show{display:flex;}
+.team-rpt-bar select{
+  height:32px;font-size:12px;padding:0 10px;
+  border-radius:var(--r);border:1px solid var(--border2);
+  background:var(--surface);color:var(--text);
+}
 .admin-tab-btn{background:none;border:none;border-bottom:2px solid transparent;padding:8px 14px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;font-family:var(--font);transition:all .15s;margin-bottom:-1px}
 .admin-tab-btn:hover{color:var(--text)}
 .admin-tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
@@ -1660,6 +1689,17 @@ body.compact .k-card{padding:6px 8px}
     </div>
   </div>
 
+  <!-- VIEWING AS BANNER -->
+  <div id="viewing-as-banner">
+    <span style="font-size:18px">👁</span>
+    <div>
+      <div class="viewing-as-name" id="viewing-as-name">Employee Name</div>
+      <div class="viewing-as-sub">Read-only view · You are browsing this employee's workspace as an admin</div>
+    </div>
+    <span class="role-chip role-employee" id="viewing-as-role">Employee</span>
+    <button class="viewing-as-back" onclick="exitViewingAs()">← Back to Team</button>
+  </div>
+
   <!-- DASHBOARD -->
   <div id="tab-dashboard" class="section active">
     <div class="tab-scroll">
@@ -1847,7 +1887,15 @@ body.compact .k-card{padding:6px 8px}
               <option value="monthly">Monthly — This Month</option>
               <option value="pick-month">By Month…</option>
               <option value="custom">Custom Range…</option>
+              <!-- Admin/Super Admin only — injected by applyRoleUI -->
             </select>
+            <!-- Team report employee selector (admin only) -->
+            <div class="team-rpt-bar" id="team-rpt-bar">
+              <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:var(--text3);fill:none;stroke-width:2;flex-shrink:0"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              <select id="team-rpt-user-sel" onchange="renderReport()" style="height:32px;font-size:12px;padding:0 10px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface);color:var(--text)">
+                <option value="">— All Employees —</option>
+              </select>
+            </div>
             <!-- Day picker (shown when "Pick a Day" selected) -->
             <div id="rpt-day-picker" style="display:none;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:4px 8px;box-shadow:var(--sh)">
               <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--text3);fill:none;stroke-width:2;flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -2591,6 +2639,8 @@ function migrateLegacyData() {
 }
 
 function save(){
+  // Block saves when viewing employee workspace (read-only)
+  if(isReadOnly()) return;
   // Save to localStorage immediately (fast, instant UI)
   try{
     localStorage.setItem(STORE,JSON.stringify(cases));
@@ -4168,6 +4218,7 @@ function bulkDelete(){const count=selected.size;if(!confirm(`Delete ${count} cas
 
 // ── MODAL ──
 function openModal(id){
+  if(isReadOnly()){ toast('👁 Read-only mode — cannot edit employee cases'); return; }
   editId=id||null;
   document.getElementById('modal-title').textContent=id?'Edit Case':'New Case';
   if(id){
@@ -4281,6 +4332,7 @@ function saveCase(){
 }
 
 function deleteCase(id){
+  if(isReadOnly()){ toast('👁 Read-only mode — cannot delete employee cases'); return; }
   if(!confirm('Delete this case?'))return;
   const idx=cases.findIndex(c=>c.id===id);
   const caseData=cases[idx];
@@ -6349,7 +6401,143 @@ function crsToEmailHtml(){
   }).join('');
 }
 
-// ── ROLE-BASED SIDEBAR ──
+// ── VIEWING AS — Admin viewing employee workspace ──
+let viewingAsUser = null;      // {id, name, email, role} — employee being viewed
+let adminCases = null;         // saved admin's cases while viewing employee
+let adminAuditLog = null;      // saved admin's audit log
+
+async function viewEmployee(profile) {
+  if(!profile?.id) return;
+  viewingAsUser = profile;
+
+  // Save admin's own data
+  adminCases = [...cases];
+  adminAuditLog = [...auditLog];
+
+  // Show banner
+  document.getElementById('viewing-as-name').textContent = profile.name || profile.email;
+  const roleLabels = {super_admin:'Super Admin', admin:'Admin', employee:'Employee'};
+  const chip = document.getElementById('viewing-as-role');
+  chip.textContent = roleLabels[profile.role] || profile.role;
+  chip.className = 'role-chip role-' + profile.role;
+  document.getElementById('viewing-as-banner').classList.add('show');
+
+  // Load employee's cases from Supabase
+  toast(`Loading ${profile.name || profile.email}'s workspace…`);
+  const ok = await loadFromSupabaseForUser(profile.id);
+  if(!ok) { toast('❌ Failed to load employee data'); exitViewingAs(); return; }
+
+  // Switch to dashboard with their data
+  const dashBtn = document.querySelector('[data-tab="dashboard"]');
+  if(dashBtn) switchTab('dashboard', dashBtn);
+  toast(`👁 Viewing ${profile.name || profile.email}'s workspace (read-only)`);
+}
+
+async function loadFromSupabaseForUser(userId) {
+  try {
+    const { data: casesData, error } = await supa.from('cases').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+    if(error) throw error;
+    const caseIds = casesData.map(c => c.id);
+    if(!caseIds.length){ cases = []; return true; }
+    const [bannersRes, workRes, commentsRes, statusRes] = await Promise.all([
+      supa.from('banner_log').select('*').in('case_id', caseIds),
+      supa.from('work_log').select('*').in('case_id', caseIds),
+      supa.from('comments').select('*').in('case_id', caseIds),
+      supa.from('status_history').select('*').in('case_id', caseIds),
+    ]);
+    const bannerMap={}, workMap={}, commentMap={}, statusMap={};
+    (bannersRes.data||[]).forEach(b=>{ if(!bannerMap[b.case_id])bannerMap[b.case_id]=[]; bannerMap[b.case_id].push(b); });
+    (workRes.data||[]).forEach(w=>{ if(!workMap[w.case_id])workMap[w.case_id]=[]; workMap[w.case_id].push(w); });
+    (commentsRes.data||[]).forEach(c=>{ if(!commentMap[c.case_id])commentMap[c.case_id]=[]; commentMap[c.case_id].push(c); });
+    (statusRes.data||[]).forEach(s=>{ if(!statusMap[s.case_id])statusMap[s.case_id]=[]; statusMap[s.case_id].push(s); });
+    cases = casesData.map(c=>({
+      id:c.id, number:c.number||'', name:c.name||'', type:c.type||TYPES[0],
+      status:c.status||'New', priority:c.priority||'Medium',
+      start:c.start_date||'', end:c.end_date||'', dueDate:c.due_date||'',
+      notes:c.notes||'', url:c.sf_url||'', bannerTarget:parseInt(c.banner_target)||0,
+      archived:!!c.archived,
+      bannerLog:(bannerMap[c.id]||[]).map(b=>({id:b.id,count:parseInt(b.count)||0,date:b.log_date||'',note:b.note||'',ts:b.ts||Date.now()})),
+      workLog:(workMap[c.id]||[]).map(w=>({id:w.id,activityType:w.activity_type||'',description:w.description||'',date:w.work_date||'',ts:w.ts||Date.now()})),
+      comments:(commentMap[c.id]||[]).map(cm=>({id:cm.id,author:cm.author||'',text:cm.text||'',ts:cm.ts||Date.now()})),
+      statusHistory:(statusMap[c.id]||[]).map(sh=>({from:sh.from_status||'',to:sh.to_status||'',ts:sh.ts||Date.now()})),
+      totalBanners:0, assignee:'',
+    }));
+    cases.forEach(c=>{ c.totalBanners=sumB(c); });
+    return true;
+  } catch(err) { console.error('loadForUser error:', err); return false; }
+}
+
+function exitViewingAs() {
+  viewingAsUser = null;
+  // Restore admin's own data
+  if(adminCases !== null) { cases = adminCases; adminCases = null; }
+  if(adminAuditLog !== null) { auditLog = adminAuditLog; adminAuditLog = null; }
+  document.getElementById('viewing-as-banner').classList.remove('show');
+  // Go back to Team tab
+  const teamBtn = document.getElementById('sb-team-btn');
+  if(teamBtn) switchTab('team', teamBtn);
+  renderAll();
+}
+
+// Block edits while viewing as
+function isReadOnly() { return viewingAsUser !== null; }
+
+// ── TEAM REPORTS — extra report options for admin/super_admin ──
+async function populateTeamReportUsers() {
+  const sel = document.getElementById('team-rpt-user-sel');
+  if(!sel) return;
+  // Load profiles if not already loaded
+  if(!allProfiles.length) {
+    const { data } = await supa.from('profiles').select('*').order('name');
+    allProfiles = data || [];
+  }
+  const employees = allProfiles.filter(p => p.role !== 'admin');
+  sel.innerHTML = '<option value="">— All Employees —</option>' +
+    employees.map(p => `<option value="${p.id}">${escHtml(p.name||p.email)}</option>`).join('');
+}
+
+// Override renderReport to support team view (selected employee or all)
+const _origRenderReport = renderReport;
+async function renderReport() {
+  const sel = document.getElementById('team-rpt-user-sel');
+  const selectedUserId = sel?.value;
+  const isTeamReport = (currentUserRole === 'admin' || currentUserRole === 'super_admin') && !viewingAsUser;
+
+  if(isTeamReport && selectedUserId) {
+    // Viewing specific employee's report — load their cases temporarily
+    const savedCases = [...cases];
+    await loadFromSupabaseForUser(selectedUserId);
+    _origRenderReport();
+    // Add "viewing report for" label
+    const profile = allProfiles.find(p => p.id === selectedUserId);
+    const rb = document.getElementById('report-body');
+    if(rb && profile) rb.innerHTML = `<div style="background:rgba(79,195,247,0.08);border:1px solid rgba(79,195,247,0.2);border-radius:var(--r);padding:8px 14px;margin-bottom:12px;font-size:12px;color:var(--text2)">👤 Showing report for <strong>${escHtml(profile.name||profile.email)}</strong></div>` + rb.innerHTML;
+    cases = savedCases; // restore admin cases
+  } else {
+    _origRenderReport();
+  }
+}
+
+// ── UPDATE applyRoleUI to also set up team report bar ──
+const _origApplyRoleUI = applyRoleUI;
+function applyRoleUI() {
+  _origApplyRoleUI();
+  const role = currentUserRole;
+  if(role === 'admin' || role === 'super_admin') {
+    // Show team report bar in Reports tab
+    const bar = document.getElementById('team-rpt-bar');
+    if(bar) bar.classList.add('show');
+    populateTeamReportUsers();
+    // Add team report options to range selector
+    const sel = document.getElementById('rpt-range');
+    if(sel && !sel.querySelector('option[value="team-daily"]')) {
+      const sep = document.createElement('option'); sep.disabled = true; sep.textContent = '── Team ──';
+      const td = document.createElement('option'); td.value='team-daily'; td.textContent='Team — Today';
+      const tm = document.createElement('option'); tm.value='team-monthly'; tm.textContent='Team — This Month';
+      sel.appendChild(sep); sel.appendChild(td); sel.appendChild(tm);
+    }
+  }
+}
 function applyRoleUI() {
   const role = currentUserRole;
   // Show Team tab for admin + super_admin
@@ -6420,7 +6608,7 @@ function renderTeamTab() {
     const initial = (p.name||p.email||'?')[0].toUpperCase();
     const roleLabel = {super_admin:'Super Admin', admin:'Admin', employee:'Employee'}[p.role]||p.role;
 
-    return `<div class="team-card">
+    return `<div class="team-card" style="cursor:pointer" onclick="viewEmployee(${JSON.stringify(p).replace(/"/g,'&quot;')})" title="Click to view ${escHtml(p.name||p.email)}'s workspace">
       <div class="team-avatar" style="background:${p.role==='super_admin'?'#FF6B2C':p.role==='admin'?'#4FC3F7':'#00C9A7'}">${initial}</div>
       <div class="team-info">
         <div class="team-name">${escHtml(p.name||p.email||'Unknown')}</div>
@@ -6432,6 +6620,7 @@ function renderTeamTab() {
         <div class="team-stat"><div class="team-stat-val">${closedCases}</div><div class="team-stat-lbl">Closed</div></div>
         <div class="team-stat"><div class="team-stat-val" style="color:var(--s-pyi)">${activeCases}</div><div class="team-stat-lbl">Active</div></div>
       </div>
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--text3);fill:none;stroke-width:2;flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>
     </div>`;
   }).join('');
 
