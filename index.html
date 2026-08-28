@@ -2594,31 +2594,6 @@ async function saveAuditToSupabase(entry) {
   } catch(e){}
 }
 
-function load() {
-  loadAuditLog();
-  // Load from localStorage cache first (instant)
-  try { const d=localStorage.getItem(STORE); if(d) cases=JSON.parse(d); } catch(e){}
-  loadSettings();
-  migrateLegacyData();
-  const th=localStorage.getItem('sf_theme')||'light';
-  applyTheme(th);
-  if(localStorage.getItem('sb_collapsed')==='1'){document.querySelector('.sidebar').classList.add('collapsed');}
-  document.getElementById('sb-date').textContent=new Date().toLocaleDateString('en-US',{timeZone:US_TZ,weekday:'short',month:'short',day:'numeric'});
-  if(reminderEnabled) setupReminder();
-  renderSavedFilters();
-  renderPinnedCases();
-  renderNotifications();
-  populateTypeSelects();
-  renderAll();
-  // Then load fresh from Supabase in background
-  loadFromSupabase().then(ok => {
-    if(ok) {
-      renderAll();
-      toast('✅ Data loaded from Supabase');
-    }
-  });
-}
-
 function migrateLegacyData() {
   cases.forEach(c=>{
     if(!c.bannerLog) c.bannerLog=[];
@@ -5536,7 +5511,53 @@ function refreshFocusMode() {
 }
 
 // ── SETTINGS ──
+// ── FIX 2: SETTINGS SYNC TO SUPABASE ──
+async function saveSettingsToSupabase() {
+  if(!currentUser) return;
+  const payload = {
+    pinned: [...pinnedCases], savedFilters, lastExportDate,
+    dailyGoal, slaDays: slaGlobalDays, densityCompact, reminderEnabled,
+    defaultSort: sortKey, dashWidgets, dashWidgetOrder,
+    dashPeriod, dashPickMonth, customTypes, kanbanCollapsed,
+    theme: localStorage.getItem('sf_theme')||'light',
+    sidebarCollapsed: localStorage.getItem('sb_collapsed')||'0',
+  };
+  try {
+    await supa.from('user_settings').upsert(
+      { user_id: currentUser.id, settings: payload, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id' }
+    );
+  } catch(e) { console.warn('Settings sync failed:', e); }
+}
+
+async function loadSettingsFromSupabase() {
+  if(!currentUser) return false;
+  try {
+    const { data, error } = await supa.from('user_settings').select('settings').eq('user_id', currentUser.id).single();
+    if(error || !data?.settings) return false;
+    const s = data.settings;
+    if(s.pinned)          pinnedCases = new Set(s.pinned);
+    if(s.savedFilters)    savedFilters = s.savedFilters;
+    if(s.lastExportDate)  lastExportDate = s.lastExportDate;
+    if(s.dailyGoal !== undefined)     dailyGoal = parseInt(s.dailyGoal)||0;
+    if(s.slaDays !== undefined)       slaGlobalDays = parseInt(s.slaDays)||7;
+    if(s.densityCompact !== undefined){ densityCompact = !!s.densityCompact; document.body.classList.toggle('compact', densityCompact); }
+    if(s.reminderEnabled !== undefined) reminderEnabled = !!s.reminderEnabled;
+    if(s.defaultSort)     sortKey = s.defaultSort;
+    if(s.dashWidgets)     dashWidgets = {...dashWidgets, ...s.dashWidgets};
+    if(s.dashWidgetOrder) dashWidgetOrder = s.dashWidgetOrder;
+    if(s.dashPeriod)      dashPeriod = s.dashPeriod;
+    if(s.dashPickMonth)   dashPickMonth = s.dashPickMonth;
+    if(s.customTypes)     { customTypes = s.customTypes; rebuildTypes(); }
+    if(s.kanbanCollapsed) kanbanCollapsed = s.kanbanCollapsed;
+    if(s.theme)           { applyTheme(s.theme); localStorage.setItem('sf_theme', s.theme); }
+    if(s.sidebarCollapsed) localStorage.setItem('sb_collapsed', s.sidebarCollapsed);
+    return true;
+  } catch(e) { console.warn('loadSettings from Supabase failed:', e); return false; }
+}
+
 function loadSettings() {
+  // Load from localStorage first (instant)
   try {
     const s = JSON.parse(localStorage.getItem(SETTINGS_STORE)||'{}');
     pinnedCases = new Set(s.pinned||[]);
@@ -5546,16 +5567,20 @@ function loadSettings() {
     slaGlobalDays = parseInt(s.slaDays)||7;
     densityCompact = !!s.densityCompact;
     reminderEnabled = !!s.reminderEnabled;
-    if (s.defaultSort) { sortKey = s.defaultSort; }
-    if (s.dashWidgets) { dashWidgets = {...dashWidgets, ...s.dashWidgets}; }
-    if (s.dashWidgetOrder) { dashWidgetOrder = s.dashWidgetOrder; }
-    if (s.dashPeriod) { dashPeriod = s.dashPeriod; }
-    if (s.dashPickMonth) { dashPickMonth = s.dashPickMonth; }
-    if (s.kanbanCollapsed) { kanbanCollapsed = s.kanbanCollapsed; }
-    if (s.customTypes) { customTypes = s.customTypes; rebuildTypes(); }
+    if(s.defaultSort)     sortKey = s.defaultSort;
+    if(s.dashWidgets)     dashWidgets = {...dashWidgets, ...s.dashWidgets};
+    if(s.dashWidgetOrder) dashWidgetOrder = s.dashWidgetOrder;
+    if(s.dashPeriod)      dashPeriod = s.dashPeriod;
+    if(s.dashPickMonth)   dashPickMonth = s.dashPickMonth;
+    if(s.kanbanCollapsed) kanbanCollapsed = s.kanbanCollapsed;
+    if(s.customTypes)     { customTypes = s.customTypes; rebuildTypes(); }
   } catch(e){}
+  // Then sync from Supabase in background
+  loadSettingsFromSupabase().then(ok => { if(ok) { renderSettingsUI(); renderAll(); } });
 }
+
 function saveSettings() {
+  // Save to localStorage immediately
   try {
     localStorage.setItem(SETTINGS_STORE, JSON.stringify({
       pinned: [...pinnedCases], savedFilters, lastExportDate,
@@ -5563,6 +5588,76 @@ function saveSettings() {
       defaultSort: sortKey, dashWidgets, dashWidgetOrder, dashPeriod, dashPickMonth, customTypes, kanbanCollapsed
     }));
   } catch(e){}
+  // Sync to Supabase in background
+  saveSettingsToSupabase();
+}
+
+// ── FIX 4: REAL-TIME SYNC ──
+let realtimeChannel = null;
+
+function startRealtime() {
+  if(!currentUser || realtimeChannel) return;
+  realtimeChannel = supa
+    .channel('cases-changes')
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'cases',
+      filter: `user_id=eq.${currentUser.id}`
+    }, async (payload) => {
+      // Another device/tab changed a case — reload from Supabase
+      if(payload.eventType === 'DELETE') {
+        cases = cases.filter(c => c.id !== payload.old.id);
+        renderAll();
+      } else {
+        // INSERT or UPDATE — reload full case list
+        await loadFromSupabase();
+        renderAll();
+      }
+    })
+    .subscribe();
+}
+
+function stopRealtime() {
+  if(realtimeChannel) {
+    supa.removeChannel(realtimeChannel);
+    realtimeChannel = null;
+  }
+}
+
+function load() {
+  loadAuditLog();
+  // FIX 1: Always load from Supabase — don't rely on localStorage for employee data
+  // Show loading state briefly, then load from cloud
+  const isNewDevice = !localStorage.getItem(STORE);
+  if(isNewDevice) {
+    // New device — show spinner until Supabase loads
+    const rb = document.querySelectorAll('.section');
+    rb.forEach(s => { if(s.classList.contains('active')) s.style.opacity = '0.4'; });
+  } else {
+    // Known device — load localStorage cache immediately (fast)
+    try { const d=localStorage.getItem(STORE); if(d) cases=JSON.parse(d); } catch(e){}
+  }
+  loadSettings();
+  migrateLegacyData();
+  const th=localStorage.getItem('sf_theme')||'light';
+  applyTheme(th);
+  if(localStorage.getItem('sb_collapsed')==='1'){document.querySelector('.sidebar').classList.add('collapsed');}
+  document.getElementById('sb-date').textContent=new Date().toLocaleDateString('en-US',{timeZone:US_TZ,weekday:'short',month:'short',day:'numeric'});
+  if(reminderEnabled) setupReminder();
+  renderSavedFilters();
+  renderPinnedCases();
+  renderNotifications();
+  populateTypeSelects();
+  renderAll();
+  // Always load fresh from Supabase — works on new device too
+  loadFromSupabase().then(ok => {
+    if(ok) {
+      document.querySelectorAll('.section').forEach(s => s.style.opacity = '');
+      renderAll();
+      startRealtime(); // FIX 4: start realtime after data loads
+    }
+  });
 }
 function renderSettingsUI() {
   const cur = localStorage.getItem('sf_theme')||'light';
@@ -6731,30 +6826,50 @@ async function sendInvite() {
 
   result.innerHTML = '<span style="color:var(--text3)">Sending invite…</span>';
 
-  // Use Supabase Admin API via edge function or direct signUp with email confirm
-  // For now: create user with a temp password and force password reset
-  const tempPassword = Math.random().toString(36).slice(2,10) + 'Aa1!';
-  const { data, error } = await supa.auth.admin?.inviteUserByEmail
-    ? await supa.auth.admin.inviteUserByEmail(email, { data: { name: name||email.split('@')[0], role } })
-    : { data: null, error: { message: 'Admin API not available on client side' } };
+  try {
+    // Call Supabase Edge Function (deploy separately — see note below)
+    const { data: { session } } = await supa.auth.getSession();
+    const res = await fetch(`${SUPA_URL}/functions/v1/invite-user`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session?.access_token}`,
+      },
+      body: JSON.stringify({ email, name: name||email.split('@')[0], role })
+    });
 
-  if(error) {
-    // Fallback: show instructions to use Supabase dashboard
-    result.innerHTML = `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:12px;font-size:11px;color:var(--text2)">
-      <strong style="color:var(--text)">To invite ${email}:</strong><br><br>
-      1. Go to <a href="https://supabase.com/dashboard" target="_blank" style="color:var(--accent)">Supabase Dashboard</a><br>
-      2. Authentication → Users → Add User → Invite<br>
-      3. Enter email: <strong>${email}</strong><br>
-      4. Then come back here and set their role to <strong>${role}</strong>
+    if(res.ok) {
+      const json = await res.json();
+      // Create profile entry for the new user
+      if(json.user?.id) {
+        await supa.from('profiles').upsert({
+          id: json.user.id, email, name: name||email.split('@')[0], role
+        }, { onConflict: 'id' });
+      }
+      result.innerHTML = `<div style="background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.2);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--teal)">
+        ✅ Invite sent to <strong>${escHtml(email)}</strong><br>
+        <span style="color:var(--text3);font-size:11px">They'll receive an email to set their password.</span>
+      </div>`;
+      allProfiles = [];
+      setTimeout(() => loadAdminData(), 800);
+    } else {
+      throw new Error(await res.text());
+    }
+  } catch(err) {
+    // Edge Function not deployed yet — show manual instructions
+    result.innerHTML = `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px;font-size:12px;color:var(--text2)">
+      <div style="font-weight:700;color:var(--text);margin-bottom:8px">📧 To invite ${escHtml(email)}:</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div>1. Open <a href="https://supabase.com/dashboard/project/janazasbsaykpljsijnf/auth/users" target="_blank" style="color:var(--accent)">Supabase → Auth → Users</a></div>
+        <div>2. Click <strong>Invite User</strong> → enter <strong>${escHtml(email)}</strong></div>
+        <div>3. Once they accept, come back here → set role to <strong>${role}</strong></div>
+      </div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)">
+        💡 To enable 1-click invites, deploy the <code>invite-user</code> Edge Function.<br>
+        <a href="https://supabase.com/docs/guides/functions" target="_blank" style="color:var(--accent)">Supabase Edge Functions docs →</a>
+      </div>
     </div>`;
-    return;
   }
-
-  // Create profile entry
-  await supa.from('profiles').upsert({ id: data.user.id, email, name: name||email.split('@')[0], role }, { onConflict: 'id' });
-  result.innerHTML = `<span style="color:var(--teal)">✅ Invite sent to ${email}!</span>`;
-  allProfiles = [];
-  setTimeout(() => loadAdminData(), 500);
 }
 
 const SUPA_URL = 'https://janazasbsaykpljsijnf.supabase.co';
@@ -6843,8 +6958,10 @@ async function authSignIn() {
 
 async function authSignOut() {
   if(!confirm('Sign out of SF Case Tracker?')) return;
+  stopRealtime();
   await supa.auth.signOut();
   cases = []; auditLog = [];
+  try { localStorage.removeItem(STORE); } catch(e){}
   toast('Signed out successfully');
 }
 
