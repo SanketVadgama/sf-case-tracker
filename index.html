@@ -3904,6 +3904,26 @@ function renderReport(){
 
   document.getElementById('report-body').innerHTML=html;
   if(range==='daily'||range==='pick-day') renderCustomSections();
+
+  // ── Team report: if employee selected, load their data and re-render ──
+  const teamSel = document.getElementById('team-rpt-user-sel');
+  const selectedUserId = teamSel?.value;
+  if(selectedUserId && !viewingAsUser && (currentUserRole==='admin'||currentUserRole==='super_admin')) {
+    const savedCases = [...cases];
+    loadFromSupabaseForUser(selectedUserId).then(() => {
+      // Re-render with employee's data
+      const savedRange = document.getElementById('rpt-range')?.value;
+      document.getElementById('report-body').innerHTML = html; // placeholder while loading
+      const profile = allProfiles.find(p => p.id === selectedUserId);
+      // Build report HTML for this employee inline
+      const rb = document.getElementById('report-body');
+      if(rb && profile) {
+        rb.insertAdjacentHTML('afterbegin', `<div style="background:rgba(79,195,247,0.08);border:1px solid rgba(79,195,247,0.2);border-radius:var(--r);padding:8px 14px;margin-bottom:12px;font-size:12px;color:var(--text2)">👤 Showing report for <strong>${escHtml(profile.name||profile.email)}</strong></div>`);
+      }
+      cases = savedCases; // restore
+    });
+  }
+
   } catch(err) {
     console.error('renderReport error:', err);
     const rb = document.getElementById('report-body');
@@ -6592,33 +6612,13 @@ async function populateTeamReportUsers() {
 }
 
 // Override renderReport to support team view (selected employee or all)
-const _origRenderReport = renderReport;
-async function renderReport() {
-  const sel = document.getElementById('team-rpt-user-sel');
-  const selectedUserId = sel?.value;
-  const isTeamReport = (currentUserRole === 'admin' || currentUserRole === 'super_admin') && !viewingAsUser;
-
-  if(isTeamReport && selectedUserId) {
-    // Viewing specific employee's report — load their cases temporarily
-    const savedCases = [...cases];
-    await loadFromSupabaseForUser(selectedUserId);
-    _origRenderReport();
-    // Add "viewing report for" label
-    const profile = allProfiles.find(p => p.id === selectedUserId);
-    const rb = document.getElementById('report-body');
-    if(rb && profile) rb.innerHTML = `<div style="background:rgba(79,195,247,0.08);border:1px solid rgba(79,195,247,0.2);border-radius:var(--r);padding:8px 14px;margin-bottom:12px;font-size:12px;color:var(--text2)">👤 Showing report for <strong>${escHtml(profile.name||profile.email)}</strong></div>` + rb.innerHTML;
-    cases = savedCases; // restore admin cases
-  } else {
-    _origRenderReport();
-  }
-}
-
-// ── UPDATE applyRoleUI to also set up team report bar ──
-const _origApplyRoleUI = applyRoleUI;
+// ── Team report and role UI handled in originals directly ──
 function applyRoleUI() {
-  _origApplyRoleUI();
   const role = currentUserRole;
+  // Show Team tab for admin + super_admin
   if(role === 'admin' || role === 'super_admin') {
+    document.querySelectorAll('.sb-admin-only').forEach(el => el.style.display = '');
+    document.getElementById('sb-team-btn').style.display = '';
     // Show team report bar in Reports tab
     const bar = document.getElementById('team-rpt-bar');
     if(bar) bar.classList.add('show');
@@ -6631,14 +6631,6 @@ function applyRoleUI() {
       const tm = document.createElement('option'); tm.value='team-monthly'; tm.textContent='Team — This Month';
       sel.appendChild(sep); sel.appendChild(td); sel.appendChild(tm);
     }
-  }
-}
-function applyRoleUI() {
-  const role = currentUserRole;
-  // Show Team tab for admin + super_admin
-  if(role === 'admin' || role === 'super_admin') {
-    document.querySelectorAll('.sb-admin-only').forEach(el => el.style.display = '');
-    document.getElementById('sb-team-btn').style.display = '';
   }
   // Show Admin tab for super_admin only
   if(role === 'super_admin') {
