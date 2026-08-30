@@ -2613,7 +2613,7 @@ function migrateLegacyData() {
   });
 }
 
-function save(){
+function save(changedCaseId){
   // Block saves when viewing employee workspace (read-only)
   if(isReadOnly()) return;
   // Save to localStorage immediately (fast, instant UI)
@@ -2625,9 +2625,15 @@ function save(){
       toast('⚠ Storage full — export a JSON backup');
     }
   }
-  // Sync to Supabase in background (all cases)
+  // Sync only the changed case to Supabase (not all cases)
   if(currentUser) {
-    cases.forEach(c => saveToSupabase(c));
+    if(changedCaseId) {
+      const c = cases.find(x => x.id === changedCaseId);
+      if(c) saveToSupabase(c);
+    } else {
+      // No specific case ID provided — sync all (import, bulk ops)
+      cases.forEach(c => saveToSupabase(c));
+    }
   }
 }
 
@@ -3251,13 +3257,14 @@ function renderDTab(tab){
   }
 }
 function addComment(){
+  if(isReadOnly()){toast('👁 Read-only — cannot add comments on employee cases');return;}
   const c=cases.find(x=>x.id===openDetailId);if(!c)return;
   const inp=document.getElementById('cmt-input');
   const text=inp?.value.trim();if(!text){toast('Enter a comment');return;}
   if(!c.comments)c.comments=[];
   c.comments.push({author:'You',text,ts:Date.now()});
   logAudit('comment', c.number, c.name, `Comment added`);
-  save();renderDTab('comments');toast('Comment added');
+  save(c.id);renderDTab('comments');toast('Comment added');
 }
 function editFromDetail(){if(openDetailId)openModal(openDetailId);}
 function deleteFromDetail(){if(openDetailId){deleteCase(openDetailId);closeDetail();}}
@@ -3384,6 +3391,7 @@ function editBannerEntry(key){
 }
 
 function saveBannerEdit(key){
+  if(isReadOnly()){toast('👁 Read-only — cannot edit banner entries');return;}
   const c=cases.find(x=>x.id===openDetailId);if(!c||!c.bannerLog)return;
   const old=c.bannerLog[key];if(!old)return;
   const count=parseInt(document.getElementById(`bl-edit-count-${key}`)?.value)||0;
@@ -3393,12 +3401,13 @@ function saveBannerEdit(key){
   c.bannerLog[key]={...old, count, date, note, ts: old.ts||Date.now()};
   c.totalBanners=sumB(c);
   logAudit('banner', c.number, c.name, `Edited banner entry: ${count} banners on ${fmtDateUS(date)}${note?' — '+note:''}`);
-  save();renderBannerList();renderAll();
+  save(c.id);renderBannerList();renderAll();
   if(openDetailId)renderDTab(openDTab);
   toast('Entry updated');
   renderNotifications();
 }
 function saveBannerEntry(){
+  if(isReadOnly()){toast('👁 Read-only — cannot log banners on employee cases');return;}
   const c=cases.find(x=>x.id===openDetailId);if(!c)return;
   const count=parseInt(document.getElementById('bl-count').value)||0;
   if(count<=0){toast('Enter a count > 0');return;}
@@ -3417,7 +3426,7 @@ function saveBannerEntry(){
   c.bannerLog.push({count,date,note,ts:Date.now()});
   c.totalBanners=sumB(c);
   logAudit('banner', c.number, c.name, `Logged ${count} banners on ${fmtDateUS(date)}${note?' — '+note:''}`);
-  save();renderBannerList();renderAll();
+  save(c.id);renderBannerList();renderAll();
   if(openDetailId)renderDTab(openDTab);
   document.getElementById('bl-count').value='';document.getElementById('bl-note').value='';
   const newDone=sumB(c);
@@ -4321,7 +4330,7 @@ function saveCase(){
   c.totalBanners=sumB(c);
   if(isEdit){const idx=cases.findIndex(x=>x.id===editId);cases[idx]=c;}else cases.push(c);
   logAudit(isEdit?'edited':'created', c.number, c.name, isEdit?'Case updated':'Case created');
-  save();closeModal();renderAll();renderPinnedCases();renderNotifications();
+  save(c.id);closeModal();renderAll();renderPinnedCases();renderNotifications();
   if(isEdit&&openDetailId===c.id)openDetail(c.id);
   toast(isEdit?'Case updated!':'Case added!');
 }
@@ -4923,6 +4932,7 @@ function renderSavedFilters() {
 
 // ── PINNED CASES ──
 function togglePin(id) {
+  if(isReadOnly()){toast('👁 Read-only — cannot pin employee cases');return;}
   if (pinnedCases.has(id)) pinnedCases.delete(id);
   else pinnedCases.add(id);
   saveSettings();
@@ -4968,6 +4978,7 @@ function openEODModal() {
 }
 function closeEODModal() { document.getElementById('eod-modal').classList.remove('open'); }
 function saveEODLog() {
+  if(isReadOnly()){toast('👁 Read-only — cannot log EOD work on employee cases');return;}
   const date = document.getElementById('eod-date').value || todayUS();
   let logged = 0;
   const active = cases.filter(c => ['In Progress','New','Pending Your Input'].includes(c.status));
@@ -5322,13 +5333,14 @@ function clearAuditLog() {
 
 // ── ARCHIVE ──
 function archiveCase(id) {
+  if(isReadOnly()){toast('👁 Read-only — cannot archive employee cases');return;}
   const c = cases.find(x => x.id === id);
   if (!c) return;
   c.archived = true;
   pinnedCases.delete(id);
   selected.delete(id);
   logAudit('archived', c.number, c.name, `Archived (was ${c.status})`);
-  save(); saveSettings(); renderAll(); renderArchive(); renderPinnedCases();
+  save(c.id); saveSettings(); renderAll(); renderArchive(); renderPinnedCases();
   if (openDetailId === id) closeDetail();
   toast(`"${c.name}" archived`);
 }
@@ -5617,25 +5629,45 @@ let realtimeChannel = null;
 
 function startRealtime() {
   if(!currentUser || realtimeChannel) return;
+  // Listen to cases + all nested tables — any change on any device triggers a reload
   realtimeChannel = supa
-    .channel('cases-changes')
+    .channel('sf-tracker-changes')
     .on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'cases',
+      event: '*', schema: 'public', table: 'cases',
       filter: `user_id=eq.${currentUser.id}`
     }, async (payload) => {
-      // Another device/tab changed a case — reload from Supabase
       if(payload.eventType === 'DELETE') {
         cases = cases.filter(c => c.id !== payload.old.id);
         renderAll();
       } else {
-        // INSERT or UPDATE — reload full case list
         await loadFromSupabase();
         renderAll();
       }
     })
-    .subscribe();
+    .on('postgres_changes', {
+      event: '*', schema: 'public', table: 'banner_log',
+      filter: `user_id=eq.${currentUser.id}`
+    }, async () => {
+      await loadFromSupabase();
+      renderAll();
+    })
+    .on('postgres_changes', {
+      event: '*', schema: 'public', table: 'work_log',
+      filter: `user_id=eq.${currentUser.id}`
+    }, async () => {
+      await loadFromSupabase();
+      renderAll();
+    })
+    .on('postgres_changes', {
+      event: '*', schema: 'public', table: 'comments',
+      filter: `user_id=eq.${currentUser.id}`
+    }, async () => {
+      await loadFromSupabase();
+      renderAll();
+    })
+    .subscribe((status) => {
+      if(status === 'SUBSCRIBED') console.log('✅ Realtime connected');
+    });
 }
 
 function stopRealtime() {
@@ -5775,23 +5807,54 @@ function runHealthCheck() {
     </div>`).join('');
 }
 function clearAllData() {
-  if (!confirm('⚠ This will permanently delete ALL cases and settings.\nThis cannot be undone.\n\nAre you absolutely sure?')) return;
-  if (!confirm('Last chance — delete everything?')) return;
+  if (!confirm('⚠ This will permanently delete ALL your cases and settings — from this device AND from the cloud (Supabase).\n\nThis cannot be undone.\n\nAre you absolutely sure?')) return;
+  if (!confirm('Last chance — delete everything including cloud data?')) return;
+
+  // Clear localStorage
   localStorage.removeItem(STORE);
   localStorage.removeItem(SETTINGS_STORE);
   localStorage.removeItem(AUDIT_STORE);
+
+  // Reset state
   cases=[]; auditLog=[];
   pinnedCases=new Set(); savedFilters=[]; lastExportDate=null;
   dismissedNotifs=new Set();
-  dashPickMonth=null;
-  customReportSections=[];
-  acpCasesOpen=false;
-  kanbanCollapsed={'Closed':true};
+  dashPickMonth=null; customReportSections=[];
+  acpCasesOpen=false; kanbanCollapsed={'Closed':true};
   dashWidgets={alerts:true,stats:true,metrics:true,activecases:true,recent:true,quickadd:true,digest:true,focus:true,goal:true,streak:true};
-  dashPeriod='overall';
-  customTypes=[]; rebuildTypes();
+  dashPeriod='overall'; customTypes=[]; rebuildTypes();
   renderAll(); renderSavedFilters(); renderPinnedCases(); renderNotifications();
-  toast('All data cleared');
+  toast('Clearing cloud data…');
+
+  // Delete from Supabase in background
+  if(currentUser) {
+    (async () => {
+      try {
+        const uid = currentUser.id;
+        // Get all case IDs first
+        const { data: userCases } = await supa.from('cases').select('id').eq('user_id', uid);
+        const ids = (userCases||[]).map(c=>c.id);
+        if(ids.length) {
+          // Delete nested data (cascade handles most but explicit is safer)
+          await Promise.all([
+            supa.from('banner_log').delete().in('case_id', ids),
+            supa.from('work_log').delete().in('case_id', ids),
+            supa.from('comments').delete().in('case_id', ids),
+            supa.from('status_history').delete().in('case_id', ids),
+          ]);
+          await supa.from('cases').delete().eq('user_id', uid);
+        }
+        await supa.from('audit_log').delete().eq('user_id', uid);
+        await supa.from('user_settings').delete().eq('user_id', uid);
+        toast('✅ All data cleared from device and cloud');
+      } catch(err) {
+        console.error('Supabase clear error:', err);
+        toast('⚠ Local data cleared — cloud clear may have partially failed. Check Supabase.');
+      }
+    })();
+  } else {
+    toast('All data cleared');
+  }
 }
 
 // ── MORNING BRIEFING ──
@@ -6416,6 +6479,7 @@ function wlShowAddForm(){
 }
 
 function wlSaveNew(){
+  if(isReadOnly()){toast('👁 Read-only — cannot log work on employee cases');return;}
   const c=cases.find(x=>x.id===openDetailId);if(!c)return;
   const atype=document.getElementById('wl-atype')?.value;
   const date=document.getElementById('wl-date')?.value||todayUS();
@@ -6775,17 +6839,28 @@ function renderAdminUsers(body) {
   body.innerHTML = `
     <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:12px">${allProfiles.length} Users</div>
     ${rows}
-    <div style="margin-top:16px;font-size:11px;color:var(--text3)">💡 To invite a new user, use the <strong>Invite User</strong> tab. Role changes take effect on next sign-in.</div>`;
+    <div style="margin-top:16px;font-size:11px;color:var(--text3)">💡 To invite a new user, use the <strong>Invite User</strong> tab. Role changes are read from the profiles table on every sign-in — no SQL needed.</div>`;
 }
 
 async function updateUserRole(userId, newRole) {
-  // Update in profiles table
+  const profile = allProfiles.find(p => p.id === userId);
+  const name = profile?.name || profile?.email || 'this user';
+  const roleLabels = { super_admin: 'Super Admin', admin: 'Admin', employee: 'Employee' };
+
+  // Fix 5: Confirmation before role change
+  if(!confirm(`Change ${name}'s role to ${roleLabels[newRole]||newRole}?\n\nThis will take effect immediately on their next action.`)) {
+    // Reset the select back to old role
+    renderAdminTab();
+    return;
+  }
+
+  // Update profiles table
   const { error } = await supa.from('profiles').update({ role: newRole }).eq('id', userId);
-  if(error){ toast('❌ Failed to update role: ' + error.message); return; }
-  // Also update auth user metadata via admin function
-  // (Supabase RLS allows super_admin to update profiles — metadata sync happens on next login)
+  if(error){ toast('❌ Failed to update role: ' + error.message); renderAdminTab(); return; }
+
+  // Update local state
   allProfiles = allProfiles.map(p => p.id === userId ? {...p, role: newRole} : p);
-  toast(`✅ Role updated to ${newRole}`);
+  toast(`✅ ${name}'s role updated to ${roleLabels[newRole]||newRole} — takes effect on their next sign-in`);
   renderAdminTab();
 }
 
@@ -6918,8 +6993,20 @@ async function authInit() {
 
 async function authSetUser(user) {
   currentUser = user;
-  // Role stored in user_metadata — set when creating user in Supabase dashboard
-  currentUserRole = user.user_metadata?.role || 'employee';
+
+  // Read role from profiles table (source of truth — Admin panel updates this)
+  // Falls back to user_metadata for first-time users before profile is created
+  let roleFromProfile = null;
+  try {
+    const { data: profile } = await supa
+      .from('profiles')
+      .select('role, name')
+      .eq('id', user.id)
+      .single();
+    if(profile?.role) roleFromProfile = profile.role;
+  } catch(e) {}
+
+  currentUserRole = roleFromProfile || user.user_metadata?.role || 'employee';
   const name = user.user_metadata?.name || user.email?.split('@')[0] || 'User';
   const initial = name[0].toUpperCase();
 
