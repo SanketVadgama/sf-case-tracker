@@ -1,0 +1,8 @@
+{
+  "name": "Salesforce Case Tracker & Report",
+  "description": "Salesforce Case Tracker and Report dashboard for managing cases, banner work logs, daily activity reports, team overviews, and analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
