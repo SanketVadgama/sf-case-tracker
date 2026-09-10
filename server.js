@@ -81,6 +81,57 @@ app.post('/api/admin/invite', async (req, res) => {
   }
 });
 
+// Admin Update User Role endpoint (bypasses client-side RLS when service role key is present)
+app.post('/api/admin/set-role', async (req, res) => {
+  const { userId, role } = req.body || {};
+  if (!userId || !role) {
+    return res.status(400).json({ error: 'userId and role are required' });
+  }
+
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceRoleKey) {
+    return res.status(501).json({
+      error: 'SUPABASE_SERVICE_ROLE_KEY not configured on server',
+      manualRequired: true
+    });
+  }
+
+  try {
+    const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': serviceRoleKey,
+        'Authorization': `Bearer ${serviceRoleKey}`,
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify({ role, updated_at: new Date().toISOString() })
+    });
+
+    const data = await updateRes.json();
+    if (!updateRes.ok) {
+      return res.status(updateRes.status).json({ error: data.message || 'Failed to update profile' });
+    }
+
+    // Also update auth.users metadata if possible so both stay in sync
+    try {
+      await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': serviceRoleKey,
+          'Authorization': `Bearer ${serviceRoleKey}`
+        },
+        body: JSON.stringify({ user_metadata: { role } })
+      });
+    } catch(e) {}
+
+    return res.json({ success: true, profile: data });
+  } catch(err) {
+    return res.status(500).json({ error: err.message || 'Server error updating role' });
+  }
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });

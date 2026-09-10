@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "node server.js",
-    "build": "echo 'Build complete'",
+    "build": "mkdir -p public && cp -rf index.html css public/ && echo 'Build complete'",
     "start": "node server.js"
   },
   "dependencies": {

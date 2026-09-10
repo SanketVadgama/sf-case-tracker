@@ -113,10 +113,21 @@ DO $$
 BEGIN
   -- Profiles
   DROP POLICY IF EXISTS "Users can view all profiles" ON public.profiles;
-  CREATE POLICY "Users can view all profiles" ON public.profiles FOR SELECT TO authenticated USING (true);
-  
   DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
-  CREATE POLICY "Users can update their own profile" ON public.profiles FOR ALL TO authenticated USING (auth.uid() = id);
+  DROP POLICY IF EXISTS "Admins and users can update profiles" ON public.profiles;
+  DROP POLICY IF EXISTS "Users can access profiles" ON public.profiles;
+  DROP POLICY IF EXISTS "Users can manage profiles" ON public.profiles;
+
+  -- Allow all authenticated users to read all profiles (required for Team tab, Admin tab, and Reports)
+  CREATE POLICY "Users can view all profiles" ON public.profiles 
+    FOR SELECT TO authenticated 
+    USING (true);
+
+  -- Allow all authenticated users to insert or update profiles (prevents infinite recursion)
+  CREATE POLICY "Users can manage profiles" ON public.profiles 
+    FOR ALL TO authenticated 
+    USING (true) 
+    WITH CHECK (true);
 
   -- Cases
   DROP POLICY IF EXISTS "Users can access cases" ON public.cases;
